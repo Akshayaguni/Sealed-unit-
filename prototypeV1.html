@@ -1,0 +1,2148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glass Calculator - UK</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .tab-active {
+            background-color: #2563eb;
+            color: white;
+        }
+        .shape-option {
+            transition: all 0.3s ease;
+        }
+        .shape-option:hover {
+            transform: scale(1.05);
+        }
+        .shape-selected {
+            border: 3px solid #2563eb;
+            background-color: #eff6ff;
+        }
+        .price-display {
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            color: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .form-section {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            margin-bottom: 16px;
+        }
+        @media (min-width: 640px) {
+            .form-section {
+                padding: 24px;
+                margin-bottom: 20px;
+            }
+        }
+        .input-field {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+            transition: border-color 0.3s ease;
+        }
+        .input-field:focus {
+            border-color: #2563eb;
+            outline: none;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+        }
+        .error-message {
+            color: #dc2626;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .cart-item {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+        .cart-item:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 4px;
+        }
+        .quantity-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: #2563eb;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+        .quantity-btn:hover {
+            background: #1d4ed8;
+            transform: scale(1.1);
+        }
+        .quantity-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .quantity-display {
+            min-width: 40px;
+            text-align: center;
+            font-weight: 600;
+            color: #374151;
+        }
+        .cart-header {
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            color: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .cart-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6b7280;
+        }
+        .cart-empty svg {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 16px;
+            opacity: 0.5;
+        }
+        .delivery-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .delivery-modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            max-width: 600px;
+            width: 95%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+        @media (min-width: 640px) {
+            .delivery-modal-content {
+                padding: 24px;
+                width: 90%;
+                max-height: 80vh;
+            }
+        }
+        .delivery-area {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .delivery-area:hover {
+            border-color: #2563eb;
+            background-color: #eff6ff;
+        }
+        .delivery-area.selected {
+            border-color: #2563eb;
+            background-color: #eff6ff;
+        }
+        .delivery-counties {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .delivery-county {
+            background: #f8fafc;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            text-align: center;
+        }
+        .success-popup {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+            z-index: 1001;
+            transform: translateX(400px);
+            opacity: 0;
+            transition: all 0.4s ease;
+            max-width: 350px;
+        }
+        .success-popup.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        .success-popup .popup-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .success-popup .popup-icon {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+        .success-popup .popup-text {
+            flex: 1;
+        }
+        .success-popup .popup-title {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+        .success-popup .popup-message {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 max-w-7xl">
+        <header class="text-center mb-6 lg:mb-8">
+            <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-2">Glass Calculator</h1>
+            <p class="text-sm sm:text-base text-gray-600">Professional glazing solutions for the UK market</p>
+        </header>
+
+        <!-- Tab Navigation -->
+        <div class="flex justify-center mb-6 lg:mb-8">
+            <div class="bg-white rounded-lg p-1 sm:p-2 shadow-lg w-full max-w-md sm:max-w-none sm:w-auto">
+                <div class="flex flex-col sm:flex-row gap-1 sm:gap-2">
+                    <button id="singleTab" class="tab-btn tab-active px-3 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold transition-all duration-300 text-sm sm:text-base">
+                        Single Unit
+                    </button>
+                    <button id="doubleTab" class="tab-btn px-3 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold transition-all duration-300 text-sm sm:text-base">
+                        Double Glazed
+                    </button>
+                    <button id="tripleTab" class="tab-btn px-3 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold transition-all duration-300 text-sm sm:text-base">
+                        Triple Glazed
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8">
+            <!-- Calculator Form -->
+            <div class="xl:col-span-2">
+                <!-- Single Unit Tab -->
+                <div id="singleUnit" class="tab-content">
+                    <div class="form-section">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Unit Dimensions</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Width (mm) *</label>
+                                <input type="number" id="singleWidth" class="input-field w-full" min="100" max="1000" required>
+                                <div id="singleWidthError" class="error-message hidden">Width must be between 100-1000mm</div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Height (mm) *</label>
+                                <input type="number" id="singleHeight" class="input-field w-full" min="100" max="1000" required>
+                                <div id="singleHeightError" class="error-message hidden">Height must be between 100-1000mm</div>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Reference</label>
+                            <input type="text" id="singleReference" class="input-field w-full" placeholder="Optional reference">
+                        </div>
+                        <div class="mt-4">
+                            <p class="text-sm text-gray-600">Area: <span id="singleArea" class="font-semibold">0</span> mm²</p>
+                        </div>
+                    </div>
+
+
+
+                    <div class="form-section">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Shape *</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div class="shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center" data-shape="square" data-price="0">
+                                <div class="w-12 h-12 bg-blue-500 mx-auto mb-2"></div>
+                                <p class="text-sm font-medium">Square</p>
+                                <p class="text-xs text-gray-500">+0%</p>
+                            </div>
+                            <div class="shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center" data-shape="triangle" data-price="15">
+                                <div class="w-0 h-0 border-l-[30px] border-b-[30px] border-l-transparent border-b-blue-500 mx-auto mb-2"></div>
+                                <p class="text-sm font-medium">Right Angle Triangle</p>
+                                <p class="text-xs text-gray-500">+15%</p>
+                            </div>
+                            <div class="shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center" data-shape="rake" data-price="20">
+                                <div class="w-12 h-8 bg-blue-500 mx-auto mb-2 transform skew-x-12"></div>
+                                <p class="text-sm font-medium">Rake</p>
+                                <p class="text-xs text-gray-500">+20%</p>
+                            </div>
+                            <div class="shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center" data-shape="arched" data-price="25">
+                                <div class="w-12 h-6 bg-blue-500 rounded-t-full mx-auto mb-2"></div>
+                                <p class="text-sm font-medium">Arched-Top</p>
+                                <p class="text-xs text-gray-500">+25%</p>
+                            </div>
+                            <div class="shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center" data-shape="other" data-price="30">
+                                <div class="w-12 h-8 bg-blue-500 mx-auto mb-2 rounded-lg transform rotate-45"></div>
+                                <p class="text-sm font-medium">Other</p>
+                                <p class="text-xs text-gray-500">+30%</p>
+                            </div>
+                        </div>
+                        <input type="hidden" id="singleShape" required>
+                        <div id="singleShapeError" class="error-message hidden">Please select a shape</div>
+                        
+                        <!-- Custom shape input for "Other" -->
+                        <div id="singleCustomShapeContainer" class="mt-4 hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Describe the shape *</label>
+                            <input type="text" id="singleCustomShape" class="input-field w-full" placeholder="e.g., Hexagonal, L-shaped, Curved bottom">
+                            <div id="singleCustomShapeError" class="error-message hidden">Please describe the custom shape</div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Toughened Glass *</h3>
+                        <div class="flex gap-4">
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="singleToughened" value="yes" data-price="20" class="mr-2">
+                                <span>Yes (+20%)</span>
+                            </label>
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="singleToughened" value="no" data-price="0" class="mr-2">
+                                <span>No</span>
+                            </label>
+                        </div>
+                        <div id="singleToughenedError" class="error-message hidden">Please select toughened glass option</div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Pet Flap/Vent Hole *</h3>
+                        <div class="flex gap-4">
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="singlePetFlap" value="none" data-price="0" class="mr-2">
+                                <span>None</span>
+                            </label>
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="singlePetFlap" value="yes" data-price="50" class="mr-2">
+                                <span>Yes (+£50)</span>
+                            </label>
+                        </div>
+                        <div id="singlePetFlapError" class="error-message hidden">Please select pet flap option</div>
+                    </div>
+
+
+
+                    <div class="form-section">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Optional Extras</h3>
+                        <select id="singleExtras" class="input-field w-full">
+                            <option value="none" data-price="0">None</option>
+                            <option value="lead" data-price="75">Lead (+£75)</option>
+                            <option value="georgian" data-price="100">Georgian Bars (+£100)</option>
+                            <option value="duplex" data-price="125">Duplex Grid (+£125)</option>
+                        </select>
+                        
+                        <!-- Lead Options -->
+                        <div id="singleLeadOptions" class="mt-4 hidden">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Lead Type</label>
+                                    <select id="singleLeadType" class="input-field w-full">
+                                        <option value="">Select</option>
+                                        <option value="9mm-square">9mm Square Lead</option>
+                                        <option value="12mm-square">12mm Square Lead</option>
+                                        <option value="9mm-decorative">9mm Decorative</option>
+                                        <option value="12mm-decorative">12mm Decorative</option>
+                                        <option value="9mm-diamond">9mm Diamond</option>
+                                        <option value="12mm-diamond">12mm Diamond</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Lead Color</label>
+                                    <select id="singleLeadColor" class="input-field w-full">
+                                        <option value="">Select</option>
+                                        <option value="silver-soldered">Silver Soldered</option>
+                                        <option value="silver-unsoldered">Silver Unsoldered</option>
+                                        <option value="antique-soldered">Antique Soldered</option>
+                                        <option value="antique-unsoldered">Antique Unsoldered</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Georgian Bars Options -->
+                        <div id="singleGeorgianOptions" class="mt-4 hidden">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Georgian Bars Size</label>
+                                <select id="singleGeorgianSize" class="input-field w-full">
+                                    <option value="">Select</option>
+                                    <option value="18mm-white">18mm White</option>
+                                    <option value="25mm-white">25mm White</option>
+                                    <option value="18mm-white-single">18mm White Single</option>
+                                    <option value="25mm-white-single">25mm White Single</option>
+                                    <option value="18mm-woodgrain">18mm Woodgrain</option>
+                                    <option value="25mm-woodgrain">25mm Woodgrain</option>
+                                    <option value="18mm-brown">18mm Brown</option>
+                                    <option value="25mm-brown">25mm Brown</option>
+                                    <option value="8mm-gold">8mm Gold</option>
+                                    <option value="8mm-chrome">8mm Chrome</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Duplex Grid Options -->
+                        <div id="singleDuplexOptions" class="mt-4 hidden">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Duplex Grid Size</label>
+                                <select id="singleDuplexSize" class="input-field w-full">
+                                    <option value="">Select</option>
+                                    <option value="18mm-integral">18mm Integral</option>
+                                    <option value="18mm-single-integral">18mm Single Integral</option>
+                                    <option value="24mm-integral">24mm Integral</option>
+                                    <option value="24mm-single-integral">24mm Single Integral</option>
+                                    <option value="39mm-integral">39mm Integral</option>
+                                    <option value="39mm-single-integral">39mm Single Integral</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Double Glazed Tab -->
+                <div id="doubleGlazed" class="tab-content hidden">
+                    <div class="form-section">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Unit Dimensions</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Width (mm) *</label>
+                                <input type="number" id="doubleWidth" class="input-field w-full" min="100" max="1000" required>
+                                <div id="doubleWidthError" class="error-message hidden">Width must be between 100-1000mm</div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Height (mm) *</label>
+                                <input type="number" id="doubleHeight" class="input-field w-full" min="100" max="1000" required>
+                                <div id="doubleHeightError" class="error-message hidden">Height must be between 100-1000mm</div>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Reference</label>
+                            <input type="text" id="doubleReference" class="input-field w-full" placeholder="Optional reference">
+                        </div>
+                        <div class="mt-4">
+                            <p class="text-sm text-gray-600">Area: <span id="doubleArea" class="font-semibold">0</span> mm²</p>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Glass Configuration</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Outer Glass</label>
+                                <select id="doubleOuterGlass" class="input-field w-full">
+                                    <option value="">Select</option>
+                                    <option value="4mm-clear" data-price="15">4mm Clear</option>
+                                    <option value="4mm-obscure" data-price="18">4mm Obscure</option>
+                                    <option value="6mm-clear" data-price="22">6mm Clear</option>
+                                    <option value="8mm-clear" data-price="28">8mm Clear</option>
+                                    <option value="10mm-clear" data-price="35">10mm Clear</option>
+                                    <option value="6.4mm-clear-lam" data-price="45">6.4mm Clear Lam</option>
+                                    <option value="6.8mm-clear-lam" data-price="48">6.8mm Clear Lam</option>
+                                    <option value="6.8mm-acoustic-lam" data-price="55">6.8mm Acoustic Lam</option>
+                                    <option value="8.8mm-clear-lam" data-price="58">8.8mm Clear Lam</option>
+                                    <option value="4mm-self-clean-clear" data-price="25">4mm Self Clean Clear</option>
+                                    <option value="4mm-self-clean-blue" data-price="28">4mm Self Clean Blue</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Inner Glass</label>
+                                <select id="doubleInnerGlass" class="input-field w-full">
+                                    <option value="">Select</option>
+                                    <option value="18mm-integral" data-price="15">18mm Integral</option>
+                                    <option value="18mm-single-integral" data-price="18">18mm Single Integral</option>
+                                    <option value="24mm-integral" data-price="22">24mm Integral</option>
+                                    <option value="24mm-single-integral" data-price="28">24mm Single Integral</option>
+                                    <option value="39mm-integral" data-price="35">39mm Integral</option>
+                                    <option value="39mm-single-integral" data-price="45">39mm Single Integral</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Spacer Bar</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Width</label>
+                                <select id="doubleSpacerWidth" class="input-field w-full">
+                                    <option value="">Select</option>
+                                    <option value="20" data-price="9">20mm</option>
+                                    <option value="18" data-price="8">18mm</option>
+                                    <option value="16" data-price="7">16mm</option>
+                                    <option value="14" data-price="6">14mm</option>
+                                    <option value="12" data-price="5">12mm</option>
+                                    <option value="10" data-price="4">10mm</option>
+                                    <option value="8" data-price="3">8mm</option>
+                                    <option value="6" data-price="2">6mm</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Colour</label>
+                                <select id="doubleSpacerColour" class="input-field w-full">
+                                    <option value="white" data-price="0">White</option>
+                                    <option value="black" data-price="5">Black</option>
+                                    <option value="light-grey" data-price="3">Light Grey</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Shape, Toughened, Pet Flap, Extras sections similar to single unit -->
+                    <div class="form-section">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Shape *</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div class="shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center" data-shape="square" data-price="0">
+                                <div class="w-12 h-12 bg-blue-500 mx-auto mb-2"></div>
+                                <p class="text-sm font-medium">Square</p>
+                                <p class="text-xs text-gray-500">+0%</p>
+                            </div>
+                            <div class="shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center" data-shape="triangle" data-price="15">
+                                <div class="w-0 h-0 border-l-[30px] border-b-[30px] border-l-transparent border-b-blue-500 mx-auto mb-2"></div>
+                                <p class="text-sm font-medium">Right Angle Triangle</p>
+                                <p class="text-xs text-gray-500">+15%</p>
+                            </div>
+                            <div class="shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center" data-shape="rake" data-price="20">
+                                <div class="w-12 h-8 bg-blue-500 mx-auto mb-2 transform skew-x-12"></div>
+                                <p class="text-sm font-medium">Rake</p>
+                                <p class="text-xs text-gray-500">+20%</p>
+                            </div>
+                            <div class="shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center" data-shape="arched" data-price="25">
+                                <div class="w-12 h-6 bg-blue-500 rounded-t-full mx-auto mb-2"></div>
+                                <p class="text-sm font-medium">Arched-Top</p>
+                                <p class="text-xs text-gray-500">+25%</p>
+                            </div>
+                            <div class="shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center" data-shape="other" data-price="30">
+                                <div class="w-12 h-8 bg-blue-500 mx-auto mb-2 rounded-lg transform rotate-45"></div>
+                                <p class="text-sm font-medium">Other</p>
+                                <p class="text-xs text-gray-500">+30%</p>
+                            </div>
+                        </div>
+                        <input type="hidden" id="doubleShape" required>
+                        <div id="doubleShapeError" class="error-message hidden">Please select a shape</div>
+                        
+                        <!-- Custom shape input for "Other" -->
+                        <div id="doubleCustomShapeContainer" class="mt-4 hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Describe the shape *</label>
+                            <input type="text" id="doubleCustomShape" class="input-field w-full" placeholder="e.g., Hexagonal, L-shaped, Curved bottom">
+                            <div id="doubleCustomShapeError" class="error-message hidden">Please describe the custom shape</div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Toughened Glass *</h3>
+                        <div class="flex gap-4">
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="doubleToughened" value="yes" data-price="20" class="mr-2">
+                                <span>Yes (+20%)</span>
+                            </label>
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="doubleToughened" value="no" data-price="0" class="mr-2">
+                                <span>No</span>
+                            </label>
+                        </div>
+                        <div id="doubleToughenedError" class="error-message hidden">Please select toughened glass option</div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Pet Flap/Vent Hole *</h3>
+                        <div class="flex gap-4">
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="doublePetFlap" value="none" data-price="0" class="mr-2">
+                                <span>None</span>
+                            </label>
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="doublePetFlap" value="yes" data-price="50" class="mr-2">
+                                <span>Yes (+£50)</span>
+                            </label>
+                        </div>
+                        <div id="doublePetFlapError" class="error-message hidden">Please select pet flap option</div>
+                    </div>
+
+
+
+                    <div class="form-section">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Optional Extras</h3>
+                        <select id="doubleExtras" class="input-field w-full">
+                            <option value="none" data-price="0">None</option>
+                            <option value="lead" data-price="75">Lead (+£75)</option>
+                            <option value="georgian" data-price="100">Georgian Bars (+£100)</option>
+                            <option value="duplex" data-price="125">Duplex Grid (+£125)</option>
+                        </select>
+                        
+                        <!-- Lead Options -->
+                        <div id="doubleLeadOptions" class="mt-4 hidden">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Lead Type</label>
+                                    <select id="doubleLeadType" class="input-field w-full">
+                                        <option value="">Select</option>
+                                        <option value="9mm-square">9mm Square Lead</option>
+                                        <option value="12mm-square">12mm Square Lead</option>
+                                        <option value="9mm-decorative">9mm Decorative</option>
+                                        <option value="12mm-decorative">12mm Decorative</option>
+                                        <option value="9mm-diamond">9mm Diamond</option>
+                                        <option value="12mm-diamond">12mm Diamond</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Lead Color</label>
+                                    <select id="doubleLeadColor" class="input-field w-full">
+                                        <option value="">Select</option>
+                                        <option value="silver-soldered">Silver Soldered</option>
+                                        <option value="silver-unsoldered">Silver Unsoldered</option>
+                                        <option value="antique-soldered">Antique Soldered</option>
+                                        <option value="antique-unsoldered">Antique Unsoldered</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Georgian Bars Options -->
+                        <div id="doubleGeorgianOptions" class="mt-4 hidden">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Georgian Bars Size</label>
+                                <select id="doubleGeorgianSize" class="input-field w-full">
+                                    <option value="">Select</option>
+                                    <option value="18mm-white">18mm White</option>
+                                    <option value="25mm-white">25mm White</option>
+                                    <option value="18mm-white-single">18mm White Single</option>
+                                    <option value="25mm-white-single">25mm White Single</option>
+                                    <option value="18mm-woodgrain">18mm Woodgrain</option>
+                                    <option value="25mm-woodgrain">25mm Woodgrain</option>
+                                    <option value="18mm-brown">18mm Brown</option>
+                                    <option value="25mm-brown">25mm Brown</option>
+                                    <option value="8mm-gold">8mm Gold</option>
+                                    <option value="8mm-chrome">8mm Chrome</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Duplex Grid Options -->
+                        <div id="doubleDuplexOptions" class="mt-4 hidden">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Duplex Grid Size</label>
+                                <select id="doubleDuplexSize" class="input-field w-full">
+                                    <option value="">Select</option>
+                                    <option value="18mm-integral">18mm Integral</option>
+                                    <option value="18mm-single-integral">18mm Single Integral</option>
+                                    <option value="24mm-integral">24mm Integral</option>
+                                    <option value="24mm-single-integral">24mm Single Integral</option>
+                                    <option value="39mm-integral">39mm Integral</option>
+                                    <option value="39mm-single-integral">39mm Single Integral</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Triple Glazed Tab -->
+                <div id="tripleGlazed" class="tab-content hidden">
+                    <div class="form-section">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Unit Dimensions</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Width (mm) *</label>
+                                <input type="number" id="tripleWidth" class="input-field w-full" min="100" max="1000" required>
+                                <div id="tripleWidthError" class="error-message hidden">Width must be between 100-1000mm</div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Height (mm) *</label>
+                                <input type="number" id="tripleHeight" class="input-field w-full" min="100" max="1000" required>
+                                <div id="tripleHeightError" class="error-message hidden">Height must be between 100-1000mm</div>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Reference</label>
+                            <input type="text" id="tripleReference" class="input-field w-full" placeholder="Optional reference">
+                        </div>
+                        <div class="mt-4">
+                            <p class="text-sm text-gray-600">Area: <span id="tripleArea" class="font-semibold">0</span> mm²</p>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Glass Configuration</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Outer Glass</label>
+                                <select id="tripleOuterGlass" class="input-field w-full">
+                                    <option value="">Select</option>
+                                    <option value="4mm-clear" data-price="15">4mm Clear</option>
+                                    <option value="4mm-obscure" data-price="18">4mm Obscure</option>
+                                    <option value="6mm-clear" data-price="22">6mm Clear</option>
+                                    <option value="8mm-clear" data-price="28">8mm Clear</option>
+                                    <option value="10mm-clear" data-price="35">10mm Clear</option>
+                                    <option value="6.4mm-clear-lam" data-price="45">6.4mm Clear Lam</option>
+                                    <option value="6.8mm-clear-lam" data-price="48">6.8mm Clear Lam</option>
+                                    <option value="6.8mm-acoustic-lam" data-price="55">6.8mm Acoustic Lam</option>
+                                    <option value="8.8mm-clear-lam" data-price="58">8.8mm Clear Lam</option>
+                                    <option value="4mm-self-clean-clear" data-price="25">4mm Self Clean Clear</option>
+                                    <option value="4mm-self-clean-blue" data-price="28">4mm Self Clean Blue</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Centre Glass</label>
+                                <select id="tripleCentreGlass" class="input-field w-full">
+                                    <option value="">Select</option>
+                                    <option value="4mm-clear" data-price="15">4mm Clear</option>
+                                    <option value="4mm-low-e-one" data-price="18">4mm Low-E ONE</option>
+                                    <option value="4mm-low-e-total" data-price="22">4mm Low-E TOTAL</option>
+                                    <option value="6mm-clear" data-price="22">6mm Clear</option>
+                                    <option value="6mm-low-e-one" data-price="28">6mm Low-E ONE</option>
+                                    <option value="6mm-low-e-total" data-price="32">6mm Low-E TOTAL</option>
+                                    <option value="8mm-clear" data-price="28">8mm Clear</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Inner Glass</label>
+                                <select id="tripleInnerGlass" class="input-field w-full">
+                                    <option value="">Select</option>
+                                    <option value="4mm-clear" data-price="15">4mm Clear</option>
+                                    <option value="4mm-low-e-one" data-price="18">4mm Low-E ONE</option>
+                                    <option value="4mm-low-e-total" data-price="22">4mm Low-E TOTAL</option>
+                                    <option value="6mm-clear" data-price="22">6mm Clear</option>
+                                    <option value="6mm-low-e-one" data-price="28">6mm Low-E ONE</option>
+                                    <option value="6mm-low-e-total" data-price="32">6mm Low-E TOTAL</option>
+                                    <option value="8mm-clear" data-price="28">8mm Clear</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Spacer Bars</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Spacer Bar 1 Width</label>
+                                <select id="tripleSpacer1Width" class="input-field w-full">
+                                    <option value="">Select</option>
+                                    <option value="20" data-price="9">20mm</option>
+                                    <option value="18" data-price="8">18mm</option>
+                                    <option value="16" data-price="7">16mm</option>
+                                    <option value="14" data-price="6">14mm</option>
+                                    <option value="12" data-price="5">12mm</option>
+                                    <option value="10" data-price="4">10mm</option>
+                                    <option value="8" data-price="3">8mm</option>
+                                    <option value="6" data-price="2">6mm</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Spacer Bar 2 Width</label>
+                                <select id="tripleSpacer2Width" class="input-field w-full">
+                                    <option value="">Select</option>
+                                    <option value="20" data-price="9">20mm</option>
+                                    <option value="18" data-price="8">18mm</option>
+                                    <option value="16" data-price="7">16mm</option>
+                                    <option value="14" data-price="6">14mm</option>
+                                    <option value="12" data-price="5">12mm</option>
+                                    <option value="10" data-price="4">10mm</option>
+                                    <option value="8" data-price="3">8mm</option>
+                                    <option value="6" data-price="2">6mm</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Spacer Bar Colour</label>
+                                <select id="tripleSpacerColour" class="input-field w-full">
+                                    <option value="white" data-price="0">White</option>
+                                    <option value="black" data-price="5">Black</option>
+                                    <option value="light-grey" data-price="3">Light Grey</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Shape, Toughened, Pet Flap, Extras sections -->
+                    <div class="form-section">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Shape *</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div class="shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center" data-shape="square" data-price="0">
+                                <div class="w-12 h-12 bg-blue-500 mx-auto mb-2"></div>
+                                <p class="text-sm font-medium">Square</p>
+                                <p class="text-xs text-gray-500">+0%</p>
+                            </div>
+                            <div class="shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center" data-shape="triangle" data-price="15">
+                                <div class="w-0 h-0 border-l-[30px] border-b-[30px] border-l-transparent border-b-blue-500 mx-auto mb-2"></div>
+                                <p class="text-sm font-medium">Right Angle Triangle</p>
+                                <p class="text-xs text-gray-500">+15%</p>
+                            </div>
+                            <div class="shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center" data-shape="rake" data-price="20">
+                                <div class="w-12 h-8 bg-blue-500 mx-auto mb-2 transform skew-x-12"></div>
+                                <p class="text-sm font-medium">Rake</p>
+                                <p class="text-xs text-gray-500">+20%</p>
+                            </div>
+                            <div class="shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center" data-shape="arched" data-price="25">
+                                <div class="w-12 h-6 bg-blue-500 rounded-t-full mx-auto mb-2"></div>
+                                <p class="text-sm font-medium">Arched-Top</p>
+                                <p class="text-xs text-gray-500">+25%</p>
+                            </div>
+                            <div class="shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center" data-shape="other" data-price="30">
+                                <div class="w-12 h-8 bg-blue-500 mx-auto mb-2 rounded-lg transform rotate-45"></div>
+                                <p class="text-sm font-medium">Other</p>
+                                <p class="text-xs text-gray-500">+30%</p>
+                            </div>
+                        </div>
+                        <input type="hidden" id="tripleShape" required>
+                        <div id="tripleShapeError" class="error-message hidden">Please select a shape</div>
+                        
+                        <!-- Custom shape input for "Other" -->
+                        <div id="tripleCustomShapeContainer" class="mt-4 hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Describe the shape *</label>
+                            <input type="text" id="tripleCustomShape" class="input-field w-full" placeholder="e.g., Hexagonal, L-shaped, Curved bottom">
+                            <div id="tripleCustomShapeError" class="error-message hidden">Please describe the custom shape</div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Toughened Glass *</h3>
+                        <div class="flex gap-4">
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="tripleToughened" value="yes" data-price="20" class="mr-2">
+                                <span>Yes (+20%)</span>
+                            </label>
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="tripleToughened" value="no" data-price="0" class="mr-2">
+                                <span>No</span>
+                            </label>
+                        </div>
+                        <div id="tripleToughenedError" class="error-message hidden">Please select toughened glass option</div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Pet Flap/Vent Hole *</h3>
+                        <div class="flex gap-4">
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="triplePetFlap" value="none" data-price="0" class="mr-2">
+                                <span>None</span>
+                            </label>
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="triplePetFlap" value="yes" data-price="50" class="mr-2">
+                                <span>Yes (+£50)</span>
+                            </label>
+                        </div>
+                        <div id="triplePetFlapError" class="error-message hidden">Please select pet flap option</div>
+                    </div>
+
+
+
+                    <div class="form-section">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Optional Extras</h3>
+                        <select id="tripleExtras" class="input-field w-full">
+                            <option value="none" data-price="0">None</option>
+                            <option value="lead" data-price="75">Lead (+£75)</option>
+                            <option value="georgian" data-price="100">Georgian Bars (+£100)</option>
+                            <option value="duplex" data-price="125">Duplex Grid (+£125)</option>
+                        </select>
+                        
+                        <!-- Lead Options -->
+                        <div id="tripleLeadOptions" class="mt-4 hidden">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Lead Type</label>
+                                    <select id="tripleLeadType" class="input-field w-full">
+                                        <option value="">Select</option>
+                                        <option value="9mm-square">9mm Square Lead</option>
+                                        <option value="12mm-square">12mm Square Lead</option>
+                                        <option value="9mm-decorative">9mm Decorative</option>
+                                        <option value="12mm-decorative">12mm Decorative</option>
+                                        <option value="9mm-diamond">9mm Diamond</option>
+                                        <option value="12mm-diamond">12mm Diamond</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Lead Color</label>
+                                    <select id="tripleLeadColor" class="input-field w-full">
+                                        <option value="">Select</option>
+                                        <option value="silver-soldered">Silver Soldered</option>
+                                        <option value="silver-unsoldered">Silver Unsoldered</option>
+                                        <option value="antique-soldered">Antique Soldered</option>
+                                        <option value="antique-unsoldered">Antique Unsoldered</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Georgian Bars Options -->
+                        <div id="tripleGeorgianOptions" class="mt-4 hidden">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Georgian Bars Size</label>
+                                <select id="tripleGeorgianSize" class="input-field w-full">
+                                    <option value="">Select</option>
+                                    <option value="18mm-white">18mm White</option>
+                                    <option value="25mm-white">25mm White</option>
+                                    <option value="18mm-white-single">18mm White Single</option>
+                                    <option value="25mm-white-single">25mm White Single</option>
+                                    <option value="18mm-woodgrain">18mm Woodgrain</option>
+                                    <option value="25mm-woodgrain">25mm Woodgrain</option>
+                                    <option value="18mm-brown">18mm Brown</option>
+                                    <option value="25mm-brown">25mm Brown</option>
+                                    <option value="8mm-gold">8mm Gold</option>
+                                    <option value="8mm-chrome">8mm Chrome</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Duplex Grid Options -->
+                        <div id="tripleDuplexOptions" class="mt-4 hidden">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Duplex Grid Size</label>
+                                <select id="tripleDuplexSize" class="input-field w-full">
+                                    <option value="">Select</option>
+                                    <option value="18mm-integral">18mm Integral</option>
+                                    <option value="18mm-single-integral">18mm Single Integral</option>
+                                    <option value="24mm-integral">24mm Integral</option>
+                                    <option value="24mm-single-integral">24mm Single Integral</option>
+                                    <option value="39mm-integral">39mm Integral</option>
+                                    <option value="39mm-single-integral">39mm Single Integral</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-8">
+                    <button id="addToCart" class="btn-primary text-lg px-8 py-4">Add to Cart</button>
+                </div>
+            </div>
+
+            <!-- Price Display & Cart -->
+            <div class="xl:col-span-1">
+                <div class="price-display mb-6">
+                    <h3 class="text-2xl font-bold mb-4">Current Price</h3>
+                    <div class="space-y-2">
+                        <div class="text-3xl font-bold">£<span id="currentPrice">0.00</span></div>
+                        <div class="text-sm opacity-90 border-t border-white/20 pt-2">
+                            <div class="flex justify-between">
+                                <span>Subtotal:</span>
+                                <span>£<span id="priceSubtotal">0.00</span></span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>VAT (20%):</span>
+                                <span>£<span id="priceVAT">0.00</span></span>
+                            </div>
+                            <div class="flex justify-between font-bold text-base border-t border-white/20 pt-1 mt-1">
+                                <span>Total:</span>
+                                <span>£<span id="priceTotal">0.00</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                    <div class="cart-header">
+                        <h3 class="text-xl font-bold">Shopping Cart</h3>
+                        <p class="text-sm opacity-90 mt-1">Review your glass orders</p>
+                    </div>
+                    <div class="px-6 pb-6">
+                        <div id="cartItems">
+                            <div class="cart-empty">
+                                <svg fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
+                                </svg>
+                                <p class="text-lg font-medium">Your cart is empty</p>
+                                <p class="text-sm mt-2">Add some glass units to get started</p>
+                            </div>
+                        </div>
+                        <div id="cartSummary" class="hidden border-t pt-6 mt-6">
+                            <div class="space-y-3">
+                                <div class="flex justify-between text-sm">
+                                    <span>Subtotal:</span>
+                                    <span>£<span id="cartSubtotal">0.00</span></span>
+                                </div>
+                                <div id="cartShippingRow" class="flex justify-between text-sm hidden">
+                                    <span id="cartShippingLabel">Shipping:</span>
+                                    <span>£<span id="cartShipping">0.00</span></span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span>VAT (20%):</span>
+                                    <span>£<span id="cartVAT">0.00</span></span>
+                                </div>
+                                <div class="flex justify-between text-lg font-bold border-t pt-3">
+                                    <span>Total:</span>
+                                    <span class="text-blue-600">£<span id="cartTotal">0.00</span></span>
+                                </div>
+                            </div>
+                            <button class="w-full mt-6 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200">
+                                Proceed to Checkout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delivery Area Selection Modal -->
+    <div id="deliveryModal" class="delivery-modal hidden">
+        <div class="delivery-modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Select Delivery Area</h2>
+                <button id="closeDeliveryModal" class="text-gray-500 hover:text-gray-700 text-2xl font-bold">&times;</button>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="delivery-area" data-area="1" data-charge="37.50">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-lg font-semibold text-gray-800">Delivery Area 1</h3>
+                        <div class="text-right">
+                            <p class="text-lg font-bold text-blue-600">£37.50 + VAT</p>
+                            <p class="text-sm text-gray-500">per delivery</p>
+                        </div>
+                    </div>
+                    <div class="delivery-counties">
+                        <div class="delivery-county">Bedfordshire</div>
+                        <div class="delivery-county">Berkshire</div>
+                        <div class="delivery-county">Buckinghamshire</div>
+                        <div class="delivery-county">Cambridgeshire</div>
+                        <div class="delivery-county">Essex</div>
+                        <div class="delivery-county">Hampshire</div>
+                        <div class="delivery-county">Hertfordshire</div>
+                        <div class="delivery-county">Kent</div>
+                        <div class="delivery-county">Middlesex</div>
+                        <div class="delivery-county">Oxfordshire</div>
+                        <div class="delivery-county">Norfolk</div>
+                        <div class="delivery-county">Suffolk</div>
+                        <div class="delivery-county">Surrey</div>
+                        <div class="delivery-county">Sussex</div>
+                        <div class="delivery-county">Wiltshire</div>
+                    </div>
+                </div>
+                
+                <div class="delivery-area" data-area="2" data-charge="67.50">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-lg font-semibold text-gray-800">Delivery Area 2</h3>
+                        <div class="text-right">
+                            <p class="text-lg font-bold text-blue-600">£67.50 + VAT</p>
+                            <p class="text-sm text-gray-500">per delivery</p>
+                            <p class="text-xs text-green-600 mt-1">£37.50 + VAT for orders over £2000</p>
+                        </div>
+                    </div>
+                    <div class="delivery-counties">
+                        <div class="delivery-county">Derbyshire</div>
+                        <div class="delivery-county">Dorset</div>
+                        <div class="delivery-county">Gloucestershire</div>
+                        <div class="delivery-county">Herefordshire</div>
+                        <div class="delivery-county">Leicestershire</div>
+                        <div class="delivery-county">Lincolnshire</div>
+                        <div class="delivery-county">Nottinghamshire</div>
+                        <div class="delivery-county">Rutland</div>
+                        <div class="delivery-county">Shropshire</div>
+                        <div class="delivery-county">Somerset</div>
+                        <div class="delivery-county">Staffordshire</div>
+                        <div class="delivery-county">Warwickshire</div>
+                        <div class="delivery-county">Worcestershire</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex justify-end gap-4 mt-8">
+                <button id="cancelDelivery" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                    Cancel
+                </button>
+                <button id="confirmDelivery" class="btn-primary" disabled>
+                    Confirm & Add to Cart
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Popup -->
+    <div id="successPopup" class="success-popup">
+        <div class="popup-content">
+            <svg class="popup-icon" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            <div class="popup-text">
+                <div class="popup-title">Success!</div>
+                <div class="popup-message">Item added to cart successfully</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentTab = 'single';
+        let cart = [];
+        let currentPrice = 0;
+        let selectedDeliveryArea = null;
+        let deliveryCharge = 0;
+        let pendingCartItem = null;
+
+        // Initialize the calculator
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTabs();
+            initializeEventListeners();
+            calculatePrice();
+        });
+
+        // Initialize extras dropdowns
+        function initializeExtrasDropdowns() {
+            ['single', 'double', 'triple'].forEach(type => {
+                const extrasSelect = document.getElementById(type + 'Extras');
+                if (extrasSelect) {
+                    extrasSelect.addEventListener('change', function() {
+                        const value = this.value;
+                        
+                        // Hide all option containers
+                        const leadOptions = document.getElementById(type + 'LeadOptions');
+                        const georgianOptions = document.getElementById(type + 'GeorgianOptions');
+                        const duplexOptions = document.getElementById(type + 'DuplexOptions');
+                        
+                        if (leadOptions) leadOptions.classList.add('hidden');
+                        if (georgianOptions) georgianOptions.classList.add('hidden');
+                        if (duplexOptions) duplexOptions.classList.add('hidden');
+                        
+                        // Show relevant option container
+                        if (value === 'lead' && leadOptions) {
+                            leadOptions.classList.remove('hidden');
+                        } else if (value === 'georgian' && georgianOptions) {
+                            georgianOptions.classList.remove('hidden');
+                        } else if (value === 'duplex' && duplexOptions) {
+                            duplexOptions.classList.remove('hidden');
+                        }
+                        
+                        calculatePrice();
+                    });
+                }
+            });
+        }
+
+        // Tab functionality
+        function initializeTabs() {
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const tabId = this.id.replace('Tab', '');
+                    switchTab(tabId);
+                });
+            });
+        }
+
+        function switchTab(tabId) {
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('tab-active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
+
+            // Add active class to selected tab
+            document.getElementById(tabId + 'Tab').classList.add('tab-active');
+            
+            // Show corresponding content
+            if (tabId === 'single') {
+                document.getElementById('singleUnit').classList.remove('hidden');
+                currentTab = 'single';
+            } else if (tabId === 'double') {
+                document.getElementById('doubleGlazed').classList.remove('hidden');
+                currentTab = 'double';
+            } else if (tabId === 'triple') {
+                document.getElementById('tripleGlazed').classList.remove('hidden');
+                currentTab = 'triple';
+            }
+
+            calculatePrice();
+        }
+
+        // Event listeners
+        function initializeEventListeners() {
+            // Dimension inputs
+            ['single', 'double', 'triple'].forEach(type => {
+                const widthInput = document.getElementById(type + 'Width');
+                const heightInput = document.getElementById(type + 'Height');
+                
+                if (widthInput) widthInput.addEventListener('input', () => updateArea(type));
+                if (heightInput) heightInput.addEventListener('input', () => updateArea(type));
+            });
+
+            // Shape selection
+            document.querySelectorAll('.shape-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const parentTab = this.closest('.tab-content');
+                    const tabType = parentTab.id.replace('Unit', '').replace('Glazed', '');
+                    
+                    // Remove selection from siblings
+                    parentTab.querySelectorAll('.shape-option').forEach(opt => {
+                        opt.classList.remove('shape-selected');
+                    });
+                    
+                    // Add selection to clicked option
+                    this.classList.add('shape-selected');
+                    
+                    // Update hidden input
+                    const hiddenInput = document.getElementById(tabType + 'Shape');
+                    if (hiddenInput) {
+                        hiddenInput.value = this.dataset.shape;
+                    }
+                    
+                    // Show/hide custom shape input for "Other"
+                    const customShapeContainer = document.getElementById(tabType + 'CustomShapeContainer');
+                    if (customShapeContainer) {
+                        if (this.dataset.shape === 'other') {
+                            customShapeContainer.classList.remove('hidden');
+                        } else {
+                            customShapeContainer.classList.add('hidden');
+                            // Clear custom shape input when not "Other"
+                            const customShapeInput = document.getElementById(tabType + 'CustomShape');
+                            if (customShapeInput) {
+                                customShapeInput.value = '';
+                            }
+                        }
+                    }
+                    
+                    calculatePrice();
+                });
+            });
+
+            // All other inputs
+            document.addEventListener('change', calculatePrice);
+            document.addEventListener('input', calculatePrice);
+
+            // Extras dropdown functionality
+            initializeExtrasDropdowns();
+
+            // Add to cart button
+            document.getElementById('addToCart').addEventListener('click', addToCart);
+
+            // Delivery modal listeners
+            initializeDeliveryModal();
+        }
+
+        // Update area calculation
+        function updateArea(type) {
+            const width = parseFloat(document.getElementById(type + 'Width').value) || 0;
+            const height = parseFloat(document.getElementById(type + 'Height').value) || 0;
+            const area = width * height;
+            
+            document.getElementById(type + 'Area').textContent = area.toLocaleString();
+            calculatePrice();
+        }
+
+        // Price calculation
+        function calculatePrice() {
+            let price = 0;
+            let area = 0;
+            let perimeter = 0;
+
+            if (currentTab === 'single') {
+                price = calculateSinglePrice();
+            } else if (currentTab === 'double') {
+                price = calculateDoublePrice();
+            } else if (currentTab === 'triple') {
+                price = calculateTriplePrice();
+            }
+
+            // No minimum price requirement
+
+            // Calculate VAT breakdown
+            const subtotal = price;
+            const vat = subtotal * 0.2;
+            const total = subtotal + vat;
+
+            currentPrice = subtotal; // Store subtotal as current price for cart
+            
+            // Update price display
+            document.getElementById('currentPrice').textContent = subtotal.toFixed(2);
+            document.getElementById('priceSubtotal').textContent = subtotal.toFixed(2);
+            document.getElementById('priceVAT').textContent = vat.toFixed(2);
+            document.getElementById('priceTotal').textContent = total.toFixed(2);
+        }
+
+        function calculateSinglePrice() {
+            const width = parseFloat(document.getElementById('singleWidth').value) || 0;
+            const height = parseFloat(document.getElementById('singleHeight').value) || 0;
+            const area = width * height;
+            const perimeter = 2 * (width + height);
+
+            if (area === 0) return 0;
+
+            let price = 0;
+
+            // Base price calculation (no glass type pricing)
+            price = area * 0.15; // Base price per mm²
+
+            // Shape modifier (percentage)
+            const shapeInput = document.getElementById('singleShape');
+            const shapeModifier = parseFloat(document.querySelector('.shape-option.shape-selected')?.dataset.price) || 0;
+            price *= (1 + shapeModifier / 100);
+
+            // Toughened glass (percentage)
+            const toughenedRadio = document.querySelector('input[name="singleToughened"]:checked');
+            if (toughenedRadio) {
+                const toughenedModifier = parseFloat(toughenedRadio.dataset.price) || 0;
+                price *= (1 + toughenedModifier / 100);
+            }
+
+            // Pet flap (fixed price)
+            const petFlapRadio = document.querySelector('input[name="singlePetFlap"]:checked');
+            if (petFlapRadio) {
+                const petFlapPrice = parseFloat(petFlapRadio.dataset.price) || 0;
+                price += petFlapPrice;
+            }
+
+            // Optional extras (fixed price)
+            const extrasSelect = document.getElementById('singleExtras');
+            const extrasPrice = parseFloat(extrasSelect.options[extrasSelect.selectedIndex].dataset.price) || 0;
+            price += extrasPrice;
+
+            return price;
+        }
+
+        function calculateDoublePrice() {
+            const width = parseFloat(document.getElementById('doubleWidth').value) || 0;
+            const height = parseFloat(document.getElementById('doubleHeight').value) || 0;
+            const area = width * height;
+            const perimeter = 2 * (width + height);
+
+            if (area === 0) return 0;
+
+            let price = 0;
+
+            // Outer glass
+            const outerGlassSelect = document.getElementById('doubleOuterGlass');
+            const outerGlassPrice = parseFloat(outerGlassSelect.options[outerGlassSelect.selectedIndex].dataset.price) || 15;
+            price += area * (outerGlassPrice / 100);
+
+            // Inner glass
+            const innerGlassSelect = document.getElementById('doubleInnerGlass');
+            const innerGlassPrice = parseFloat(innerGlassSelect.options[innerGlassSelect.selectedIndex].dataset.price) || 15;
+            price += area * (innerGlassPrice / 100);
+
+            // Spacer bar (linear price)
+            const spacerWidthSelect = document.getElementById('doubleSpacerWidth');
+            const spacerPrice = parseFloat(spacerWidthSelect.options[spacerWidthSelect.selectedIndex].dataset.price) || 5;
+            price += perimeter * (spacerPrice / 100);
+
+            // Spacer bar colour (percentage)
+            const spacerColourSelect = document.getElementById('doubleSpacerColour');
+            const spacerColourModifier = parseFloat(spacerColourSelect.options[spacerColourSelect.selectedIndex].dataset.price) || 0;
+            price *= (1 + spacerColourModifier / 100);
+
+            // Shape modifier
+            const shapeModifier = parseFloat(document.querySelector('#doubleGlazed .shape-option.shape-selected')?.dataset.price) || 0;
+            price *= (1 + shapeModifier / 100);
+
+            // Toughened glass
+            const toughenedRadio = document.querySelector('input[name="doubleToughened"]:checked');
+            if (toughenedRadio) {
+                const toughenedModifier = parseFloat(toughenedRadio.dataset.price) || 0;
+                price *= (1 + toughenedModifier / 100);
+            }
+
+            // Pet flap
+            const petFlapRadio = document.querySelector('input[name="doublePetFlap"]:checked');
+            if (petFlapRadio) {
+                const petFlapPrice = parseFloat(petFlapRadio.dataset.price) || 0;
+                price += petFlapPrice;
+            }
+
+            // Optional extras
+            const extrasSelect = document.getElementById('doubleExtras');
+            const extrasPrice = parseFloat(extrasSelect.options[extrasSelect.selectedIndex].dataset.price) || 0;
+            price += extrasPrice;
+
+            return price;
+        }
+
+        function calculateTriplePrice() {
+            const width = parseFloat(document.getElementById('tripleWidth').value) || 0;
+            const height = parseFloat(document.getElementById('tripleHeight').value) || 0;
+            const area = width * height;
+            const perimeter = 2 * (width + height);
+
+            if (area === 0) return 0;
+
+            let price = 0;
+
+            // Three glass layers
+            const outerGlassSelect = document.getElementById('tripleOuterGlass');
+            const outerGlassPrice = parseFloat(outerGlassSelect.options[outerGlassSelect.selectedIndex].dataset.price) || 15;
+            price += area * (outerGlassPrice / 100);
+
+            const centreGlassSelect = document.getElementById('tripleCentreGlass');
+            const centreGlassPrice = parseFloat(centreGlassSelect.options[centreGlassSelect.selectedIndex].dataset.price) || 15;
+            price += area * (centreGlassPrice / 100);
+
+            const innerGlassSelect = document.getElementById('tripleInnerGlass');
+            const innerGlassPrice = parseFloat(innerGlassSelect.options[innerGlassSelect.selectedIndex].dataset.price) || 15;
+            price += area * (innerGlassPrice / 100);
+
+            // Two spacer bars
+            const spacer1Select = document.getElementById('tripleSpacer1Width');
+            const spacer1Price = parseFloat(spacer1Select.options[spacer1Select.selectedIndex].dataset.price) || 5;
+            price += perimeter * (spacer1Price / 100);
+
+            const spacer2Select = document.getElementById('tripleSpacer2Width');
+            const spacer2Price = parseFloat(spacer2Select.options[spacer2Select.selectedIndex].dataset.price) || 5;
+            price += perimeter * (spacer2Price / 100);
+
+            // Spacer bar colour
+            const spacerColourSelect = document.getElementById('tripleSpacerColour');
+            const spacerColourModifier = parseFloat(spacerColourSelect.options[spacerColourSelect.selectedIndex].dataset.price) || 0;
+            price *= (1 + spacerColourModifier / 100);
+
+            // Shape modifier
+            const shapeModifier = parseFloat(document.querySelector('#tripleGlazed .shape-option.shape-selected')?.dataset.price) || 0;
+            price *= (1 + shapeModifier / 100);
+
+            // Toughened glass
+            const toughenedRadio = document.querySelector('input[name="tripleToughened"]:checked');
+            if (toughenedRadio) {
+                const toughenedModifier = parseFloat(toughenedRadio.dataset.price) || 0;
+                price *= (1 + toughenedModifier / 100);
+            }
+
+            // Pet flap
+            const petFlapRadio = document.querySelector('input[name="triplePetFlap"]:checked');
+            if (petFlapRadio) {
+                const petFlapPrice = parseFloat(petFlapRadio.dataset.price) || 0;
+                price += petFlapPrice;
+            }
+
+            // Optional extras
+            const extrasSelect = document.getElementById('tripleExtras');
+            const extrasPrice = parseFloat(extrasSelect.options[extrasSelect.selectedIndex].dataset.price) || 0;
+            price += extrasPrice;
+
+            return price;
+        }
+
+        // Validation
+        function validateForm() {
+            let isValid = true;
+            const errors = [];
+
+            // Clear previous errors
+            document.querySelectorAll('.error-message').forEach(error => error.classList.add('hidden'));
+
+            if (currentTab === 'single') {
+                isValid = validateSingleForm() && isValid;
+            } else if (currentTab === 'double') {
+                isValid = validateDoubleForm() && isValid;
+            } else if (currentTab === 'triple') {
+                isValid = validateTripleForm() && isValid;
+            }
+
+            return isValid;
+        }
+
+        function validateSingleForm() {
+            let isValid = true;
+
+            // Validate dimensions
+            const width = parseFloat(document.getElementById('singleWidth').value);
+            const height = parseFloat(document.getElementById('singleHeight').value);
+
+            if (!width || width < 100 || width > 1000) {
+                document.getElementById('singleWidthError').classList.remove('hidden');
+                isValid = false;
+            }
+
+            if (!height || height < 100 || height > 1000) {
+                document.getElementById('singleHeightError').classList.remove('hidden');
+                isValid = false;
+            }
+
+            // Validate shape
+            const shapeValue = document.getElementById('singleShape').value;
+            if (!shapeValue) {
+                document.getElementById('singleShapeError').classList.remove('hidden');
+                isValid = false;
+            }
+
+            // Validate custom shape if "Other" is selected
+            if (shapeValue === 'other') {
+                const customShape = document.getElementById('singleCustomShape').value.trim();
+                if (!customShape) {
+                    document.getElementById('singleCustomShapeError').classList.remove('hidden');
+                    isValid = false;
+                }
+            }
+
+            // Validate toughened glass
+            if (!document.querySelector('input[name="singleToughened"]:checked')) {
+                document.getElementById('singleToughenedError').classList.remove('hidden');
+                isValid = false;
+            }
+
+            // Validate pet flap
+            if (!document.querySelector('input[name="singlePetFlap"]:checked')) {
+                document.getElementById('singlePetFlapError').classList.remove('hidden');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        function validateDoubleForm() {
+            let isValid = true;
+
+            // Validate dimensions
+            const width = parseFloat(document.getElementById('doubleWidth').value);
+            const height = parseFloat(document.getElementById('doubleHeight').value);
+
+            if (!width || width < 100 || width > 1000) {
+                document.getElementById('doubleWidthError').classList.remove('hidden');
+                isValid = false;
+            }
+
+            if (!height || height < 100 || height > 1000) {
+                document.getElementById('doubleHeightError').classList.remove('hidden');
+                isValid = false;
+            }
+
+            // Validate shape
+            const shapeValue = document.getElementById('doubleShape').value;
+            if (!shapeValue) {
+                document.getElementById('doubleShapeError').classList.remove('hidden');
+                isValid = false;
+            }
+
+            // Validate custom shape if "Other" is selected
+            if (shapeValue === 'other') {
+                const customShape = document.getElementById('doubleCustomShape').value.trim();
+                if (!customShape) {
+                    document.getElementById('doubleCustomShapeError').classList.remove('hidden');
+                    isValid = false;
+                }
+            }
+
+            // Validate toughened glass
+            if (!document.querySelector('input[name="doubleToughened"]:checked')) {
+                document.getElementById('doubleToughenedError').classList.remove('hidden');
+                isValid = false;
+            }
+
+            // Validate pet flap
+            if (!document.querySelector('input[name="doublePetFlap"]:checked')) {
+                document.getElementById('doublePetFlapError').classList.remove('hidden');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        function validateTripleForm() {
+            let isValid = true;
+
+            // Validate dimensions
+            const width = parseFloat(document.getElementById('tripleWidth').value);
+            const height = parseFloat(document.getElementById('tripleHeight').value);
+
+            if (!width || width < 100 || width > 1000) {
+                document.getElementById('tripleWidthError').classList.remove('hidden');
+                isValid = false;
+            }
+
+            if (!height || height < 100 || height > 1000) {
+                document.getElementById('tripleHeightError').classList.remove('hidden');
+                isValid = false;
+            }
+
+            // Validate shape
+            const shapeValue = document.getElementById('tripleShape').value;
+            if (!shapeValue) {
+                document.getElementById('tripleShapeError').classList.remove('hidden');
+                isValid = false;
+            }
+
+            // Validate custom shape if "Other" is selected
+            if (shapeValue === 'other') {
+                const customShape = document.getElementById('tripleCustomShape').value.trim();
+                if (!customShape) {
+                    document.getElementById('tripleCustomShapeError').classList.remove('hidden');
+                    isValid = false;
+                }
+            }
+
+            // Validate toughened glass
+            if (!document.querySelector('input[name="tripleToughened"]:checked')) {
+                document.getElementById('tripleToughenedError').classList.remove('hidden');
+                isValid = false;
+            }
+
+            // Validate pet flap
+            if (!document.querySelector('input[name="triplePetFlap"]:checked')) {
+                document.getElementById('triplePetFlapError').classList.remove('hidden');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        // Cart functionality
+        function addToCart() {
+            if (!validateForm()) {
+                alert('Please fill in all required fields correctly.');
+                return;
+            }
+
+            // Store the pending item details
+            pendingCartItem = {
+                id: Date.now(),
+                type: currentTab,
+                unitPrice: currentPrice,
+                quantity: 1,
+                details: getItemDetails()
+            };
+
+            // Only show delivery modal if no delivery area has been selected yet
+            if (!selectedDeliveryArea) {
+                showDeliveryModal();
+            } else {
+                // Use existing delivery area selection for all subsequent orders
+                addItemToCart();
+            }
+        }
+
+        function getItemDetails() {
+            let details = {};
+            
+            if (currentTab === 'single') {
+                const shapeValue = document.getElementById('singleShape').value;
+                const customShape = shapeValue === 'other' ? document.getElementById('singleCustomShape').value : '';
+                const extrasSelect = document.getElementById('singleExtras');
+                const extrasValue = extrasSelect.value;
+                
+                details = {
+                    width: document.getElementById('singleWidth').value,
+                    height: document.getElementById('singleHeight').value,
+                    reference: document.getElementById('singleReference').value,
+                    shape: shapeValue,
+                    customShape: customShape,
+                    toughened: document.querySelector('input[name="singleToughened"]:checked').value,
+                    petFlap: document.querySelector('input[name="singlePetFlap"]:checked').value,
+                    extras: extrasSelect.options[extrasSelect.selectedIndex].text
+                };
+                
+                // Add extras details based on selection
+                if (extrasValue === 'lead') {
+                    const leadType = document.getElementById('singleLeadType');
+                    const leadColor = document.getElementById('singleLeadColor');
+                    if (leadType && leadType.value) details.leadType = leadType.options[leadType.selectedIndex].text;
+                    if (leadColor && leadColor.value) details.leadColor = leadColor.options[leadColor.selectedIndex].text;
+                } else if (extrasValue === 'georgian') {
+                    const georgianSize = document.getElementById('singleGeorgianSize');
+                    if (georgianSize && georgianSize.value) details.georgianSize = georgianSize.options[georgianSize.selectedIndex].text;
+                } else if (extrasValue === 'duplex') {
+                    const duplexSize = document.getElementById('singleDuplexSize');
+                    if (duplexSize && duplexSize.value) details.duplexSize = duplexSize.options[duplexSize.selectedIndex].text;
+                }
+            } else if (currentTab === 'double') {
+                const shapeValue = document.getElementById('doubleShape').value;
+                const customShape = shapeValue === 'other' ? document.getElementById('doubleCustomShape').value : '';
+                const extrasSelect = document.getElementById('doubleExtras');
+                const extrasValue = extrasSelect.value;
+                
+                details = {
+                    width: document.getElementById('doubleWidth').value,
+                    height: document.getElementById('doubleHeight').value,
+                    reference: document.getElementById('doubleReference').value,
+                    outerGlass: document.getElementById('doubleOuterGlass').options[document.getElementById('doubleOuterGlass').selectedIndex].text,
+                    innerGlass: document.getElementById('doubleInnerGlass').options[document.getElementById('doubleInnerGlass').selectedIndex].text,
+                    spacerWidth: document.getElementById('doubleSpacerWidth').options[document.getElementById('doubleSpacerWidth').selectedIndex].text,
+                    spacerColour: document.getElementById('doubleSpacerColour').options[document.getElementById('doubleSpacerColour').selectedIndex].text,
+                    shape: shapeValue,
+                    customShape: customShape,
+                    toughened: document.querySelector('input[name="doubleToughened"]:checked').value,
+                    petFlap: document.querySelector('input[name="doublePetFlap"]:checked').value,
+                    extras: extrasSelect.options[extrasSelect.selectedIndex].text
+                };
+                
+                // Add extras details based on selection
+                if (extrasValue === 'lead') {
+                    const leadType = document.getElementById('doubleLeadType');
+                    const leadColor = document.getElementById('doubleLeadColor');
+                    if (leadType && leadType.value) details.leadType = leadType.options[leadType.selectedIndex].text;
+                    if (leadColor && leadColor.value) details.leadColor = leadColor.options[leadColor.selectedIndex].text;
+                } else if (extrasValue === 'georgian') {
+                    const georgianSize = document.getElementById('doubleGeorgianSize');
+                    if (georgianSize && georgianSize.value) details.georgianSize = georgianSize.options[georgianSize.selectedIndex].text;
+                } else if (extrasValue === 'duplex') {
+                    const duplexSize = document.getElementById('doubleDuplexSize');
+                    if (duplexSize && duplexSize.value) details.duplexSize = duplexSize.options[duplexSize.selectedIndex].text;
+                }
+            } else if (currentTab === 'triple') {
+                const shapeValue = document.getElementById('tripleShape').value;
+                const customShape = shapeValue === 'other' ? document.getElementById('tripleCustomShape').value : '';
+                const extrasSelect = document.getElementById('tripleExtras');
+                const extrasValue = extrasSelect.value;
+                
+                details = {
+                    width: document.getElementById('tripleWidth').value,
+                    height: document.getElementById('tripleHeight').value,
+                    reference: document.getElementById('tripleReference').value,
+                    outerGlass: document.getElementById('tripleOuterGlass').options[document.getElementById('tripleOuterGlass').selectedIndex].text,
+                    centreGlass: document.getElementById('tripleCentreGlass').options[document.getElementById('tripleCentreGlass').selectedIndex].text,
+                    innerGlass: document.getElementById('tripleInnerGlass').options[document.getElementById('tripleInnerGlass').selectedIndex].text,
+                    spacer1Width: document.getElementById('tripleSpacer1Width').options[document.getElementById('tripleSpacer1Width').selectedIndex].text,
+                    spacer2Width: document.getElementById('tripleSpacer2Width').options[document.getElementById('tripleSpacer2Width').selectedIndex].text,
+                    spacerColour: document.getElementById('tripleSpacerColour').options[document.getElementById('tripleSpacerColour').selectedIndex].text,
+                    shape: shapeValue,
+                    customShape: customShape,
+                    toughened: document.querySelector('input[name="tripleToughened"]:checked').value,
+                    petFlap: document.querySelector('input[name="triplePetFlap"]:checked').value,
+                    extras: extrasSelect.options[extrasSelect.selectedIndex].text
+                };
+                
+                // Add extras details based on selection
+                if (extrasValue === 'lead') {
+                    const leadType = document.getElementById('tripleLeadType');
+                    const leadColor = document.getElementById('tripleLeadColor');
+                    if (leadType && leadType.value) details.leadType = leadType.options[leadType.selectedIndex].text;
+                    if (leadColor && leadColor.value) details.leadColor = leadColor.options[leadColor.selectedIndex].text;
+                } else if (extrasValue === 'georgian') {
+                    const georgianSize = document.getElementById('tripleGeorgianSize');
+                    if (georgianSize && georgianSize.value) details.georgianSize = georgianSize.options[georgianSize.selectedIndex].text;
+                } else if (extrasValue === 'duplex') {
+                    const duplexSize = document.getElementById('tripleDuplexSize');
+                    if (duplexSize && duplexSize.value) details.duplexSize = duplexSize.options[duplexSize.selectedIndex].text;
+                }
+            }
+            
+            return details;
+        }
+
+        function getExtrasDetails(item) {
+            let details = '';
+            
+            if (item.details.extras && item.details.extras.includes('Lead')) {
+                if (item.details.leadType) details += ` - ${item.details.leadType}`;
+                if (item.details.leadColor) details += ` (${item.details.leadColor})`;
+            } else if (item.details.extras && item.details.extras.includes('Georgian')) {
+                if (item.details.georgianSize) details += ` - ${item.details.georgianSize}`;
+            } else if (item.details.extras && item.details.extras.includes('Duplex')) {
+                if (item.details.duplexSize) details += ` - ${item.details.duplexSize}`;
+            }
+            
+            return details;
+        }
+
+        function updateCartDisplay() {
+            const cartContainer = document.getElementById('cartItems');
+            const cartSummary = document.getElementById('cartSummary');
+            const cartSubtotal = document.getElementById('cartSubtotal');
+            const cartVAT = document.getElementById('cartVAT');
+            const cartTotal = document.getElementById('cartTotal');
+            
+            if (cart.length === 0) {
+                cartContainer.innerHTML = `
+                    <div class="cart-empty">
+                        <svg fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
+                        </svg>
+                        <p class="text-lg font-medium">Your cart is empty</p>
+                        <p class="text-sm mt-2">Add some glass units to get started</p>
+                    </div>
+                `;
+                cartSummary.classList.add('hidden');
+                return;
+            }
+            
+            let html = '';
+            let subtotal = 0;
+            
+            cart.forEach((item, index) => {
+                const itemTotal = item.unitPrice * item.quantity;
+                subtotal += itemTotal;
+                
+                html += `
+                    <div class="cart-item">
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-gray-800 capitalize mb-1">
+                                    ${item.type} ${item.type === 'single' ? 'Unit' : 'Glazed Unit'}
+                                </h4>
+                                <div class="text-sm text-gray-600 space-y-1">
+                                    <p><span class="font-medium">Size:</span> ${item.details.width}mm × ${item.details.height}mm</p>
+                                    ${item.details.reference ? `<p><span class="font-medium">Ref:</span> ${item.details.reference}</p>` : ''}
+                                    
+${item.type === 'double' ?
+                                        `<p><span class="font-medium">Outer Glass:</span> ${item.details.outerGlass}</p>
+                                         <p><span class="font-medium">Inner Glass:</span> ${item.details.innerGlass}</p>
+                                         <p><span class="font-medium">Spacer Width:</span> ${item.details.spacerWidth}</p>
+                                         <p><span class="font-medium">Spacer Colour:</span> ${item.details.spacerColour}</p>` :
+                                        item.type === 'triple' ?
+                                        `<p><span class="font-medium">Outer Glass:</span> ${item.details.outerGlass}</p>
+                                         <p><span class="font-medium">Centre Glass:</span> ${item.details.centreGlass}</p>
+                                         <p><span class="font-medium">Inner Glass:</span> ${item.details.innerGlass}</p>
+                                         <p><span class="font-medium">Spacer 1:</span> ${item.details.spacer1Width}</p>
+                                         <p><span class="font-medium">Spacer 2:</span> ${item.details.spacer2Width}</p>
+                                         <p><span class="font-medium">Spacer Colour:</span> ${item.details.spacerColour}</p>` : ''
+                                    }
+                                    
+                                    <p><span class="font-medium">Shape:</span> ${item.details.shape === 'other' && item.details.customShape ? item.details.customShape : item.details.shape}</p>
+                                    <p><span class="font-medium">Toughened:</span> ${item.details.toughened === 'yes' ? 'Yes' : 'No'}</p>
+                                    <p><span class="font-medium">Pet Flap/Vent:</span> ${item.details.petFlap === 'yes' ? 'Yes' : 'None'}</p>
+                                    ${item.details.extras && item.details.extras !== 'None' ? 
+                                        `<p><span class="font-medium">Extras:</span> ${item.details.extras}${getExtrasDetails(item)}</p>` : ''
+                                    }
+                                </div>
+                            </div>
+                            <button onclick="removeFromCart(${index})" class="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-50 transition-colors">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd"></path>
+                                    <path fill-rule="evenodd" d="M4 5a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM6 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <div class="quantity-controls">
+                                <button class="quantity-btn" onclick="updateQuantity(${index}, -1)" ${item.quantity <= 1 ? 'disabled' : ''}>
+                                    −
+                                </button>
+                                <span class="quantity-display">${item.quantity}</span>
+                                <button class="quantity-btn" onclick="updateQuantity(${index}, 1)">
+                                    +
+                                </button>
+                            </div>
+                            
+                            <div class="text-right">
+                                <p class="text-sm text-gray-500">£${item.unitPrice.toFixed(2)} each</p>
+                                <p class="text-lg font-bold text-blue-600">£${itemTotal.toFixed(2)}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            cartContainer.innerHTML = html;
+            
+
+            
+            // Calculate totals
+            const deliverySubtotal = cart.length > 0 ? deliveryCharge : 0;
+            const totalSubtotal = subtotal + deliverySubtotal;
+            const vat = totalSubtotal * 0.2;
+            const total = totalSubtotal + vat;
+            
+            cartSummary.classList.remove('hidden');
+            cartSubtotal.textContent = subtotal.toFixed(2);
+            
+            // Show/hide shipping row and update values
+            const shippingRow = document.getElementById('cartShippingRow');
+            const shippingLabel = document.getElementById('cartShippingLabel');
+            const shippingAmount = document.getElementById('cartShipping');
+            
+            if (cart.length > 0 && deliveryCharge > 0) {
+                const deliveryAreaName = selectedDeliveryArea === 1 ? 'Area 1' : 'Area 2';
+                const isDiscounted = selectedDeliveryArea === 2 && subtotal >= 2000;
+                
+                shippingRow.classList.remove('hidden');
+                shippingLabel.textContent = `Shipping (${deliveryAreaName}):`;
+                shippingAmount.textContent = deliveryCharge.toFixed(2);
+                
+                // Add discount indicator if applicable
+                if (isDiscounted) {
+                    shippingLabel.innerHTML = `Shipping (${deliveryAreaName}) <span class="text-green-600 text-xs">*Discounted</span>:`;
+                }
+            } else {
+                shippingRow.classList.add('hidden');
+            }
+            
+            document.getElementById('cartVAT').textContent = vat.toFixed(2);
+            document.getElementById('cartTotal').textContent = total.toFixed(2);
+        }
+
+        function updateDeliveryCharge() {
+            if (!selectedDeliveryArea || cart.length === 0) {
+                deliveryCharge = 0;
+                return;
+            }
+
+            // Calculate current cart subtotal
+            const cartSubtotal = cart.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
+            
+            // Set delivery charge based on area and subtotal
+            if (selectedDeliveryArea === 1) {
+                deliveryCharge = 37.50;
+            } else if (selectedDeliveryArea === 2) {
+                // Area 2: £67.50 normally, £37.50 if order is £2000 or more
+                deliveryCharge = cartSubtotal >= 2000 ? 37.50 : 67.50;
+            }
+        }
+
+        function updateQuantity(index, change) {
+            if (cart[index]) {
+                cart[index].quantity += change;
+                if (cart[index].quantity <= 0) {
+                    cart.splice(index, 1);
+                }
+                // Recalculate delivery charge when quantity changes
+                updateDeliveryCharge();
+                updateCartDisplay();
+            }
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            // Recalculate delivery charge when item is removed
+            updateDeliveryCharge();
+            updateCartDisplay();
+        }
+
+        // Delivery modal functionality
+        function initializeDeliveryModal() {
+            const modal = document.getElementById('deliveryModal');
+            const closeBtn = document.getElementById('closeDeliveryModal');
+            const cancelBtn = document.getElementById('cancelDelivery');
+            const confirmBtn = document.getElementById('confirmDelivery');
+            const deliveryAreas = document.querySelectorAll('.delivery-area');
+
+            // Close modal events
+            closeBtn.addEventListener('click', hideDeliveryModal);
+            cancelBtn.addEventListener('click', hideDeliveryModal);
+
+            // Click outside modal to close
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    hideDeliveryModal();
+                }
+            });
+
+            // Delivery area selection
+            deliveryAreas.forEach(area => {
+                area.addEventListener('click', function() {
+                    // Remove selection from all areas
+                    deliveryAreas.forEach(a => a.classList.remove('selected'));
+                    
+                    // Select clicked area
+                    this.classList.add('selected');
+                    
+                    // Store selection
+                    selectedDeliveryArea = parseInt(this.dataset.area);
+                    
+                    // Enable confirm button
+                    confirmBtn.disabled = false;
+                });
+            });
+
+            // Confirm delivery selection
+            confirmBtn.addEventListener('click', confirmDeliverySelection);
+        }
+
+        function showDeliveryModal() {
+            document.getElementById('deliveryModal').classList.remove('hidden');
+            
+            // If there's already a selected delivery area, show it as selected
+            if (selectedDeliveryArea) {
+                document.querySelectorAll('.delivery-area').forEach(area => {
+                    if (parseInt(area.dataset.area) === selectedDeliveryArea) {
+                        area.classList.add('selected');
+                    } else {
+                        area.classList.remove('selected');
+                    }
+                });
+                document.getElementById('confirmDelivery').disabled = false;
+            } else {
+                // Reset selection for first time
+                document.querySelectorAll('.delivery-area').forEach(area => {
+                    area.classList.remove('selected');
+                });
+                document.getElementById('confirmDelivery').disabled = true;
+            }
+        }
+
+        function hideDeliveryModal() {
+            document.getElementById('deliveryModal').classList.add('hidden');
+            pendingCartItem = null;
+            // Don't reset selectedDeliveryArea - keep it for future orders
+        }
+
+        function addItemToCart() {
+            if (!pendingCartItem) return;
+
+            // Check if identical item already exists
+            const existingItemIndex = cart.findIndex(item => 
+                item.type === pendingCartItem.type && 
+                JSON.stringify(item.details) === JSON.stringify(pendingCartItem.details)
+            );
+
+            if (existingItemIndex !== -1) {
+                // Increase quantity of existing item
+                cart[existingItemIndex].quantity += 1;
+            } else {
+                // Add new item
+                cart.push(pendingCartItem);
+            }
+
+            // Recalculate delivery charge based on new cart total
+            updateDeliveryCharge();
+
+            // Update cart display
+            updateCartDisplay();
+            
+            // Clear pending item
+            pendingCartItem = null;
+            
+            // Reset calculator to default values
+            resetCalculator();
+            
+            // Show success popup
+            showSuccessPopup();
+        }
+
+        function confirmDeliverySelection() {
+            if (!selectedDeliveryArea || !pendingCartItem) return;
+
+            // Set initial delivery charge
+            const baseCharge = selectedDeliveryArea === 1 ? 37.50 : 67.50;
+            deliveryCharge = baseCharge;
+
+            // Add the item to cart
+            addItemToCart();
+            
+            // Hide modal
+            hideDeliveryModal();
+            
+            // Show delivery area confirmation
+            const areaName = selectedDeliveryArea === 1 ? 'Area 1' : 'Area 2';
+            const finalCharge = deliveryCharge;
+            const chargeText = selectedDeliveryArea === 2 && finalCharge === 37.50 ? 
+                '£37.50 + VAT (discounted for orders over £2000)' : 
+                `£${finalCharge.toFixed(2)} + VAT`;
+            
+            alert(`Delivery area set to ${areaName} (${chargeText})\nFuture items will use this delivery area.`);
+        }
+
+        // Show success popup
+        function showSuccessPopup() {
+            const popup = document.getElementById('successPopup');
+            popup.classList.add('show');
+            
+            // Auto-hide after 3 seconds
+            setTimeout(() => {
+                popup.classList.remove('show');
+            }, 3000);
+        }
+
+        // Reset calculator to default values
+        function resetCalculator() {
+            // Reset all input fields for all tabs
+            ['single', 'double', 'triple'].forEach(type => {
+                // Reset dimensions
+                const widthInput = document.getElementById(type + 'Width');
+                const heightInput = document.getElementById(type + 'Height');
+                const referenceInput = document.getElementById(type + 'Reference');
+                
+                if (widthInput) widthInput.value = '';
+                if (heightInput) heightInput.value = '';
+                if (referenceInput) referenceInput.value = '';
+                
+                // Reset area display
+                const areaDisplay = document.getElementById(type + 'Area');
+                if (areaDisplay) areaDisplay.textContent = '0';
+                
+                // Reset shape selection
+                const shapeInput = document.getElementById(type + 'Shape');
+                if (shapeInput) shapeInput.value = '';
+                
+                // Remove shape selection styling
+                const tabContent = document.getElementById(type === 'single' ? 'singleUnit' : type + 'Glazed');
+                if (tabContent) {
+                    tabContent.querySelectorAll('.shape-option').forEach(option => {
+                        option.classList.remove('shape-selected');
+                    });
+                }
+                
+                // Hide custom shape containers
+                const customShapeContainer = document.getElementById(type + 'CustomShapeContainer');
+                if (customShapeContainer) {
+                    customShapeContainer.classList.add('hidden');
+                    const customShapeInput = document.getElementById(type + 'CustomShape');
+                    if (customShapeInput) customShapeInput.value = '';
+                }
+                
+                // Reset radio buttons
+                const toughenedRadios = document.querySelectorAll(`input[name="${type}Toughened"]`);
+                const petFlapRadios = document.querySelectorAll(`input[name="${type}PetFlap"]`);
+                
+                toughenedRadios.forEach(radio => radio.checked = false);
+                petFlapRadios.forEach(radio => radio.checked = false);
+            });
+            
+            // Reset single unit specific fields
+            const singleExtras = document.getElementById('singleExtras');
+            if (singleExtras) singleExtras.selectedIndex = 0;
+            
+            // Reset double glazed specific fields
+            const doubleOuterGlass = document.getElementById('doubleOuterGlass');
+            const doubleInnerGlass = document.getElementById('doubleInnerGlass');
+            const doubleSpacerWidth = document.getElementById('doubleSpacerWidth');
+            const doubleSpacerColour = document.getElementById('doubleSpacerColour');
+            const doubleExtras = document.getElementById('doubleExtras');
+            
+            if (doubleOuterGlass) doubleOuterGlass.selectedIndex = 0;
+            if (doubleInnerGlass) doubleInnerGlass.selectedIndex = 0;
+            if (doubleSpacerWidth) doubleSpacerWidth.selectedIndex = 0;
+            if (doubleSpacerColour) doubleSpacerColour.selectedIndex = 0;
+            if (doubleExtras) doubleExtras.selectedIndex = 0;
+            
+            // Reset triple glazed specific fields
+            const tripleOuterGlass = document.getElementById('tripleOuterGlass');
+            const tripleCentreGlass = document.getElementById('tripleCentreGlass');
+            const tripleInnerGlass = document.getElementById('tripleInnerGlass');
+            const tripleSpacer1Width = document.getElementById('tripleSpacer1Width');
+            const tripleSpacer2Width = document.getElementById('tripleSpacer2Width');
+            const tripleSpacerColour = document.getElementById('tripleSpacerColour');
+            const tripleExtras = document.getElementById('tripleExtras');
+            
+            if (tripleOuterGlass) tripleOuterGlass.selectedIndex = 0;
+            if (tripleCentreGlass) tripleCentreGlass.selectedIndex = 0;
+            if (tripleInnerGlass) tripleInnerGlass.selectedIndex = 0;
+            if (tripleSpacer1Width) tripleSpacer1Width.selectedIndex = 0;
+            if (tripleSpacer2Width) tripleSpacer2Width.selectedIndex = 0;
+            if (tripleSpacerColour) tripleSpacerColour.selectedIndex = 0;
+            if (tripleExtras) tripleExtras.selectedIndex = 0;
+            
+            // Hide all error messages
+            document.querySelectorAll('.error-message').forEach(error => {
+                error.classList.add('hidden');
+            });
+            
+            // Recalculate price (should be 0 now)
+            calculatePrice();
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9663f632135c9a87',t:'MTc1MzcwMTM1OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

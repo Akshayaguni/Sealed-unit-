@@ -1,0 +1,2530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glass Calculator - UK</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .tab-active {
+            background-color: #2563eb;
+            color: white;
+        }
+        .shape-option {
+            transition: all 0.3s ease;
+        }
+        .shape-option:hover {
+            transform: scale(1.05);
+        }
+        .shape-selected {
+            border: 3px solid #2563eb;
+            background-color: #eff6ff;
+        }
+        .price-display {
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            color: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .form-section {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            margin-bottom: 16px;
+        }
+        @media (min-width: 640px) {
+            .form-section {
+                padding: 24px;
+                margin-bottom: 20px;
+            }
+        }
+        .input-field {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+            transition: border-color 0.3s ease;
+        }
+        .input-field:focus {
+            border-color: #2563eb;
+            outline: none;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+        }
+        .error-message {
+            color: #dc2626;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .cart-item {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+        .cart-item:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 4px;
+        }
+        .quantity-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: #2563eb;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+        .quantity-btn:hover {
+            background: #1d4ed8;
+            transform: scale(1.1);
+        }
+        .quantity-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .quantity-display {
+            min-width: 40px;
+            text-align: center;
+            font-weight: 600;
+            color: #374151;
+        }
+        .cart-header {
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            color: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .cart-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6b7280;
+        }
+        .cart-empty svg {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 16px;
+            opacity: 0.5;
+        }
+        .delivery-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .delivery-modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            max-width: 600px;
+            width: 95%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+        @media (min-width: 640px) {
+            .delivery-modal-content {
+                padding: 24px;
+                width: 90%;
+                max-height: 80vh;
+            }
+        }
+        .delivery-area {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .delivery-area:hover {
+            border-color: #2563eb;
+            background-color: #eff6ff;
+        }
+        .delivery-area.selected {
+            border-color: #2563eb;
+            background-color: #eff6ff;
+        }
+        .delivery-counties {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .delivery-county {
+            background: #f8fafc;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            text-align: center;
+        }
+        .success-popup {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+            z-index: 1001;
+            transform: translateX(400px);
+            opacity: 0;
+            transition: all 0.4s ease;
+            max-width: 350px;
+        }
+        .success-popup.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        .success-popup .popup-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .success-popup .popup-icon {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+        .success-popup .popup-text {
+            flex: 1;
+        }
+        .success-popup .popup-title {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+        .success-popup .popup-message {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .pattern-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .pattern-modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            max-width: 500px;
+            width: 95%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+        @media (min-width: 640px) {
+            .pattern-modal-content {
+                padding: 24px;
+                width: 90%;
+                max-height: 80vh;
+            }
+        }
+        .pattern-option {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        .pattern-option:hover {
+            border-color: #2563eb;
+            background-color: #eff6ff;
+        }
+        .pattern-option.selected {
+            border-color: #2563eb;
+            background-color: #eff6ff;
+        }
+        .pattern-image {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin: 0 auto 12px;
+            display: block;
+        }
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: between;
+            padding: 8px 12px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+        .file-item:last-child {
+            margin-bottom: 0;
+        }
+        .file-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+        .file-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .file-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .file-size {
+            font-size: 12px;
+            color: #6b7280;
+        }
+        .file-remove {
+            width: 20px;
+            height: 20px;
+            color: #ef4444;
+            cursor: pointer;
+            flex-shrink: 0;
+            margin-left: 8px;
+        }
+        .file-remove:hover {
+            color: #dc2626;
+        }
+        .upload-area {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .upload-area:hover {
+            background-color: #f9fafb;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 max-w-7xl">
+        <header class="text-center mb-6 lg:mb-8">
+            <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-2">Glass Calculator</h1>
+            <p class="text-sm sm:text-base text-gray-600">Professional glazing solutions for the UK market</p>
+        </header>
+
+        <!-- Tab Navigation -->
+        <div class="flex justify-center mb-6 lg:mb-8">
+            <div class="bg-white rounded-lg p-1 sm:p-2 shadow-lg w-full max-w-md sm:max-w-none sm:w-auto">
+                <div class="flex flex-col sm:flex-row gap-1 sm:gap-2">
+                    <button id="singleTab" class="tab-btn tab-active px-3 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold transition-all duration-300 text-sm sm:text-base">
+                        Single Unit
+                    </button>
+                    <button id="doubleTab" class="tab-btn px-3 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold transition-all duration-300 text-sm sm:text-base">
+                        Double Glazed
+                    </button>
+                    <button id="tripleTab" class="tab-btn px-3 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold transition-all duration-300 text-sm sm:text-base">
+                        Triple Glazed
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8">
+            <!-- Calculator Form -->
+            <div class="xl:col-span-2">
+                <!-- Single Unit Tab -->
+                <div id="singleUnit" class="tab-content">
+                    <div class="form-section">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Shape *</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div class="shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center" data-shape="square" data-price="0">
+                                <div class="w-12 h-12 bg-blue-500 mx-auto mb-2"></div>
+                                <p class="text-sm font-medium">Square</p>
+                                <p class="text-xs text-gray-500">+0%</p>
+                            </div>
+                            <div class="shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center" data-shape="triangle" data-price="15">
+                                <div class="w-0 h-0 border-l-[36px] border-r-0 border-b-[36px] border-l-transparent border-b-blue-500 mx-auto mb-2"></div>
+                                <p class="text-sm font-medium">Right Angle Triangle</p>
+                                <p class="text-xs text-gray-500">+15%</p>
+                            </div>
+                            <div class="shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center" data-shape="rake" data-price="20">
+                                <div class="w-12 h-8 bg-blue-500 mx-auto mb-2 transform skew-x-12"></div>
+                                <p class="text-sm font-medium">Rake</p>
+                                <p class="text-xs text-gray-500">+20%</p>
+                            </div>
+                            <div class="shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center" data-shape="arched" data-price="25">
+                                <div class="w-12 h-6 bg-blue-500 rounded-t-full mx-auto mb-2"></div>
+                                <p class="text-sm font-medium">Arched-Top</p>
+                                <p class="text-xs text-gray-500">+25%</p>
+                            </div>
+                            <div class="shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center" data-shape="other" data-price="30">
+                                <div class="w-12 h-8 bg-blue-500 mx-auto mb-2 rounded-lg transform rotate-45"></div>
+                                <p class="text-sm font-medium">Other</p>
+                                <p class="text-xs text-gray-500">+30%</p>
+                            </div>
+                        </div>
+                        <input type="hidden" id="singleShape" required>
+                        <div id="singleShapeError" class="error-message hidden">Please select a shape</div>
+                        
+                        <!-- Custom shape input for "Other" -->
+                        <div id="singleCustomShapeContainer" class="mt-4 hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Describe the shape *</label>
+                            <input type="text" id="singleCustomShape" class="input-field w-full" placeholder="e.g., Hexagonal, L-shaped, Curved bottom">
+                            <div id="singleCustomShapeError" class="error-message hidden">Please describe the custom shape</div>
+                        </div>
+                        
+                        <!-- Drawing upload section -->
+                        <div id="singleDrawingUpload" class="mt-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Upload Drawing/Specification</label>
+                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+                                <input type="file" id="singleDrawingFile" accept=".png,.jpg,.jpeg,.pdf,.docx" class="hidden" multiple>
+                                <div class="upload-area" onclick="document.getElementById('singleDrawingFile').click()">
+                                    <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    <p class="text-sm text-gray-600 mb-2">
+                                        <span class="font-medium text-blue-600 hover:text-blue-500 cursor-pointer">Click to upload</span> or drag and drop
+                                    </p>
+                                    <p class="text-xs text-gray-500">PNG, JPG, PDF, DOCX up to 10MB each</p>
+                                </div>
+                                <div id="singleFileList" class="mt-4 text-left hidden"></div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-2">Upload technical drawings, sketches, or specifications to help us understand your requirements</p>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Toughened Glass *</h3>
+                        <div class="flex gap-4">
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="singleToughened" value="yes" data-price="30" class="mr-2">
+                                <span>Yes (+30%)</span>
+                            </label>
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="singleToughened" value="no" data-price="0" class="mr-2">
+                                <span>No</span>
+                            </label>
+                        </div>
+                        <div id="singleToughenedError" class="error-message hidden">Please select toughened glass option</div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Pet Flap/Vent Hole *</h3>
+                        <div class="flex gap-4">
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="singlePetFlap" value="none" data-price="0" class="mr-2">
+                                <span>None</span>
+                            </label>
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="singlePetFlap" value="yes" data-price="50" class="mr-2">
+                                <span>Yes (+£50)</span>
+                            </label>
+                        </div>
+                        <div id="singlePetFlapError" class="error-message hidden">Please select pet flap option</div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Optional Extras</h3>
+                        <select id="singleExtras" class="input-field w-full">
+                            <option value="none" data-price="0">None</option>
+                            <option value="lead" data-price="75">Lead (+£75)</option>
+                            <option value="georgian" data-price="100">Georgian Bars (+£100)</option>
+                            <option value="duplex" data-price="125">Duplex Grid (+£125)</option>
+                        </select>
+                        
+                        <!-- Lead Options -->
+                        <div id="singleLeadOptions" class="mt-4 hidden">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Lead Type</label>
+                                    <select id="singleLeadType" class="input-field w-full">
+                                        <option value="">Select</option>
+                                        <option value="9mm-square">9mm Square Lead</option>
+                                        <option value="12mm-square">12mm Square Lead</option>
+                                        <option value="9mm-decorative">9mm Decorative</option>
+                                        <option value="12mm-decorative">12mm Decorative</option>
+                                        <option value="9mm-diamond">9mm Diamond</option>
+                                        <option value="12mm-diamond">12mm Diamond</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Lead Color</label>
+                                    <select id="singleLeadColor" class="input-field w-full">
+                                        <option value="">Select</option>
+                                        <option value="silver-soldered">Silver Soldered</option>
+                                        <option value="silver-unsoldered">Silver Unsoldered</option>
+                                        <option value="antique-soldered">Antique Soldered</option>
+                                        <option value="antique-unsoldered">Antique Unsoldered</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Georgian Bars Options -->
+                        <div id="singleGeorgianOptions" class="mt-4 hidden">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Georgian Bars Size</label>
+                                <select id="singleGeorgianSize" class="input-field w-full">
+                                    <option value="">Select</option>
+                                    <option value="18mm-white">18mm White</option>
+                                    <option value="25mm-white">25mm White</option>
+                                    <option value="18mm-white-single">18mm White Single</option>
+                                    <option value="25mm-white-single">25mm White Single</option>
+                                    <option value="18mm-woodgrain">18mm Woodgrain</option>
+                                    <option value="25mm-woodgrain">25mm Woodgrain</option>
+                                    <option value="18mm-brown">18mm Brown</option>
+                                    <option value="25mm-brown">25mm Brown</option>
+                                    <option value="8mm-gold">8mm Gold</option>
+                                    <option value="8mm-chrome">8mm Chrome</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Duplex Grid Options -->
+                        <div id="singleDuplexOptions" class="mt-4 hidden">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Duplex Grid Size</label>
+                                <select id="singleDuplexSize" class="input-field w-full">
+                                    <option value="">Select</option>
+                                    <option value="18mm-integral">18mm Integral</option>
+                                    <option value="18mm-single-integral">18mm Single Integral</option>
+                                    <option value="24mm-integral">24mm Integral</option>
+                                    <option value="24mm-single-integral">24mm Single Integral</option>
+                                    <option value="39mm-integral">39mm Integral</option>
+                                    <option value="39mm-single-integral">39mm Single Integral</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Unit Dimensions</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Width (mm) *</label>
+                                <input type="number" id="singleWidth" class="input-field w-full" min="100" max="2800" required>
+                                <div id="singleWidthError" class="error-message hidden">Width must be between 100-2800mm</div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Height (mm) *</label>
+                                <input type="number" id="singleHeight" class="input-field w-full" min="100" max="2800" required>
+                                <div id="singleHeightError" class="error-message hidden">Height must be between 100-2800mm</div>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Reference</label>
+                            <input type="text" id="singleReference" class="input-field w-full" placeholder="Optional reference">
+                        </div>
+                        <div class="mt-4">
+                            <p class="text-sm text-gray-600">Area: <span id="singleArea" class="font-semibold">0.000 m²</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Double Glazed Tab -->
+                <div id="doubleGlazed" class="tab-content hidden">
+                    <div class="form-section">
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                            <p class="text-sm text-blue-800 font-medium">Argon gas filled as standard</p>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Glass Configuration</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">External Glass</label>
+                                <select id="doubleOuterGlass" class="input-field w-full">
+                                    <option value="">Select</option>
+                                    <option value="4mm-clear" data-price="39.75">4mm Clear</option>
+                                    <option value="4mm-pattern" data-price="45.05">4mm Pattern</option>
+                                    <option value="4mm-satin" data-price="99.60">4mm Satin</option>
+                                    <option value="6mm-clear" data-price="65.25">6mm Clear</option>
+                                    <option value="6.4mm-clear-laminate" data-price="95.00">6.4mm Clear Laminate</option>
+                                    <option value="6.8mm-acoustic" data-price="111.30">6.8mm Acoustic</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Internal Glass</label>
+                                <select id="doubleInnerGlass" class="input-field w-full">
+                                    <option value="">Select</option>
+                                    <option value="4mm-clear" data-price="39.75">4mm Clear</option>
+                                    <option value="4mm-planitherm" data-price="45.05">4mm Planitherm</option>
+                                    <option value="4mm-planitherm-1" data-price="65.40">4mm Planitherm 1.0</option>
+                                    <option value="6mm-clear" data-price="65.25">6mm Clear</option>
+                                    <option value="6mm-planitherm" data-price="89.70">6mm Planitherm</option>
+                                    <option value="6mm-planitherm-laminate" data-price="106.00">6mm Planitherm Laminate</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Spacer Bar</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Width</label>
+                                <select id="doubleSpacerWidth" class="input-field w-full">
+                                    <option value="">Select</option>
+                                    <option value="6" data-price="0">6mm</option>
+                                    <option value="8" data-price="0">8mm</option>
+                                    <option value="10" data-price="0">10mm</option>
+                                    <option value="12" data-price="0">12mm</option>
+                                    <option value="14" data-price="0">14mm</option>
+                                    <option value="16" data-price="0">16mm</option>
+                                    <option value="18" data-price="0">18mm</option>
+                                    <option value="20" data-price="0">20mm</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Colour</label>
+                                <select id="doubleSpacerType" class="input-field w-full">
+                                    <option value="silver" data-price="0">Silver</option>
+                                    <option value="gold" data-price="0">Gold</option>
+                                    <option value="warm-edge-white" data-price="0">Warm Edge White</option>
+                                    <option value="warm-edge-grey" data-price="0">Warm Edge Grey</option>
+                                    <option value="warm-edge-black" data-price="0">Warm Edge Black</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Shape *</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div class="shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center" data-shape="square" data-price="0">
+                                <div class="w-12 h-12 bg-blue-500 mx-auto mb-2"></div>
+                                <p class="text-sm font-medium">Square</p>
+                                <p class="text-xs text-gray-500">+0%</p>
+                            </div>
+                            <div class="shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center" data-shape="triangle" data-price="15">
+                                <div class="w-0 h-0 border-l-[36px] border-r-0 border-b-[36px] border-l-transparent border-b-blue-500 mx-auto mb-2"></div>
+                                <p class="text-sm font-medium">Right Angle Triangle</p>
+                                <p class="text-xs text-gray-500">+15%</p>
+                            </div>
+                            <div class="shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center" data-shape="rake" data-price="20">
+                                <div class="w-12 h-8 bg-blue-500 mx-auto mb-2 transform skew-x-12"></div>
+                                <p class="text-sm font-medium">Rake</p>
+                                <p class="text-xs text-gray-500">+20%</p>
+                            </div>
+                            <div class="shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center" data-shape="arched" data-price="25">
+                                <div class="w-12 h-6 bg-blue-500 rounded-t-full mx-auto mb-2"></div>
+                                <p class="text-sm font-medium">Arched-Top</p>
+                                <p class="text-xs text-gray-500">+25%</p>
+                            </div>
+                            <div class="shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center" data-shape="other" data-price="30">
+                                <div class="w-12 h-8 bg-blue-500 mx-auto mb-2 rounded-lg transform rotate-45"></div>
+                                <p class="text-sm font-medium">Other</p>
+                                <p class="text-xs text-gray-500">+30%</p>
+                            </div>
+                        </div>
+                        <input type="hidden" id="doubleShape" required>
+                        <div id="doubleShapeError" class="error-message hidden">Please select a shape</div>
+                        
+                        <div id="doubleCustomShapeContainer" class="mt-4 hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Describe the shape *</label>
+                            <input type="text" id="doubleCustomShape" class="input-field w-full" placeholder="e.g., Hexagonal, L-shaped, Curved bottom">
+                            <div id="doubleCustomShapeError" class="error-message hidden">Please describe the custom shape</div>
+                        </div>
+                        
+                        <!-- Drawing upload section -->
+                        <div id="doubleDrawingUpload" class="mt-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Upload Drawing/Specification</label>
+                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+                                <input type="file" id="doubleDrawingFile" accept=".png,.jpg,.jpeg,.pdf,.docx" class="hidden" multiple>
+                                <div class="upload-area" onclick="document.getElementById('doubleDrawingFile').click()">
+                                    <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    <p class="text-sm text-gray-600 mb-2">
+                                        <span class="font-medium text-blue-600 hover:text-blue-500 cursor-pointer">Click to upload</span> or drag and drop
+                                    </p>
+                                    <p class="text-xs text-gray-500">PNG, JPG, PDF, DOCX up to 10MB each</p>
+                                </div>
+                                <div id="doubleFileList" class="mt-4 text-left hidden"></div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-2">Upload technical drawings, sketches, or specifications to help us understand your requirements</p>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Toughened Glass *</h3>
+                        <div class="flex gap-4">
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="doubleToughened" value="yes" data-price="30" class="mr-2">
+                                <span>Yes (+30%)</span>
+                            </label>
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="doubleToughened" value="no" data-price="0" class="mr-2">
+                                <span>No</span>
+                            </label>
+                        </div>
+                        <div id="doubleToughenedError" class="error-message hidden">Please select toughened glass option</div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Pet Flap/Vent Hole *</h3>
+                        <div class="flex gap-4">
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="doublePetFlap" value="none" data-price="0" class="mr-2">
+                                <span>None</span>
+                            </label>
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="doublePetFlap" value="yes" data-price="50" class="mr-2">
+                                <span>Yes (+£50)</span>
+                            </label>
+                        </div>
+                        <div id="doublePetFlapError" class="error-message hidden">Please select pet flap option</div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Optional Extras</h3>
+                        <select id="doubleExtras" class="input-field w-full">
+                            <option value="none" data-price="0">None</option>
+                            <option value="georgian" data-price="57.50">18mm White Georgian</option>
+                            <option value="lead-square" data-price="62.50">9mm Square Lead</option>
+                            <option value="lead-diamond" data-price="70">9mm Diamond Lead</option>
+                        </select>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Unit Dimensions</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Width (mm) *</label>
+                                <input type="number" id="doubleWidth" class="input-field w-full" min="100" max="2800" required>
+                                <div id="doubleWidthError" class="error-message hidden">Width must be between 100-2800mm</div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Height (mm) *</label>
+                                <input type="number" id="doubleHeight" class="input-field w-full" min="100" max="2800" required>
+                                <div id="doubleHeightError" class="error-message hidden">Height must be between 100-2800mm</div>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Reference</label>
+                            <input type="text" id="doubleReference" class="input-field w-full" placeholder="Optional reference">
+                        </div>
+                        <div class="mt-4">
+                            <p class="text-sm text-gray-600">Area: <span id="doubleArea" class="font-semibold">0.000 m²</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Triple Glazed Tab -->
+                <div id="tripleGlazed" class="tab-content hidden">
+                    <div class="form-section">
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                            <p class="text-sm text-blue-800 font-medium">Argon gas filled as standard</p>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Glass Configuration</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">External Glass</label>
+                                <select id="tripleOuterGlass" class="input-field w-full">
+                                    <option value="">Select</option>
+                                    <option value="4mm-clear" data-price="39.75">4mm Clear</option>
+                                    <option value="4mm-pattern" data-price="45.05">4mm Pattern</option>
+                                    <option value="4mm-satin" data-price="99.60">4mm Satin</option>
+                                    <option value="6mm-clear" data-price="65.25">6mm Clear</option>
+                                    <option value="6.4mm-clear-laminate" data-price="95.00">6.4mm Clear Laminate</option>
+                                    <option value="6.8mm-acoustic" data-price="111.30">6.8mm Acoustic</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Centre Glass</label>
+                                <select id="tripleCentreGlass" class="input-field w-full">
+                                    <option value="">Select</option>
+                                    <option value="4mm-clear" data-price="39.75">4mm Clear</option>
+                                    <option value="4mm-planitherm" data-price="45.05">4mm Planitherm</option>
+                                    <option value="4mm-planitherm-1" data-price="65.40">4mm Planitherm 1.0</option>
+                                    <option value="6mm-clear" data-price="65.25">6mm Clear</option>
+                                    <option value="6mm-planitherm" data-price="89.70">6mm Planitherm</option>
+                                    <option value="6mm-planitherm-laminate" data-price="106.00">6mm Planitherm Laminate</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Internal Glass</label>
+                                <select id="tripleInnerGlass" class="input-field w-full">
+                                    <option value="">Select</option>
+                                    <option value="4mm-clear" data-price="39.75">4mm Clear</option>
+                                    <option value="4mm-planitherm" data-price="45.05">4mm Planitherm</option>
+                                    <option value="4mm-planitherm-1" data-price="65.40">4mm Planitherm 1.0</option>
+                                    <option value="6mm-clear" data-price="65.25">6mm Clear</option>
+                                    <option value="6mm-planitherm" data-price="89.70">6mm Planitherm</option>
+                                    <option value="6mm-planitherm-laminate" data-price="106.00">6mm Planitherm Laminate</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Spacer Bars</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Spacer Bar 1 Width</label>
+                                <select id="tripleSpacer1Width" class="input-field w-full">
+                                    <option value="">Select</option>
+                                    <option value="6" data-price="0">6mm</option>
+                                    <option value="8" data-price="0">8mm</option>
+                                    <option value="10" data-price="0">10mm</option>
+                                    <option value="12" data-price="0">12mm</option>
+                                    <option value="14" data-price="0">14mm</option>
+                                    <option value="16" data-price="0">16mm</option>
+                                    <option value="18" data-price="0">18mm</option>
+                                    <option value="20" data-price="0">20mm</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Spacer Bar 2 Width</label>
+                                <select id="tripleSpacer2Width" class="input-field w-full">
+                                    <option value="">Select</option>
+                                    <option value="6" data-price="0">6mm</option>
+                                    <option value="8" data-price="0">8mm</option>
+                                    <option value="10" data-price="0">10mm</option>
+                                    <option value="12" data-price="0">12mm</option>
+                                    <option value="14" data-price="0">14mm</option>
+                                    <option value="16" data-price="0">16mm</option>
+                                    <option value="18" data-price="0">18mm</option>
+                                    <option value="20" data-price="0">20mm</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Spacer Bar Colour</label>
+                                <select id="tripleSpacerType" class="input-field w-full">
+                                    <option value="silver" data-price="0">Silver</option>
+                                    <option value="gold" data-price="0">Gold</option>
+                                    <option value="warm-edge-white" data-price="0">Warm Edge White</option>
+                                    <option value="warm-edge-grey" data-price="0">Warm Edge Grey</option>
+                                    <option value="warm-edge-black" data-price="0">Warm Edge Black</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Shape *</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div class="shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center" data-shape="square" data-price="0">
+                                <div class="w-12 h-12 bg-blue-500 mx-auto mb-2"></div>
+                                <p class="text-sm font-medium">Square</p>
+                                <p class="text-xs text-gray-500">+0%</p>
+                            </div>
+                            <div class="shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center" data-shape="triangle" data-price="15">
+                                <div class="w-0 h-0 border-l-[36px] border-r-0 border-b-[36px] border-l-transparent border-b-blue-500 mx-auto mb-2"></div>
+                                <p class="text-sm font-medium">Right Angle Triangle</p>
+                                <p class="text-xs text-gray-500">+15%</p>
+                            </div>
+                            <div class="shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center" data-shape="rake" data-price="20">
+                                <div class="w-12 h-8 bg-blue-500 mx-auto mb-2 transform skew-x-12"></div>
+                                <p class="text-sm font-medium">Rake</p>
+                                <p class="text-xs text-gray-500">+20%</p>
+                            </div>
+                            <div class="shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center" data-shape="arched" data-price="25">
+                                <div class="w-12 h-6 bg-blue-500 rounded-t-full mx-auto mb-2"></div>
+                                <p class="text-sm font-medium">Arched-Top</p>
+                                <p class="text-xs text-gray-500">+25%</p>
+                            </div>
+                            <div class="shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center" data-shape="other" data-price="30">
+                                <div class="w-12 h-8 bg-blue-500 mx-auto mb-2 rounded-lg transform rotate-45"></div>
+                                <p class="text-sm font-medium">Other</p>
+                                <p class="text-xs text-gray-500">+30%</p>
+                            </div>
+                        </div>
+                        <input type="hidden" id="tripleShape" required>
+                        <div id="tripleShapeError" class="error-message hidden">Please select a shape</div>
+                        
+                        <div id="tripleCustomShapeContainer" class="mt-4 hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Describe the shape *</label>
+                            <input type="text" id="tripleCustomShape" class="input-field w-full" placeholder="e.g., Hexagonal, L-shaped, Curved bottom">
+                            <div id="tripleCustomShapeError" class="error-message hidden">Please describe the custom shape</div>
+                        </div>
+                        
+                        <!-- Drawing upload section -->
+                        <div id="tripleDrawingUpload" class="mt-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Upload Drawing/Specification</label>
+                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+                                <input type="file" id="tripleDrawingFile" accept=".png,.jpg,.jpeg,.pdf,.docx" class="hidden" multiple>
+                                <div class="upload-area" onclick="document.getElementById('tripleDrawingFile').click()">
+                                    <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    <p class="text-sm text-gray-600 mb-2">
+                                        <span class="font-medium text-blue-600 hover:text-blue-500 cursor-pointer">Click to upload</span> or drag and drop
+                                    </p>
+                                    <p class="text-xs text-gray-500">PNG, JPG, PDF, DOCX up to 10MB each</p>
+                                </div>
+                                <div id="tripleFileList" class="mt-4 text-left hidden"></div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-2">Upload technical drawings, sketches, or specifications to help us understand your requirements</p>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Toughened Glass *</h3>
+                        <div class="flex gap-4">
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="tripleToughened" value="yes" data-price="30" class="mr-2">
+                                <span>Yes (+30%)</span>
+                            </label>
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="tripleToughened" value="no" data-price="0" class="mr-2">
+                                <span>No</span>
+                            </label>
+                        </div>
+                        <div id="tripleToughenedError" class="error-message hidden">Please select toughened glass option</div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Pet Flap/Vent Hole *</h3>
+                        <div class="flex gap-4">
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="triplePetFlap" value="none" data-price="0" class="mr-2">
+                                <span>None</span>
+                            </label>
+                            <label class="flex items-center cursor-pointer">
+                                <input type="radio" name="triplePetFlap" value="yes" data-price="50" class="mr-2">
+                                <span>Yes (+£50)</span>
+                            </label>
+                        </div>
+                        <div id="triplePetFlapError" class="error-message hidden">Please select pet flap option</div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Optional Extras</h3>
+                        <select id="tripleExtras" class="input-field w-full">
+                            <option value="none" data-price="0">None</option>
+                            <option value="georgian" data-price="57.50">18mm White Georgian</option>
+                            <option value="lead-square" data-price="62.50">9mm Square Lead</option>
+                            <option value="lead-diamond" data-price="70">9mm Diamond Lead</option>
+                        </select>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">Unit Dimensions</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Width (mm) *</label>
+                                <input type="number" id="tripleWidth" class="input-field w-full" min="100" max="2800" required>
+                                <div id="tripleWidthError" class="error-message hidden">Width must be between 100-2800mm</div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Height (mm) *</label>
+                                <input type="number" id="tripleHeight" class="input-field w-full" min="100" max="2800" required>
+                                <div id="tripleHeightError" class="error-message hidden">Height must be between 100-2800mm</div>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Reference</label>
+                            <input type="text" id="tripleReference" class="input-field w-full" placeholder="Optional reference">
+                        </div>
+                        <div class="mt-4">
+                            <p class="text-sm text-gray-600">Area: <span id="tripleArea" class="font-semibold">0.000 m²</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-8">
+                    <button id="addToCart" class="btn-primary text-lg px-8 py-4">Add to Cart</button>
+                </div>
+            </div>
+
+            <!-- Price Display & Cart -->
+            <div class="xl:col-span-1">
+                <div class="price-display mb-6">
+                    <h3 class="text-2xl font-bold mb-4">Current Price</h3>
+                    <div class="space-y-2">
+                        <div class="text-3xl font-bold">£<span id="currentPrice">0.00</span></div>
+                        <div class="text-sm opacity-90">
+                            <p>Price excludes VAT</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                    <div class="cart-header">
+                        <h3 class="text-xl font-bold">Shopping Cart</h3>
+                        <p class="text-sm opacity-90 mt-1">Review your glass orders</p>
+                    </div>
+                    <div class="px-6 pb-6">
+                        <div id="cartItems">
+                            <div class="cart-empty">
+                                <svg fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
+                                </svg>
+                                <p class="text-lg font-medium">Your cart is empty</p>
+                                <p class="text-sm mt-2">Add some glass units to get started</p>
+                            </div>
+                        </div>
+                        <div id="cartSummary" class="hidden border-t pt-6 mt-6">
+                            <div class="space-y-3">
+                                <div class="flex justify-between text-sm">
+                                    <span>Subtotal:</span>
+                                    <span>£<span id="cartSubtotal">0.00</span></span>
+                                </div>
+                                <div id="cartShippingRow" class="flex justify-between text-sm hidden">
+                                    <span id="cartShippingLabel">Shipping:</span>
+                                    <span>£<span id="cartShipping">0.00</span></span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span>VAT (20%):</span>
+                                    <span>£<span id="cartVAT">0.00</span></span>
+                                </div>
+                                <div class="flex justify-between text-lg font-bold border-t pt-3">
+                                    <span>Total:</span>
+                                    <span class="text-blue-600">£<span id="cartTotal">0.00</span></span>
+                                </div>
+                            </div>
+                            <button class="w-full mt-6 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200">
+                                Proceed to Checkout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delivery Area Selection Modal -->
+    <div id="deliveryModal" class="delivery-modal hidden">
+        <div class="delivery-modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Select Delivery Area</h2>
+                <button id="closeDeliveryModal" class="text-gray-500 hover:text-gray-700 text-2xl font-bold">&times;</button>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="delivery-area" data-area="1" data-charge="37.50">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-lg font-semibold text-gray-800">Delivery Area 1</h3>
+                        <div class="text-right">
+                            <p class="text-lg font-bold text-blue-600">£37.50 + VAT</p>
+                            <p class="text-sm text-gray-500">per delivery</p>
+                        </div>
+                    </div>
+                    <div class="delivery-counties">
+                        <div class="delivery-county">Bedfordshire</div>
+                        <div class="delivery-county">Berkshire</div>
+                        <div class="delivery-county">Buckinghamshire</div>
+                        <div class="delivery-county">Cambridgeshire</div>
+                        <div class="delivery-county">Essex</div>
+                        <div class="delivery-county">Hampshire</div>
+                        <div class="delivery-county">Hertfordshire</div>
+                        <div class="delivery-county">Kent</div>
+                        <div class="delivery-county">Middlesex</div>
+                        <div class="delivery-county">Oxfordshire</div>
+                        <div class="delivery-county">Norfolk</div>
+                        <div class="delivery-county">Suffolk</div>
+                        <div class="delivery-county">Surrey</div>
+                        <div class="delivery-county">Sussex</div>
+                        <div class="delivery-county">Wiltshire</div>
+                    </div>
+                </div>
+                
+                <div class="delivery-area" data-area="2" data-charge="67.50">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-lg font-semibold text-gray-800">Delivery Area 2</h3>
+                        <div class="text-right">
+                            <p class="text-lg font-bold text-blue-600">£67.50 + VAT</p>
+                            <p class="text-sm text-gray-500">per delivery</p>
+                            <p class="text-xs text-green-600 mt-1">£37.50 + VAT for orders over £2000</p>
+                        </div>
+                    </div>
+                    <div class="delivery-counties">
+                        <div class="delivery-county">Derbyshire</div>
+                        <div class="delivery-county">Dorset</div>
+                        <div class="delivery-county">Gloucestershire</div>
+                        <div class="delivery-county">Herefordshire</div>
+                        <div class="delivery-county">Leicestershire</div>
+                        <div class="delivery-county">Lincolnshire</div>
+                        <div class="delivery-county">Nottinghamshire</div>
+                        <div class="delivery-county">Rutland</div>
+                        <div class="delivery-county">Shropshire</div>
+                        <div class="delivery-county">Somerset</div>
+                        <div class="delivery-county">Staffordshire</div>
+                        <div class="delivery-county">Warwickshire</div>
+                        <div class="delivery-county">Worcestershire</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex justify-end gap-4 mt-8">
+                <button id="cancelDelivery" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                    Cancel
+                </button>
+                <button id="confirmDelivery" class="btn-primary" disabled>
+                    Confirm & Add to Cart
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pattern Selection Modal -->
+    <div id="patternModal" class="pattern-modal hidden">
+        <div class="pattern-modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Select Pattern Type</h2>
+                <button id="closePatternModal" class="text-gray-500 hover:text-gray-700 text-2xl font-bold">&times;</button>
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
+                <div class="pattern-option" data-pattern="flemish">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/flemish-min.png?mh=500" 
+                         alt="Flemish Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">Flemish</h3>
+                    <p class="text-sm text-gray-600 mt-2">Classic textured pattern with subtle geometric design</p>
+                </div>
+                
+                <div class="pattern-option" data-pattern="minster">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/minster-min.png?mh=500" 
+                         alt="Minster Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">Minster</h3>
+                    <p class="text-sm text-gray-600 mt-2">Traditional cathedral-style textured pattern</p>
+                </div>
+                
+                <div class="pattern-option" data-pattern="warwick">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/warwick-min.png?mh=500" 
+                         alt="Warwick Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">Warwick</h3>
+                    <p class="text-sm text-gray-600 mt-2">Elegant textured glass with refined pattern</p>
+                </div>
+                
+                <div class="pattern-option" data-pattern="chantilly">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/chantilly-min.png?mh=500" 
+                         alt="Chantilly Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">Chantilly</h3>
+                    <p class="text-sm text-gray-600 mt-2">Delicate lace-like textured pattern</p>
+                </div>
+                
+                <div class="pattern-option" data-pattern="reeded">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/reeded-min.png?mh=500" 
+                         alt="Reeded Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">Reeded</h3>
+                    <p class="text-sm text-gray-600 mt-2">Linear vertical ridged pattern</p>
+                </div>
+                
+                <div class="pattern-option" data-pattern="digital">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/digital-min.png?mh=500" 
+                         alt="Digital Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">Digital</h3>
+                    <p class="text-sm text-gray-600 mt-2">Modern pixelated textured design</p>
+                </div>
+                
+                <div class="pattern-option" data-pattern="taffeta">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/taffeta-min.png?mh=500" 
+                         alt="Taffeta Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">Taffeta</h3>
+                    <p class="text-sm text-gray-600 mt-2">Silk-like woven texture pattern</p>
+                </div>
+                
+                <div class="pattern-option" data-pattern="oak">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/oak-min.png?mh=500" 
+                         alt="Oak Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">Oak</h3>
+                    <p class="text-sm text-gray-600 mt-2">Natural wood grain inspired texture</p>
+                </div>
+                
+                <div class="pattern-option" data-pattern="florielle">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/contora-min.png?mh=500" 
+                         alt="Florielle Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">Florielle</h3>
+                    <p class="text-sm text-gray-600 mt-2">Floral-inspired decorative pattern</p>
+                </div>
+                
+                <div class="pattern-option" data-pattern="mayflower">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/mayflower-min.png?mh=500" 
+                         alt="MayFlower Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">MayFlower</h3>
+                    <p class="text-sm text-gray-600 mt-2">Botanical textured glass design</p>
+                </div>
+                
+                <div class="pattern-option" data-pattern="pelerine">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/pereline-min.png?mh=500" 
+                         alt="Pelerine Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">Pelerine</h3>
+                    <p class="text-sm text-gray-600 mt-2">Sophisticated curved line pattern</p>
+                </div>
+                
+                <div class="pattern-option" data-pattern="everglade">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/everglade-min.png?mh=500" 
+                         alt="Everglade Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">Everglade</h3>
+                    <p class="text-sm text-gray-600 mt-2">Nature-inspired organic texture</p>
+                </div>
+                
+                <div class="pattern-option" data-pattern="cassini">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/cassini-min.png?mh=500" 
+                         alt="Cassini Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">Cassini</h3>
+                    <p class="text-sm text-gray-600 mt-2">Geometric circular pattern design</p>
+                </div>
+                
+                <div class="pattern-option" data-pattern="tribal">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/tribal-min.png?mh=500" 
+                         alt="Tribal Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">Tribal</h3>
+                    <p class="text-sm text-gray-600 mt-2">Bold ethnic-inspired pattern</p>
+                </div>
+                
+                <div class="pattern-option" data-pattern="sycamore">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/sycamore-min.png?mh=500" 
+                         alt="Sycamore Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">Sycamore</h3>
+                    <p class="text-sm text-gray-600 mt-2">Wood grain textured pattern</p>
+                </div>
+                
+                <div class="pattern-option" data-pattern="autumn">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/autumn-min.png?mh=500" 
+                         alt="Autumn Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">Autumn</h3>
+                    <p class="text-sm text-gray-600 mt-2">Seasonal leaf-inspired texture</p>
+                </div>
+                
+                <div class="pattern-option" data-pattern="arctic">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/arctic-min.png?mh=500" 
+                         alt="Arctic Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">Arctic</h3>
+                    <p class="text-sm text-gray-600 mt-2">Ice crystal inspired pattern</p>
+                </div>
+                
+                <div class="pattern-option" data-pattern="stippolyte">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/stippolyte-min.png?mh=500" 
+                         alt="Stippolyte Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">Stippolyte</h3>
+                    <p class="text-sm text-gray-600 mt-2">Fine stippled texture pattern</p>
+                </div>
+                
+                <div class="pattern-option" data-pattern="cotswold">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/cotswold-min2.png?mh=500" 
+                         alt="Cotswold Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">Cotswold</h3>
+                    <p class="text-sm text-gray-600 mt-2">Traditional countryside texture</p>
+                </div>
+            </div>
+            
+            <div class="flex justify-end gap-4 mt-8">
+                <button id="cancelPattern" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                    Cancel
+                </button>
+                <button id="confirmPattern" class="btn-primary" disabled>
+                    Confirm Selection
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Popup -->
+    <div id="successPopup" class="success-popup">
+        <div class="popup-content">
+            <svg class="popup-icon" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            <div class="popup-text">
+                <div class="popup-title">Success!</div>
+                <div class="popup-message">Item added to cart successfully</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentTab = 'single';
+        let cart = [];
+        let currentPrice = 0;
+        let selectedDeliveryArea = null;
+        let deliveryCharge = 0;
+        let pendingCartItem = null;
+        let selectedPattern = null;
+        let pendingPatternSelection = null;
+
+        // Initialize the calculator
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTabs();
+            initializeEventListeners();
+            calculatePrice();
+        });
+
+        // Initialize extras dropdowns
+        function initializeExtrasDropdowns() {
+            ['single', 'double', 'triple'].forEach(type => {
+                const extrasSelect = document.getElementById(type + 'Extras');
+                if (extrasSelect) {
+                    extrasSelect.addEventListener('change', function() {
+                        const value = this.value;
+                        
+                        // Hide all option containers
+                        const leadOptions = document.getElementById(type + 'LeadOptions');
+                        const georgianOptions = document.getElementById(type + 'GeorgianOptions');
+                        const duplexOptions = document.getElementById(type + 'DuplexOptions');
+                        
+                        if (leadOptions) leadOptions.classList.add('hidden');
+                        if (georgianOptions) georgianOptions.classList.add('hidden');
+                        if (duplexOptions) duplexOptions.classList.add('hidden');
+                        
+                        // Show relevant option container
+                        if (value === 'lead' && leadOptions) {
+                            leadOptions.classList.remove('hidden');
+                        } else if (value === 'georgian' && georgianOptions) {
+                            georgianOptions.classList.remove('hidden');
+                        } else if (value === 'duplex' && duplexOptions) {
+                            duplexOptions.classList.remove('hidden');
+                        }
+                        
+                        calculatePrice();
+                    });
+                }
+            });
+        }
+
+        // Tab functionality
+        function initializeTabs() {
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const tabId = this.id.replace('Tab', '');
+                    switchTab(tabId);
+                });
+            });
+        }
+
+        function switchTab(tabId) {
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('tab-active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
+
+            // Add active class to selected tab
+            document.getElementById(tabId + 'Tab').classList.add('tab-active');
+            
+            // Show corresponding content
+            if (tabId === 'single') {
+                document.getElementById('singleUnit').classList.remove('hidden');
+                currentTab = 'single';
+            } else if (tabId === 'double') {
+                document.getElementById('doubleGlazed').classList.remove('hidden');
+                currentTab = 'double';
+            } else if (tabId === 'triple') {
+                document.getElementById('tripleGlazed').classList.remove('hidden');
+                currentTab = 'triple';
+            }
+
+            calculatePrice();
+        }
+
+        // Event listeners
+        function initializeEventListeners() {
+            // Dimension inputs
+            ['single', 'double', 'triple'].forEach(type => {
+                const widthInput = document.getElementById(type + 'Width');
+                const heightInput = document.getElementById(type + 'Height');
+                
+                if (widthInput) widthInput.addEventListener('input', () => updateArea(type));
+                if (heightInput) heightInput.addEventListener('input', () => updateArea(type));
+            });
+
+            // Shape selection
+            document.querySelectorAll('.shape-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const parentTab = this.closest('.tab-content');
+                    const tabType = parentTab.id.replace('Unit', '').replace('Glazed', '');
+                    
+                    // Remove selection from siblings
+                    parentTab.querySelectorAll('.shape-option').forEach(opt => {
+                        opt.classList.remove('shape-selected');
+                    });
+                    
+                    // Add selection to clicked option
+                    this.classList.add('shape-selected');
+                    
+                    // Update hidden input
+                    const hiddenInput = document.getElementById(tabType + 'Shape');
+                    if (hiddenInput) {
+                        hiddenInput.value = this.dataset.shape;
+                    }
+                    
+                    // Show/hide custom shape input for "Other"
+                    const customShapeContainer = document.getElementById(tabType + 'CustomShapeContainer');
+                    
+                    if (customShapeContainer) {
+                        if (this.dataset.shape === 'other') {
+                            customShapeContainer.classList.remove('hidden');
+                        } else {
+                            customShapeContainer.classList.add('hidden');
+                            // Clear custom shape input when not "Other"
+                            const customShapeInput = document.getElementById(tabType + 'CustomShape');
+                            if (customShapeInput) {
+                                customShapeInput.value = '';
+                            }
+                        }
+                    }
+                    
+                    calculatePrice();
+                });
+            });
+
+            // All other inputs
+            document.addEventListener('change', function(e) {
+                // Check if pattern glass is selected
+                if (e.target.tagName === 'SELECT' && e.target.value === '4mm-pattern') {
+                    showPatternModal(e.target);
+                } else {
+                    calculatePrice();
+                }
+            });
+            document.addEventListener('input', calculatePrice);
+
+            // Extras dropdown functionality
+            initializeExtrasDropdowns();
+
+            // File upload functionality
+            initializeFileUploads();
+
+            // Add to cart button
+            document.getElementById('addToCart').addEventListener('click', addToCart);
+
+            // Delivery modal listeners
+            initializeDeliveryModal();
+
+            // Pattern modal listeners
+            initializePatternModal();
+        }
+
+        // File upload functionality
+        function initializeFileUploads() {
+            ['single', 'double', 'triple'].forEach(type => {
+                const fileInput = document.getElementById(type + 'DrawingFile');
+                if (fileInput) {
+                    fileInput.addEventListener('change', function(e) {
+                        handleFileUpload(e, type);
+                    });
+                }
+            });
+        }
+
+        function handleFileUpload(event, type) {
+            const files = Array.from(event.target.files);
+            const fileListContainer = document.getElementById(type + 'FileList');
+            
+            if (files.length === 0) return;
+            
+            // Validate files
+            const validFiles = [];
+            const maxSize = 10 * 1024 * 1024; // 10MB
+            const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+            
+            files.forEach(file => {
+                if (file.size > maxSize) {
+                    alert(`File "${file.name}" is too large. Maximum size is 10MB.`);
+                    return;
+                }
+                
+                if (!allowedTypes.includes(file.type)) {
+                    alert(`File "${file.name}" is not a supported format. Please use PNG, JPG, PDF, or DOCX.`);
+                    return;
+                }
+                
+                validFiles.push(file);
+            });
+            
+            if (validFiles.length === 0) {
+                event.target.value = ''; // Clear the input
+                return;
+            }
+            
+            // Store files in a global object for later use
+            if (!window.uploadedFiles) {
+                window.uploadedFiles = {};
+            }
+            if (!window.uploadedFiles[type]) {
+                window.uploadedFiles[type] = [];
+            }
+            
+            // Add new files to existing ones
+            window.uploadedFiles[type] = [...window.uploadedFiles[type], ...validFiles];
+            
+            // Update display
+            updateFileDisplay(type);
+            
+            // Clear the input so the same file can be selected again if needed
+            event.target.value = '';
+        }
+
+        function updateFileDisplay(type) {
+            const fileListContainer = document.getElementById(type + 'FileList');
+            const files = window.uploadedFiles && window.uploadedFiles[type] ? window.uploadedFiles[type] : [];
+            
+            if (files.length === 0) {
+                fileListContainer.classList.add('hidden');
+                return;
+            }
+            
+            fileListContainer.classList.remove('hidden');
+            
+            let html = '';
+            files.forEach((file, index) => {
+                const fileSize = formatFileSize(file.size);
+                const fileIcon = getFileIcon(file.type);
+                
+                html += `
+                    <div class="file-item">
+                        ${fileIcon}
+                        <div class="file-info">
+                            <div class="file-name" title="${file.name}">${file.name}</div>
+                            <div class="file-size">${fileSize}</div>
+                        </div>
+                        <svg class="file-remove" onclick="removeFile('${type}', ${index})" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                `;
+            });
+            
+            fileListContainer.innerHTML = html;
+        }
+
+        function removeFile(type, index) {
+            if (window.uploadedFiles && window.uploadedFiles[type]) {
+                window.uploadedFiles[type].splice(index, 1);
+                updateFileDisplay(type);
+            }
+        }
+
+        function clearUploadedFiles(type) {
+            if (window.uploadedFiles && window.uploadedFiles[type]) {
+                window.uploadedFiles[type] = [];
+                updateFileDisplay(type);
+            }
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function getFileIcon(fileType) {
+            if (fileType.startsWith('image/')) {
+                return `<svg class="file-icon" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path>
+                </svg>`;
+            } else if (fileType === 'application/pdf') {
+                return `<svg class="file-icon" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"></path>
+                </svg>`;
+            } else {
+                return `<svg class="file-icon" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"></path>
+                </svg>`;
+            }
+        }
+
+        // Update area calculation
+        function updateArea(type) {
+            const width = parseFloat(document.getElementById(type + 'Width').value) || 0;
+            const height = parseFloat(document.getElementById(type + 'Height').value) || 0;
+            const areaInSquareMeters = (width / 1000) * (height / 1000);
+            
+            document.getElementById(type + 'Area').textContent = areaInSquareMeters.toFixed(3) + ' m²';
+            calculatePrice();
+        }
+
+        // Price calculation
+        function calculatePrice() {
+            let price = 0;
+
+            if (currentTab === 'single') {
+                price = calculateSinglePrice();
+            } else if (currentTab === 'double') {
+                price = calculateDoublePrice();
+            } else if (currentTab === 'triple') {
+                price = calculateTriplePrice();
+            }
+
+            currentPrice = price; // Store price for cart
+            
+            // Update current price display (excludes VAT)
+            document.getElementById('currentPrice').textContent = price.toFixed(2);
+        }
+
+        function calculateSinglePrice() {
+            const width = parseFloat(document.getElementById('singleWidth').value) || 0;
+            const height = parseFloat(document.getElementById('singleHeight').value) || 0;
+            
+            if (width === 0 || height === 0) return 0;
+
+            // Convert mm to meters and calculate area
+            const areaInSquareMeters = (width / 1000) * (height / 1000);
+            
+            // Apply minimum charge of 0.3 square meters
+            const chargeableArea = Math.max(areaInSquareMeters, 0.3);
+
+            let price = 0;
+
+            // Base price calculation (£150 per square meter for single glazing)
+            price = chargeableArea * 150;
+
+            // Shape modifier (percentage)
+            const shapeModifier = parseFloat(document.querySelector('#singleUnit .shape-option.shape-selected')?.dataset.price) || 0;
+            price *= (1 + shapeModifier / 100);
+
+            // Toughened glass (percentage)
+            const toughenedRadio = document.querySelector('input[name="singleToughened"]:checked');
+            if (toughenedRadio) {
+                const toughenedModifier = parseFloat(toughenedRadio.dataset.price) || 0;
+                price *= (1 + toughenedModifier / 100);
+            }
+
+            // Pet flap (fixed price)
+            const petFlapRadio = document.querySelector('input[name="singlePetFlap"]:checked');
+            if (petFlapRadio) {
+                const petFlapPrice = parseFloat(petFlapRadio.dataset.price) || 0;
+                price += petFlapPrice;
+            }
+
+            // Optional extras (fixed price)
+            const extrasSelect = document.getElementById('singleExtras');
+            const extrasPrice = parseFloat(extrasSelect.options[extrasSelect.selectedIndex].dataset.price) || 0;
+            price += extrasPrice;
+
+            return price;
+        }
+
+        function calculateDoublePrice() {
+            const width = parseFloat(document.getElementById('doubleWidth').value) || 0;
+            const height = parseFloat(document.getElementById('doubleHeight').value) || 0;
+            
+            if (width === 0 || height === 0) return 0;
+
+            // Convert mm to meters and calculate area
+            const areaInSquareMeters = (width / 1000) * (height / 1000);
+            
+            // Apply minimum charge of 0.3 square meters
+            const chargeableArea = Math.max(areaInSquareMeters, 0.3);
+
+            let price = 0;
+
+            // External glass
+            const outerGlassSelect = document.getElementById('doubleOuterGlass');
+            const outerGlassPrice = parseFloat(outerGlassSelect.options[outerGlassSelect.selectedIndex].dataset.price) || 0;
+            price += chargeableArea * outerGlassPrice;
+
+            // Internal glass
+            const innerGlassSelect = document.getElementById('doubleInnerGlass');
+            const innerGlassPrice = parseFloat(innerGlassSelect.options[innerGlassSelect.selectedIndex].dataset.price) || 0;
+            price += chargeableArea * innerGlassPrice;
+
+            // Spacer bar type (per sqm)
+            const spacerTypeSelect = document.getElementById('doubleSpacerType');
+            const spacerTypePrice = parseFloat(spacerTypeSelect.options[spacerTypeSelect.selectedIndex].dataset.price) || 0;
+            price += chargeableArea * spacerTypePrice;
+
+            // Shape modifier (percentage)
+            const shapeModifier = parseFloat(document.querySelector('#doubleGlazed .shape-option.shape-selected')?.dataset.price) || 0;
+            price *= (1 + shapeModifier / 100);
+
+            // Toughened glass (percentage)
+            const toughenedRadio = document.querySelector('input[name="doubleToughened"]:checked');
+            if (toughenedRadio) {
+                const toughenedModifier = parseFloat(toughenedRadio.dataset.price) || 0;
+                price *= (1 + toughenedModifier / 100);
+            }
+
+            // Pet flap (fixed price)
+            const petFlapRadio = document.querySelector('input[name="doublePetFlap"]:checked');
+            if (petFlapRadio) {
+                const petFlapPrice = parseFloat(petFlapRadio.dataset.price) || 0;
+                price += petFlapPrice;
+            }
+
+            // Optional extras (per sqm)
+            const extrasSelect = document.getElementById('doubleExtras');
+            const extrasPrice = parseFloat(extrasSelect.options[extrasSelect.selectedIndex].dataset.price) || 0;
+            price += chargeableArea * extrasPrice;
+
+            return price;
+        }
+
+        function calculateTriplePrice() {
+            const width = parseFloat(document.getElementById('tripleWidth').value) || 0;
+            const height = parseFloat(document.getElementById('tripleHeight').value) || 0;
+            
+            if (width === 0 || height === 0) return 0;
+
+            // Convert mm to meters and calculate area
+            const areaInSquareMeters = (width / 1000) * (height / 1000);
+            
+            // Apply minimum charge of 0.3 square meters
+            const chargeableArea = Math.max(areaInSquareMeters, 0.3);
+
+            let price = 0;
+
+            // External glass
+            const outerGlassSelect = document.getElementById('tripleOuterGlass');
+            const outerGlassPrice = parseFloat(outerGlassSelect.options[outerGlassSelect.selectedIndex].dataset.price) || 0;
+            price += chargeableArea * outerGlassPrice;
+
+            // Centre glass
+            const centreGlassSelect = document.getElementById('tripleCentreGlass');
+            const centreGlassPrice = parseFloat(centreGlassSelect.options[centreGlassSelect.selectedIndex].dataset.price) || 0;
+            price += chargeableArea * centreGlassPrice;
+
+            // Internal glass
+            const innerGlassSelect = document.getElementById('tripleInnerGlass');
+            const innerGlassPrice = parseFloat(innerGlassSelect.options[innerGlassSelect.selectedIndex].dataset.price) || 0;
+            price += chargeableArea * innerGlassPrice;
+
+            // Spacer bar type (per sqm)
+            const spacerTypeSelect = document.getElementById('tripleSpacerType');
+            const spacerTypePrice = parseFloat(spacerTypeSelect.options[spacerTypeSelect.selectedIndex].dataset.price) || 0;
+            price += chargeableArea * spacerTypePrice;
+
+            // Shape modifier (percentage)
+            const shapeModifier = parseFloat(document.querySelector('#tripleGlazed .shape-option.shape-selected')?.dataset.price) || 0;
+            price *= (1 + shapeModifier / 100);
+
+            // Toughened glass (percentage)
+            const toughenedRadio = document.querySelector('input[name="tripleToughened"]:checked');
+            if (toughenedRadio) {
+                const toughenedModifier = parseFloat(toughenedRadio.dataset.price) || 0;
+                price *= (1 + toughenedModifier / 100);
+            }
+
+            // Pet flap (fixed price)
+            const petFlapRadio = document.querySelector('input[name="triplePetFlap"]:checked');
+            if (petFlapRadio) {
+                const petFlapPrice = parseFloat(petFlapRadio.dataset.price) || 0;
+                price += petFlapPrice;
+            }
+
+            // Optional extras (per sqm)
+            const extrasSelect = document.getElementById('tripleExtras');
+            const extrasPrice = parseFloat(extrasSelect.options[extrasSelect.selectedIndex].dataset.price) || 0;
+            price += chargeableArea * extrasPrice;
+
+            return price;
+        }
+
+        // Validation
+        function validateForm() {
+            let isValid = true;
+
+            // Clear previous errors
+            document.querySelectorAll('.error-message').forEach(error => error.classList.add('hidden'));
+
+            if (currentTab === 'single') {
+                isValid = validateSingleForm() && isValid;
+            } else if (currentTab === 'double') {
+                isValid = validateDoubleForm() && isValid;
+            } else if (currentTab === 'triple') {
+                isValid = validateTripleForm() && isValid;
+            }
+
+            return isValid;
+        }
+
+        function validateSingleForm() {
+            let isValid = true;
+
+            // Validate dimensions
+            const width = parseFloat(document.getElementById('singleWidth').value);
+            const height = parseFloat(document.getElementById('singleHeight').value);
+
+            if (!width || width < 100 || width > 2800) {
+                document.getElementById('singleWidthError').classList.remove('hidden');
+                isValid = false;
+            }
+
+            if (!height || height < 100 || height > 2800) {
+                document.getElementById('singleHeightError').classList.remove('hidden');
+                isValid = false;
+            }
+
+            // Validate shape
+            const shapeValue = document.getElementById('singleShape').value;
+            if (!shapeValue) {
+                document.getElementById('singleShapeError').classList.remove('hidden');
+                isValid = false;
+            }
+
+            // Validate custom shape if "Other" is selected
+            if (shapeValue === 'other') {
+                const customShape = document.getElementById('singleCustomShape').value.trim();
+                if (!customShape) {
+                    document.getElementById('singleCustomShapeError').classList.remove('hidden');
+                    isValid = false;
+                }
+            }
+
+            // Validate toughened glass
+            if (!document.querySelector('input[name="singleToughened"]:checked')) {
+                document.getElementById('singleToughenedError').classList.remove('hidden');
+                isValid = false;
+            }
+
+            // Validate pet flap
+            if (!document.querySelector('input[name="singlePetFlap"]:checked')) {
+                document.getElementById('singlePetFlapError').classList.remove('hidden');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        function validateDoubleForm() {
+            let isValid = true;
+
+            // Validate dimensions
+            const width = parseFloat(document.getElementById('doubleWidth').value);
+            const height = parseFloat(document.getElementById('doubleHeight').value);
+
+            if (!width || width < 100 || width > 2800) {
+                document.getElementById('doubleWidthError').classList.remove('hidden');
+                isValid = false;
+            }
+
+            if (!height || height < 100 || height > 2800) {
+                document.getElementById('doubleHeightError').classList.remove('hidden');
+                isValid = false;
+            }
+
+            // Validate shape
+            const shapeValue = document.getElementById('doubleShape').value;
+            if (!shapeValue) {
+                document.getElementById('doubleShapeError').classList.remove('hidden');
+                isValid = false;
+            }
+
+            // Validate custom shape if "Other" is selected
+            if (shapeValue === 'other') {
+                const customShape = document.getElementById('doubleCustomShape').value.trim();
+                if (!customShape) {
+                    document.getElementById('doubleCustomShapeError').classList.remove('hidden');
+                    isValid = false;
+                }
+            }
+
+            // Validate toughened glass
+            if (!document.querySelector('input[name="doubleToughened"]:checked')) {
+                document.getElementById('doubleToughenedError').classList.remove('hidden');
+                isValid = false;
+            }
+
+            // Validate pet flap
+            if (!document.querySelector('input[name="doublePetFlap"]:checked')) {
+                document.getElementById('doublePetFlapError').classList.remove('hidden');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        function validateTripleForm() {
+            let isValid = true;
+
+            // Validate dimensions
+            const width = parseFloat(document.getElementById('tripleWidth').value);
+            const height = parseFloat(document.getElementById('tripleHeight').value);
+
+            if (!width || width < 100 || width > 2800) {
+                document.getElementById('tripleWidthError').classList.remove('hidden');
+                isValid = false;
+            }
+
+            if (!height || height < 100 || height > 2800) {
+                document.getElementById('tripleHeightError').classList.remove('hidden');
+                isValid = false;
+            }
+
+            // Validate shape
+            const shapeValue = document.getElementById('tripleShape').value;
+            if (!shapeValue) {
+                document.getElementById('tripleShapeError').classList.remove('hidden');
+                isValid = false;
+            }
+
+            // Validate custom shape if "Other" is selected
+            if (shapeValue === 'other') {
+                const customShape = document.getElementById('tripleCustomShape').value.trim();
+                if (!customShape) {
+                    document.getElementById('tripleCustomShapeError').classList.remove('hidden');
+                    isValid = false;
+                }
+            }
+
+            // Validate toughened glass
+            if (!document.querySelector('input[name="tripleToughened"]:checked')) {
+                document.getElementById('tripleToughenedError').classList.remove('hidden');
+                isValid = false;
+            }
+
+            // Validate pet flap
+            if (!document.querySelector('input[name="triplePetFlap"]:checked')) {
+                document.getElementById('triplePetFlapError').classList.remove('hidden');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        // Cart functionality
+        function addToCart() {
+            if (!validateForm()) {
+                alert('Please fill in all required fields correctly.');
+                return;
+            }
+
+            // Store the pending item details
+            pendingCartItem = {
+                id: Date.now(),
+                type: currentTab,
+                unitPrice: currentPrice,
+                quantity: 1,
+                details: getItemDetails()
+            };
+
+            // Only show delivery modal if no delivery area has been selected yet
+            if (!selectedDeliveryArea) {
+                showDeliveryModal();
+            } else {
+                // Use existing delivery area selection for all subsequent orders
+                addItemToCart();
+            }
+        }
+
+        function getItemDetails() {
+            let details = {};
+            
+            if (currentTab === 'single') {
+                const shapeValue = document.getElementById('singleShape').value;
+                const customShape = shapeValue === 'other' ? document.getElementById('singleCustomShape').value : '';
+                const extrasSelect = document.getElementById('singleExtras');
+                
+                details = {
+                    width: document.getElementById('singleWidth').value,
+                    height: document.getElementById('singleHeight').value,
+                    reference: document.getElementById('singleReference').value,
+                    shape: shapeValue,
+                    customShape: customShape,
+                    toughened: document.querySelector('input[name="singleToughened"]:checked').value,
+                    petFlap: document.querySelector('input[name="singlePetFlap"]:checked').value,
+                    extras: extrasSelect.options[extrasSelect.selectedIndex].text,
+                    uploadedFiles: window.uploadedFiles && window.uploadedFiles['single'] ? [...window.uploadedFiles['single']] : []
+                };
+            } else if (currentTab === 'double') {
+                const shapeValue = document.getElementById('doubleShape').value;
+                const customShape = shapeValue === 'other' ? document.getElementById('doubleCustomShape').value : '';
+                const extrasSelect = document.getElementById('doubleExtras');
+                
+                const outerGlassSelect = document.getElementById('doubleOuterGlass');
+                const innerGlassSelect = document.getElementById('doubleInnerGlass');
+                
+                details = {
+                    width: document.getElementById('doubleWidth').value,
+                    height: document.getElementById('doubleHeight').value,
+                    reference: document.getElementById('doubleReference').value,
+                    outerGlass: outerGlassSelect.options[outerGlassSelect.selectedIndex].text,
+                    outerGlassPattern: outerGlassSelect.dataset.selectedPattern || null,
+                    innerGlass: innerGlassSelect.options[innerGlassSelect.selectedIndex].text,
+                    innerGlassPattern: innerGlassSelect.dataset.selectedPattern || null,
+                    spacerWidth: document.getElementById('doubleSpacerWidth').options[document.getElementById('doubleSpacerWidth').selectedIndex].text,
+                    spacerColor: document.getElementById('doubleSpacerType').options[document.getElementById('doubleSpacerType').selectedIndex].text,
+                    shape: shapeValue,
+                    customShape: customShape,
+                    toughened: document.querySelector('input[name="doubleToughened"]:checked').value,
+                    petFlap: document.querySelector('input[name="doublePetFlap"]:checked').value,
+                    extras: extrasSelect.options[extrasSelect.selectedIndex].text,
+                    uploadedFiles: window.uploadedFiles && window.uploadedFiles['double'] ? [...window.uploadedFiles['double']] : []
+                };
+            } else if (currentTab === 'triple') {
+                const shapeValue = document.getElementById('tripleShape').value;
+                const customShape = shapeValue === 'other' ? document.getElementById('tripleCustomShape').value : '';
+                const extrasSelect = document.getElementById('tripleExtras');
+                
+                const outerGlassSelect = document.getElementById('tripleOuterGlass');
+                const centreGlassSelect = document.getElementById('tripleCentreGlass');
+                const innerGlassSelect = document.getElementById('tripleInnerGlass');
+                
+                details = {
+                    width: document.getElementById('tripleWidth').value,
+                    height: document.getElementById('tripleHeight').value,
+                    reference: document.getElementById('tripleReference').value,
+                    outerGlass: outerGlassSelect.options[outerGlassSelect.selectedIndex].text,
+                    outerGlassPattern: outerGlassSelect.dataset.selectedPattern || null,
+                    centreGlass: centreGlassSelect.options[centreGlassSelect.selectedIndex].text,
+                    centreGlassPattern: centreGlassSelect.dataset.selectedPattern || null,
+                    innerGlass: innerGlassSelect.options[innerGlassSelect.selectedIndex].text,
+                    innerGlassPattern: innerGlassSelect.dataset.selectedPattern || null,
+                    spacer1Width: document.getElementById('tripleSpacer1Width').options[document.getElementById('tripleSpacer1Width').selectedIndex].text,
+                    spacer2Width: document.getElementById('tripleSpacer2Width').options[document.getElementById('tripleSpacer2Width').selectedIndex].text,
+                    spacerColor: document.getElementById('tripleSpacerType').options[document.getElementById('tripleSpacerType').selectedIndex].text,
+                    shape: shapeValue,
+                    customShape: customShape,
+                    toughened: document.querySelector('input[name="tripleToughened"]:checked').value,
+                    petFlap: document.querySelector('input[name="triplePetFlap"]:checked').value,
+                    extras: extrasSelect.options[extrasSelect.selectedIndex].text,
+                    uploadedFiles: window.uploadedFiles && window.uploadedFiles['triple'] ? [...window.uploadedFiles['triple']] : []
+                };
+            }
+            
+            return details;
+        }
+
+        function updateCartDisplay() {
+            const cartContainer = document.getElementById('cartItems');
+            const cartSummary = document.getElementById('cartSummary');
+            
+            if (cart.length === 0) {
+                cartContainer.innerHTML = `
+                    <div class="cart-empty">
+                        <svg fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
+                        </svg>
+                        <p class="text-lg font-medium">Your cart is empty</p>
+                        <p class="text-sm mt-2">Add some glass units to get started</p>
+                    </div>
+                `;
+                cartSummary.classList.add('hidden');
+                return;
+            }
+            
+            let html = '';
+            let subtotal = 0;
+            
+            cart.forEach((item, index) => {
+                const itemTotal = item.unitPrice * item.quantity;
+                subtotal += itemTotal;
+                
+                html += `
+                    <div class="cart-item">
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-gray-800 capitalize mb-1">
+                                    ${item.type} ${item.type === 'single' ? 'Unit' : 'Glazed Unit'}
+                                </h4>
+                                <div class="text-sm text-gray-600 space-y-1">
+                                    <p><span class="font-medium">Size:</span> ${item.details.width}mm × ${item.details.height}mm</p>
+                                    ${item.details.reference ? `<p><span class="font-medium">Ref:</span> ${item.details.reference}</p>` : ''}
+                                    
+                                    ${item.type === 'double' ?
+                                        `<p><span class="font-medium">Outer Glass:</span> ${item.details.outerGlass}${item.details.outerGlassPattern ? ` - ${item.details.outerGlassPattern.charAt(0).toUpperCase() + item.details.outerGlassPattern.slice(1)} Pattern` : ''}</p>
+                                         <p><span class="font-medium">Inner Glass:</span> ${item.details.innerGlass}${item.details.innerGlassPattern ? ` - ${item.details.innerGlassPattern.charAt(0).toUpperCase() + item.details.innerGlassPattern.slice(1)} Pattern` : ''}</p>
+                                         <p><span class="font-medium">Spacer Bar:</span> ${item.details.spacerWidth} ${item.details.spacerColor}</p>` :
+                                        item.type === 'triple' ?
+                                        `<p><span class="font-medium">Outer Glass:</span> ${item.details.outerGlass}${item.details.outerGlassPattern ? ` - ${item.details.outerGlassPattern.charAt(0).toUpperCase() + item.details.outerGlassPattern.slice(1)} Pattern` : ''}</p>
+                                         <p><span class="font-medium">Centre Glass:</span> ${item.details.centreGlass}${item.details.centreGlassPattern ? ` - ${item.details.centreGlassPattern.charAt(0).toUpperCase() + item.details.centreGlassPattern.slice(1)} Pattern` : ''}</p>
+                                         <p><span class="font-medium">Inner Glass:</span> ${item.details.innerGlass}${item.details.innerGlassPattern ? ` - ${item.details.innerGlassPattern.charAt(0).toUpperCase() + item.details.innerGlassPattern.slice(1)} Pattern` : ''}</p>
+                                         <p><span class="font-medium">Spacer Bars:</span> ${item.details.spacer1Width} & ${item.details.spacer2Width} ${item.details.spacerColor}</p>` : ''
+                                    }
+                                    
+                                    <p><span class="font-medium">Shape:</span> ${item.details.shape === 'other' && item.details.customShape ? item.details.customShape : item.details.shape}</p>
+                                    <p><span class="font-medium">Toughened:</span> ${item.details.toughened === 'yes' ? 'Yes' : 'No'}</p>
+                                    <p><span class="font-medium">Pet Flap/Vent:</span> ${item.details.petFlap === 'yes' ? 'Yes' : 'None'}</p>
+                                    ${item.details.extras && item.details.extras !== 'None' ? 
+                                        `<p><span class="font-medium">Extras:</span> ${item.details.extras}</p>` : ''
+                                    }
+                                    ${item.details.uploadedFiles && item.details.uploadedFiles.length > 0 ? 
+                                        `<p><span class="font-medium">Uploaded Files:</span> ${item.details.uploadedFiles.length} file(s)</p>` : ''
+                                    }
+                                </div>
+                            </div>
+                            <button onclick="removeFromCart(${index})" class="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-50 transition-colors">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd"></path>
+                                    <path fill-rule="evenodd" d="M4 5a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM6 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <div class="quantity-controls">
+                                <button class="quantity-btn" onclick="updateQuantity(${index}, -1)" ${item.quantity <= 1 ? 'disabled' : ''}>
+                                    −
+                                </button>
+                                <span class="quantity-display">${item.quantity}</span>
+                                <button class="quantity-btn" onclick="updateQuantity(${index}, 1)">
+                                    +
+                                </button>
+                            </div>
+                            
+                            <div class="text-right">
+                                <p class="text-sm text-gray-500">£${item.unitPrice.toFixed(2)} each</p>
+                                <p class="text-lg font-bold text-blue-600">£${itemTotal.toFixed(2)}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            cartContainer.innerHTML = html;
+            
+            // Calculate totals - VAT applies to subtotal + shipping
+            const deliverySubtotal = cart.length > 0 ? deliveryCharge : 0;
+            const totalBeforeVAT = subtotal + deliverySubtotal;
+            const vat = totalBeforeVAT * 0.2;
+            const total = totalBeforeVAT + vat;
+            
+            cartSummary.classList.remove('hidden');
+            document.getElementById('cartSubtotal').textContent = subtotal.toFixed(2);
+            
+            // Show/hide shipping row and update values
+            const shippingRow = document.getElementById('cartShippingRow');
+            const shippingLabel = document.getElementById('cartShippingLabel');
+            const shippingAmount = document.getElementById('cartShipping');
+            
+            if (cart.length > 0 && deliveryCharge > 0) {
+                const deliveryAreaName = selectedDeliveryArea === 1 ? 'Area 1' : 'Area 2';
+                const isDiscounted = selectedDeliveryArea === 2 && subtotal >= 2000;
+                
+                shippingRow.classList.remove('hidden');
+                shippingLabel.textContent = `Shipping (${deliveryAreaName}):`;
+                shippingAmount.textContent = deliveryCharge.toFixed(2);
+                
+                // Add discount indicator if applicable
+                if (isDiscounted) {
+                    shippingLabel.innerHTML = `Shipping (${deliveryAreaName}) <span class="text-green-600 text-xs">*Discounted</span>:`;
+                }
+            } else {
+                shippingRow.classList.add('hidden');
+            }
+            
+            document.getElementById('cartVAT').textContent = vat.toFixed(2);
+            document.getElementById('cartTotal').textContent = total.toFixed(2);
+        }
+
+        function updateDeliveryCharge() {
+            if (!selectedDeliveryArea || cart.length === 0) {
+                deliveryCharge = 0;
+                return;
+            }
+
+            // Calculate current cart subtotal
+            const cartSubtotal = cart.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
+            
+            // Set delivery charge based on area and subtotal
+            if (selectedDeliveryArea === 1) {
+                deliveryCharge = 37.50;
+            } else if (selectedDeliveryArea === 2) {
+                // Area 2: £67.50 normally, £37.50 if order is £2000 or more
+                deliveryCharge = cartSubtotal >= 2000 ? 37.50 : 67.50;
+            }
+        }
+
+        function updateQuantity(index, change) {
+            if (cart[index]) {
+                cart[index].quantity += change;
+                if (cart[index].quantity <= 0) {
+                    cart.splice(index, 1);
+                }
+                // Recalculate delivery charge when quantity changes
+                updateDeliveryCharge();
+                updateCartDisplay();
+            }
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            // Recalculate delivery charge when item is removed
+            updateDeliveryCharge();
+            updateCartDisplay();
+        }
+
+        // Delivery modal functionality
+        function initializeDeliveryModal() {
+            const modal = document.getElementById('deliveryModal');
+            const closeBtn = document.getElementById('closeDeliveryModal');
+            const cancelBtn = document.getElementById('cancelDelivery');
+            const confirmBtn = document.getElementById('confirmDelivery');
+            const deliveryAreas = document.querySelectorAll('.delivery-area');
+
+            // Close modal events
+            closeBtn.addEventListener('click', hideDeliveryModal);
+            cancelBtn.addEventListener('click', hideDeliveryModal);
+
+            // Click outside modal to close
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    hideDeliveryModal();
+                }
+            });
+
+            // Delivery area selection
+            deliveryAreas.forEach(area => {
+                area.addEventListener('click', function() {
+                    // Remove selection from all areas
+                    deliveryAreas.forEach(a => a.classList.remove('selected'));
+                    
+                    // Select clicked area
+                    this.classList.add('selected');
+                    
+                    // Store selection
+                    selectedDeliveryArea = parseInt(this.dataset.area);
+                    
+                    // Enable confirm button
+                    confirmBtn.disabled = false;
+                });
+            });
+
+            // Confirm delivery selection
+            confirmBtn.addEventListener('click', confirmDeliverySelection);
+        }
+
+        function showDeliveryModal() {
+            document.getElementById('deliveryModal').classList.remove('hidden');
+            
+            // If there's already a selected delivery area, show it as selected
+            if (selectedDeliveryArea) {
+                document.querySelectorAll('.delivery-area').forEach(area => {
+                    if (parseInt(area.dataset.area) === selectedDeliveryArea) {
+                        area.classList.add('selected');
+                    } else {
+                        area.classList.remove('selected');
+                    }
+                });
+                document.getElementById('confirmDelivery').disabled = false;
+            } else {
+                // Reset selection for first time
+                document.querySelectorAll('.delivery-area').forEach(area => {
+                    area.classList.remove('selected');
+                });
+                document.getElementById('confirmDelivery').disabled = true;
+            }
+        }
+
+        function hideDeliveryModal() {
+            document.getElementById('deliveryModal').classList.add('hidden');
+            pendingCartItem = null;
+        }
+
+        function addItemToCart() {
+            if (!pendingCartItem) return;
+
+            // Check if identical item already exists
+            const existingItemIndex = cart.findIndex(item => 
+                item.type === pendingCartItem.type && 
+                JSON.stringify(item.details) === JSON.stringify(pendingCartItem.details)
+            );
+
+            if (existingItemIndex !== -1) {
+                // Increase quantity of existing item
+                cart[existingItemIndex].quantity += 1;
+            } else {
+                // Add new item
+                cart.push(pendingCartItem);
+            }
+
+            // Recalculate delivery charge based on new cart total
+            updateDeliveryCharge();
+
+            // Update cart display
+            updateCartDisplay();
+            
+            // Clear pending item
+            pendingCartItem = null;
+            
+            // Reset calculator to default values
+            resetCalculator();
+            
+            // Show success popup
+            showSuccessPopup();
+        }
+
+        function confirmDeliverySelection() {
+            if (!selectedDeliveryArea || !pendingCartItem) return;
+
+            // Set initial delivery charge
+            const baseCharge = selectedDeliveryArea === 1 ? 37.50 : 67.50;
+            deliveryCharge = baseCharge;
+
+            // Add the item to cart
+            addItemToCart();
+            
+            // Hide modal
+            hideDeliveryModal();
+            
+            // Show delivery area confirmation
+            const areaName = selectedDeliveryArea === 1 ? 'Area 1' : 'Area 2';
+            const finalCharge = deliveryCharge;
+            const chargeText = selectedDeliveryArea === 2 && finalCharge === 37.50 ? 
+                '£37.50 + VAT (discounted for orders over £2000)' : 
+                `£${finalCharge.toFixed(2)} + VAT`;
+            
+            alert(`Delivery area set to ${areaName} (${chargeText})\nFuture items will use this delivery area.`);
+        }
+
+        // Pattern modal functionality
+        function initializePatternModal() {
+            const modal = document.getElementById('patternModal');
+            const closeBtn = document.getElementById('closePatternModal');
+            const cancelBtn = document.getElementById('cancelPattern');
+            const confirmBtn = document.getElementById('confirmPattern');
+            const patternOptions = document.querySelectorAll('.pattern-option');
+
+            // Close modal events
+            closeBtn.addEventListener('click', hidePatternModal);
+            cancelBtn.addEventListener('click', hidePatternModal);
+
+            // Click outside modal to close
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    hidePatternModal();
+                }
+            });
+
+            // Pattern selection
+            patternOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // Remove selection from all options
+                    patternOptions.forEach(opt => opt.classList.remove('selected'));
+                    
+                    // Select clicked option
+                    this.classList.add('selected');
+                    
+                    // Store selection
+                    selectedPattern = this.dataset.pattern;
+                    
+                    // Enable confirm button
+                    confirmBtn.disabled = false;
+                });
+            });
+
+            // Confirm pattern selection
+            confirmBtn.addEventListener('click', confirmPatternSelection);
+        }
+
+        function showPatternModal(selectElement) {
+            pendingPatternSelection = selectElement;
+            document.getElementById('patternModal').classList.remove('hidden');
+            
+            // Reset selection
+            document.querySelectorAll('.pattern-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            document.getElementById('confirmPattern').disabled = true;
+            selectedPattern = null;
+        }
+
+        function hidePatternModal() {
+            document.getElementById('patternModal').classList.add('hidden');
+            
+            // Reset the select element if pattern wasn't confirmed
+            if (pendingPatternSelection && !selectedPattern) {
+                pendingPatternSelection.selectedIndex = 0;
+            }
+            
+            pendingPatternSelection = null;
+        }
+
+        function confirmPatternSelection() {
+            if (!selectedPattern || !pendingPatternSelection) return;
+
+            // Update the select element's display text to include pattern
+            const selectedOption = pendingPatternSelection.options[pendingPatternSelection.selectedIndex];
+            const originalText = selectedOption.text;
+            const patternName = selectedPattern.charAt(0).toUpperCase() + selectedPattern.slice(1);
+            
+            // Store the pattern info in a data attribute
+            pendingPatternSelection.dataset.selectedPattern = selectedPattern;
+            
+            // Update option text to show pattern selection
+            if (!originalText.includes('(')) {
+                selectedOption.text = `${originalText} (${patternName})`;
+            }
+
+            // Hide modal
+            hidePatternModal();
+            
+            // Calculate price
+            calculatePrice();
+        }
+
+        // Show success popup
+        function showSuccessPopup() {
+            const popup = document.getElementById('successPopup');
+            popup.classList.add('show');
+            
+            // Auto-hide after 3 seconds
+            setTimeout(() => {
+                popup.classList.remove('show');
+            }, 3000);
+        }
+
+        // Reset calculator to default values
+        function resetCalculator() {
+            // Reset all input fields for all tabs
+            ['single', 'double', 'triple'].forEach(type => {
+                // Reset dimensions
+                const widthInput = document.getElementById(type + 'Width');
+                const heightInput = document.getElementById(type + 'Height');
+                const referenceInput = document.getElementById(type + 'Reference');
+                
+                if (widthInput) widthInput.value = '';
+                if (heightInput) heightInput.value = '';
+                if (referenceInput) referenceInput.value = '';
+                
+                // Reset area display
+                const areaDisplay = document.getElementById(type + 'Area');
+                if (areaDisplay) areaDisplay.textContent = '0.000 m²';
+                
+                // Reset shape selection
+                const shapeInput = document.getElementById(type + 'Shape');
+                if (shapeInput) shapeInput.value = '';
+                
+                // Remove shape selection styling
+                const tabContent = document.getElementById(type === 'single' ? 'singleUnit' : type + 'Glazed');
+                if (tabContent) {
+                    tabContent.querySelectorAll('.shape-option').forEach(option => {
+                        option.classList.remove('shape-selected');
+                    });
+                }
+                
+                // Hide custom shape containers
+                const customShapeContainer = document.getElementById(type + 'CustomShapeContainer');
+                if (customShapeContainer) {
+                    customShapeContainer.classList.add('hidden');
+                    const customShapeInput = document.getElementById(type + 'CustomShape');
+                    if (customShapeInput) customShapeInput.value = '';
+                }
+                
+                // Reset radio buttons
+                const toughenedRadios = document.querySelectorAll(`input[name="${type}Toughened"]`);
+                const petFlapRadios = document.querySelectorAll(`input[name="${type}PetFlap"]`);
+                
+                toughenedRadios.forEach(radio => radio.checked = false);
+                petFlapRadios.forEach(radio => radio.checked = false);
+            });
+            
+            // Reset single unit specific fields
+            const singleExtras = document.getElementById('singleExtras');
+            if (singleExtras) singleExtras.selectedIndex = 0;
+            
+            // Reset double glazed specific fields
+            const doubleOuterGlass = document.getElementById('doubleOuterGlass');
+            const doubleInnerGlass = document.getElementById('doubleInnerGlass');
+            const doubleSpacerWidth = document.getElementById('doubleSpacerWidth');
+            const doubleSpacerType = document.getElementById('doubleSpacerType');
+            const doubleExtras = document.getElementById('doubleExtras');
+            
+            if (doubleOuterGlass) {
+                doubleOuterGlass.selectedIndex = 0;
+                delete doubleOuterGlass.dataset.selectedPattern;
+                // Reset option text
+                Array.from(doubleOuterGlass.options).forEach(option => {
+                    if (option.text.includes('(')) {
+                        option.text = option.text.split(' (')[0];
+                    }
+                });
+            }
+            if (doubleInnerGlass) {
+                doubleInnerGlass.selectedIndex = 0;
+                delete doubleInnerGlass.dataset.selectedPattern;
+                Array.from(doubleInnerGlass.options).forEach(option => {
+                    if (option.text.includes('(')) {
+                        option.text = option.text.split(' (')[0];
+                    }
+                });
+            }
+            if (doubleSpacerWidth) doubleSpacerWidth.selectedIndex = 0;
+            if (doubleSpacerType) doubleSpacerType.selectedIndex = 0;
+            if (doubleExtras) doubleExtras.selectedIndex = 0;
+            
+            // Reset triple glazed specific fields
+            const tripleOuterGlass = document.getElementById('tripleOuterGlass');
+            const tripleCentreGlass = document.getElementById('tripleCentreGlass');
+            const tripleInnerGlass = document.getElementById('tripleInnerGlass');
+            const tripleSpacer1Width = document.getElementById('tripleSpacer1Width');
+            const tripleSpacer2Width = document.getElementById('tripleSpacer2Width');
+            const tripleSpacerType = document.getElementById('tripleSpacerType');
+            const tripleExtras = document.getElementById('tripleExtras');
+            
+            if (tripleOuterGlass) {
+                tripleOuterGlass.selectedIndex = 0;
+                delete tripleOuterGlass.dataset.selectedPattern;
+                Array.from(tripleOuterGlass.options).forEach(option => {
+                    if (option.text.includes('(')) {
+                        option.text = option.text.split(' (')[0];
+                    }
+                });
+            }
+            if (tripleCentreGlass) {
+                tripleCentreGlass.selectedIndex = 0;
+                delete tripleCentreGlass.dataset.selectedPattern;
+                Array.from(tripleCentreGlass.options).forEach(option => {
+                    if (option.text.includes('(')) {
+                        option.text = option.text.split(' (')[0];
+                    }
+                });
+            }
+            if (tripleInnerGlass) {
+                tripleInnerGlass.selectedIndex = 0;
+                delete tripleInnerGlass.dataset.selectedPattern;
+                Array.from(tripleInnerGlass.options).forEach(option => {
+                    if (option.text.includes('(')) {
+                        option.text = option.text.split(' (')[0];
+                    }
+                });
+            }
+            if (tripleSpacer1Width) tripleSpacer1Width.selectedIndex = 0;
+            if (tripleSpacer2Width) tripleSpacer2Width.selectedIndex = 0;
+            if (tripleSpacerType) tripleSpacerType.selectedIndex = 0;
+            if (tripleExtras) tripleExtras.selectedIndex = 0;
+            
+            // Hide all error messages
+            document.querySelectorAll('.error-message').forEach(error => {
+                error.classList.add('hidden');
+            });
+            
+            // Clear all uploaded files
+            if (window.uploadedFiles) {
+                window.uploadedFiles = {};
+            }
+            ['single', 'double', 'triple'].forEach(type => {
+                updateFileDisplay(type);
+            });
+            
+            // Recalculate price (should be 0 now)
+            calculatePrice();
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9686bbb0531b2772',t:'MTc1NDA2NTk2NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

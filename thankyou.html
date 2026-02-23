@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation Details</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+</head>
+<body class="bg-gray-50">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <div id="confirmationPage">
+            <header class="text-center mb-8">
+                <svg class="w-16 h-16 mx-auto text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <h1 class="text-3xl font-bold text-gray-800 mt-4">Thank You For Your Order!</h1>
+                <p class="text-gray-600 mt-2">Your order has been placed successfully.</p>
+                <p id="orderId" class="font-semibold text-lg mt-2"></p>
+            </header>
+
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Shipping Details -->
+                    <div>
+                        <h3 class="text-lg font-semibold border-b pb-3 mb-4">Shipping To</h3>
+                        <div id="shippingDetails" class="space-y-1 text-gray-700"></div>
+                    </div>
+
+                    <!-- Final Summary -->
+                    <div>
+                        <h3 class="text-lg font-semibold border-b pb-3 mb-4">Final Bill</h3>
+                        <div id="finalSummary" class="space-y-2"></div>
+                    </div>
+                </div>
+
+                <!-- Items Ordered -->
+                <div class="mt-8">
+                    <h3 class="text-lg font-semibold border-b pb-3 mb-4">Items Ordered</h3>
+                    <div id="orderedItems" class="space-y-4"></div>
+                </div>
+            </div>
+             <div class="text-center mt-8">
+                <a href="final.html" class="bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-blue-700">Continue Shopping</a>
+            </div>
+        </div>
+        <div id="noOrderPage" class="hidden text-center py-16">
+            <h1 class="text-2xl font-bold text-gray-700">No Order Data Found</h1>
+            <p class="text-gray-500 mt-2">Please start a new order from our products page.</p>
+            <a href="final.html" class="mt-6 inline-block bg-blue-600 text-white font-semibold py-2 px-5 rounded-lg">Go to Products</a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const finalOrder = JSON.parse(localStorage.getItem('finalOrder'));
+
+            if (!finalOrder) {
+                document.getElementById('confirmationPage').classList.add('hidden');
+                document.getElementById('noOrderPage').classList.remove('hidden');
+                return;
+            }
+
+            // Order ID
+            document.getElementById('orderId').textContent = `Order ID: ${finalOrder.orderId}`;
+
+            // Shipping Details
+            const shipping = finalOrder.deliveryDetails;
+            document.getElementById('shippingDetails').innerHTML = `
+                <p><strong>${shipping.name}</strong></p>
+                <p>${shipping.houseNo}, ${shipping.street}</p>
+                <p>${shipping.city}, ${shipping.pincode}</p>
+                <p>${shipping.country}</p>
+                <p class="mt-2"><strong>Email:</strong> ${shipping.email}</p>
+            `;
+
+            // Final Summary
+            const summary = finalOrder.summary;
+            let codRow = '';
+            if (finalOrder.paymentMethod === 'cod') {
+                codRow = `<div class="flex justify-between"><span>COD Charges:</span><span>£49.00</span></div>`;
+            }
+            document.getElementById('finalSummary').innerHTML = `
+                <div class="flex justify-between"><span>Sub Total:</span><span>£${summary.subTotal}</span></div>
+                <div class="flex justify-between text-green-600"><span>Discount:</span><span>- £${summary.discount}</span></div>
+                <div class="flex justify-between"><span>Delivery:</span><span>£${summary.delivery}</span></div>
+                ${codRow}
+                <div class="flex justify-between text-gray-600"><span>VAT (20%):</span><span>£${summary.vat}</span></div>
+                <div class="flex justify-between text-xl font-bold border-t pt-3 mt-2"><span>Grand Total:</span><span class="text-blue-600">£${finalOrder.finalTotal}</span></div>
+                <div class="flex justify-between text-sm mt-2"><span>Payment Method:</span><span class="font-semibold">${finalOrder.paymentMethod.toUpperCase()}</span></div>
+            `;
+
+            // Ordered Items
+            const itemsContainer = document.getElementById('orderedItems');
+            finalOrder.cart.forEach(item => {
+                itemsContainer.innerHTML += `
+                    <div class="flex items-start border-t py-4">
+                        <img src="${item.image}" alt="${item.type}" class="w-16 h-16 rounded-lg object-cover mr-4">
+                        <div class="flex-1">
+                            <p class="font-semibold">${item.description} (x${item.quantity})</p>
+                        </div>
+                        <p class="font-semibold ml-4">£${(item.price * item.quantity).toFixed(2)}</p>
+                    </div>
+                `;
+            });
+
+            // Clear data from local storage
+            localStorage.removeItem('finalOrder');
+        });
+    </script>
+</body>
+</html>

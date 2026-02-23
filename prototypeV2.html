@@ -1,0 +1,3463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glass Calculator - UK</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .tab-active {
+            background-color: #2563eb;
+            color: white;
+        }
+        .shape-option {
+            transition: all 0.3s ease;
+        }
+        .shape-option:hover {
+            transform: scale(1.05);
+        }
+        .shape-selected {
+            border: 3px solid #2563eb;
+            background-color: #eff6ff;
+        }
+        .price-display {
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            color: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .form-section {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            margin-bottom: 16px;
+        }
+        @media (min-width: 640px) {
+            .form-section {
+                padding: 24px;
+                margin-bottom: 20px;
+            }
+        }
+        .input-field {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+            transition: border-color 0.3s ease;
+        }
+        .input-field:focus {
+            border-color: #2563eb;
+            outline: none;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+        }
+        .error-message {
+            color: #dc2626;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .cart-item {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+        .cart-item:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 4px;
+        }
+        .quantity-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: #2563eb;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+        .quantity-btn:hover {
+            background: #1d4ed8;
+            transform: scale(1.1);
+        }
+        .quantity-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .quantity-display {
+            min-width: 40px;
+            text-align: center;
+            font-weight: 600;
+            color: #374151;
+        }
+        .cart-header {
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            color: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .cart-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6b7280;
+        }
+        .cart-empty svg {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 16px;
+            opacity: 0.5;
+        }
+        .delivery-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .delivery-modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            max-width: 600px;
+            width: 95%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+        @media (min-width: 640px) {
+            .delivery-modal-content {
+                padding: 24px;
+                width: 90%;
+                max-height: 80vh;
+            }
+        }
+        .delivery-area {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .delivery-area:hover {
+            border-color: #2563eb;
+            background-color: #eff6ff;
+        }
+        .delivery-area.selected {
+            border-color: #2563eb;
+            background-color: #eff6ff;
+        }
+        .delivery-counties {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .delivery-county {
+            background: #f8fafc;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            text-align: center;
+        }
+        .success-popup {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+            z-index: 1001;
+            transform: translateX(400px);
+            opacity: 0;
+            transition: all 0.4s ease;
+            max-width: 350px;
+        }
+        .success-popup.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        .success-popup .popup-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .success-popup .popup-icon {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+        .success-popup .popup-text {
+            flex: 1;
+        }
+        .success-popup .popup-title {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+        .success-popup .popup-message {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .pattern-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .pattern-modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            max-width: 800px;
+            width: 95%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+        @media (min-width: 640px) {
+            .pattern-modal-content {
+                padding: 24px;
+                width: 90%;
+                max-height: 80vh;
+            }
+        }
+        .pattern-option {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        .pattern-option:hover {
+            border-color: #2563eb;
+            background-color: #eff6ff;
+        }
+        .pattern-option.selected {
+            border-color: #2563eb;
+            background-color: #eff6ff;
+        }
+        .pattern-image {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin: 0 auto 12px;
+            display: block;
+        }
+        .glass-config-image {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin: 0 auto 12px;
+            display: block;
+        }
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: between;
+            padding: 8px 12px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+        .file-item:last-child {
+            margin-bottom: 0;
+        }
+        .file-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+        .file-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .file-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .file-size {
+            font-size: 12px;
+            color: #6b7280;
+        }
+        .file-remove {
+            width: 20px;
+            height: 20px;
+            color: #ef4444;
+            cursor: pointer;
+            flex-shrink: 0;
+            margin-left: 8px;
+        }
+        .file-remove:hover {
+            color: #dc2626;
+        }
+        .upload-area {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .upload-area:hover {
+            background-color: #f9fafb;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 max-w-7xl">
+        <header class="text-center mb-6 lg:mb-8">
+            <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-2">Glass Calculator</h1>
+            <p class="text-sm sm:text-base text-gray-600">Professional glazing solutions for the UK market</p>
+        </header>
+
+        <!-- Tab Navigation -->
+        <div class="flex justify-center mb-6 lg:mb-8">
+            <div class="bg-white rounded-lg p-1 sm:p-2 shadow-lg w-full max-w-4xl">
+                <div class="flex flex-col sm:flex-row gap-1 sm:gap-2 justify-center">
+                    <button id="singleTab" class="tab-btn tab-active px-3 sm:px-6 py-3 sm:py-4 rounded-lg font-semibold transition-all duration-300 text-sm sm:text-base flex flex-col items-center gap-2">
+                        <img src="https://cdn-icons-png.flaticon.com/512/2593/2593549.png" alt="Single Unit" class="w-8 h-8 sm:w-10 sm:h-10">
+                        <span>Single Unit</span>
+                    </button>
+                    <button id="doubleTab" class="tab-btn px-3 sm:px-6 py-3 sm:py-4 rounded-lg font-semibold transition-all duration-300 text-sm sm:text-base flex flex-col items-center gap-2">
+                        <img src="https://cdn-icons-png.flaticon.com/512/2593/2593551.png" alt="Double Glazed" class="w-8 h-8 sm:w-10 sm:h-10">
+                        <span>Double Glazed</span>
+                    </button>
+                    <button id="tripleTab" class="tab-btn px-3 sm:px-6 py-3 sm:py-4 rounded-lg font-semibold transition-all duration-300 text-sm sm:text-base flex flex-col items-center gap-2">
+                        <img src="https://cdn-icons-png.flaticon.com/512/2593/2593553.png" alt="Triple Glazed" class="w-8 h-8 sm:w-10 sm:h-10">
+                        <span>Triple Glazed</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8">
+            <!-- Calculator Form -->
+            <div class="xl:col-span-2">
+                <!-- Single Unit Tab -->
+                <div id="singleUnit" class="tab-content">
+                    <!-- Step 1: Glass Configuration -->
+                    <div class="form-section">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mr-3">1</div>
+                                <h3 class="text-xl font-semibold text-gray-800">Glass Configuration</h3>
+                            </div>
+                            <img src="https://cdn-icons-png.flaticon.com/512/2593/2593549.png" alt="Single Unit Glass" class="w-12 h-12 opacity-60">
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Glass Type</label>
+                            <select id="singleGlassType" class="input-field w-full">
+                                <option value="">Select</option>
+                                <option value="clear-tgh" data-price="93.30">Clear Glass Tgh [4/6/8/10 mm]</option>
+                                <option value="low-iron-tgh" data-price="122.49">Low Iron Glass Tgh [4/6/8/10 mm]</option>
+                                <option value="satin-tgh" data-price="123.00">Satin Glass Tgh [4/6/8/10 mm]</option>
+                                <option value="tinted-tgh" data-price="186.80">Tinted Glass Tgh [6/10 mm]</option>
+                                <option value="black-painted-tgh" data-price="192.30">Black Painted Tgh Glass [4/6/8/10 mm]</option>
+                                <option value="white-painted-tgh" data-price="192.30">White Painted Tgh Glass [4/6/8/10 mm]</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Polished Glass (P.A.R)</label>
+                            <div class="flex gap-4">
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="radio" name="singlePolished" value="yes" data-price="30" class="mr-2" checked disabled>
+                                    <span class="text-gray-500">Yes (+30%)</span>
+                                </label>
+                                <label class="flex items-center cursor-not-allowed">
+                                    <input type="radio" name="singlePolished" value="no" data-price="0" class="mr-2" disabled>
+                                    <span class="text-gray-500">No</span>
+                                </label>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Required for single panel glass</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Toughened Glass</label>
+                            <div class="flex gap-4">
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="radio" name="singleToughened" value="yes" data-price="30" class="mr-2" checked disabled>
+                                    <span class="text-gray-500">Yes (+30%)</span>
+                                </label>
+                                <label class="flex items-center cursor-not-allowed">
+                                    <input type="radio" name="singleToughened" value="no" data-price="0" class="mr-2" disabled>
+                                    <span class="text-gray-500">No</span>
+                                </label>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Required for single panel glass</p>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Shape Selection -->
+                    <div class="form-section">
+                        <div class="flex items-center mb-4">
+                            <div class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mr-3">2</div>
+                            <h3 class="text-xl font-semibold text-gray-800">Shape Selection</h3>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-3">Select Shape *</label>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <div class="single-shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center hover:border-blue-400 transition-all" data-shape="square" data-price="0" data-tab="single">
+                                    <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=120&h=120&fit=crop&crop=center" alt="Square Shape" class="w-20 h-20 object-cover rounded-lg mx-auto mb-3">
+                                    <p class="text-sm font-medium">Square</p>
+                                    <p class="text-xs text-gray-500">+0% price modifier</p>
+                                </div>
+                                <div class="single-shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center hover:border-blue-400 transition-all" data-shape="triangle" data-price="15" data-tab="single">
+                                    <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=120&h=120&fit=crop&crop=center" alt="Triangle Shape" class="w-20 h-20 object-cover rounded-lg mx-auto mb-3">
+                                    <p class="text-sm font-medium">Right Angle Triangle</p>
+                                    <p class="text-xs text-gray-500">+15% price modifier</p>
+                                </div>
+                                <div class="single-shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center hover:border-blue-400 transition-all" data-shape="rake" data-price="20" data-tab="single">
+                                    <img src="https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=120&h=120&fit=crop&crop=center" alt="Rake Shape" class="w-20 h-20 object-cover rounded-lg mx-auto mb-3">
+                                    <p class="text-sm font-medium">Rake</p>
+                                    <p class="text-xs text-gray-500">+20% price modifier</p>
+                                </div>
+                                <div class="single-shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center hover:border-blue-400 transition-all" data-shape="arched" data-price="25" data-tab="single">
+                                    <img src="https://images.unsplash.com/photo-1572021335469-31706a17aaef?w=120&h=120&fit=crop&crop=center" alt="Arched Shape" class="w-20 h-20 object-cover rounded-lg mx-auto mb-3">
+                                    <p class="text-sm font-medium">Arched-Top</p>
+                                    <p class="text-xs text-gray-500">+25% price modifier</p>
+                                </div>
+                                <div class="single-shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center hover:border-blue-400 transition-all" data-shape="circle" data-price="20" data-tab="single">
+                                    <img src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=120&h=120&fit=crop&crop=center" alt="Circle Shape" class="w-20 h-20 object-cover rounded-lg mx-auto mb-3">
+                                    <p class="text-sm font-medium">Circle</p>
+                                    <p class="text-xs text-gray-500">+20% price modifier</p>
+                                </div>
+                                <div class="single-shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center hover:border-blue-400 transition-all" data-shape="other" data-price="30" data-tab="single">
+                                    <img src="https://images.unsplash.com/photo-1557804506-669a67965ba0?w=120&h=120&fit=crop&crop=center" alt="Other Shape" class="w-20 h-20 object-cover rounded-lg mx-auto mb-3">
+                                    <p class="text-sm font-medium">Other</p>
+                                    <p class="text-xs text-gray-500">+30% price modifier</p>
+                                </div>
+                            </div>
+                            <input type="hidden" id="singleShape" required>
+                            <div id="singleShapeError" class="error-message hidden">Please select a shape</div>
+                        </div>
+
+                        <!-- Shape Summary (shown after selection) -->
+                        <div id="singleShapeSummary" class="hidden bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-semibold text-blue-800 mb-2">Selected Shape Configuration</h4>
+                                    <p class="text-sm text-blue-700"><strong>Shape:</strong> <span id="singleSelectedShapeName">-</span></p>
+                                    <p class="text-sm text-blue-700"><strong>Dimensions:</strong> <span id="singleSelectedDimensions">-</span></p>
+                                    <p class="text-sm text-blue-700"><strong>Area:</strong> <span id="singleSelectedArea">-</span></p>
+                                    <p class="text-sm text-blue-700" id="singleSelectedReference" style="display: none;"><strong>Reference:</strong> <span id="singleSelectedReferenceText">-</span></p>
+                                    <p class="text-sm text-blue-700"><strong>Weight:</strong> <span id="singleSelectedWeight">-</span></p>
+                                </div>
+                                <button type="button" id="singleEditShape" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Edit</button>
+                            </div>
+                        </div>
+
+                        <!-- Hidden form fields for validation -->
+                        <input type="hidden" id="singleWidth" required>
+                        <input type="hidden" id="singleHeight" required>
+                        <input type="hidden" id="singleReference">
+                        <input type="hidden" id="singleCustomShape">
+                        <div id="singleWidthError" class="error-message hidden">Width must be between 100-2800mm</div>
+                        <div id="singleHeightError" class="error-message hidden">Height must be between 100-2800mm</div>
+                        <div id="singleCustomShapeError" class="error-message hidden">Please describe the custom shape</div>
+                        
+                        <!-- Area display for calculations -->
+                        <div class="hidden">
+                            <span id="singleArea">0.000 m²</span>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Optional Extras -->
+                    <div class="form-section">
+                        <div class="flex items-center mb-4">
+                            <div class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mr-3">3</div>
+                            <h3 class="text-xl font-semibold text-gray-800">Optional Extras</h3>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Additional Features</label>
+                            <select id="singleExtras" class="input-field w-full">
+                                <option value="none" data-price="0">None</option>
+                                <option value="drill-30x30" data-price="0">4 x 30/30 Drill Holes</option>
+                                <option value="drill-50x50" data-price="0">4 x 50/50 Drill Holes</option>
+                                <option value="drill-60mm" data-price="0">1 x 60mm Hole to Centre</option>
+                            </select>
+                            
+                            <!-- Georgian Bars Options -->
+                            <div id="singleGeorgianOptions" class="mt-4 hidden">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Georgian Bars Size</label>
+                                    <select id="singleGeorgianSize" class="input-field w-full">
+                                        <option value="">Select</option>
+                                        <option value="18mm-white">18mm White</option>
+                                        <option value="25mm-white">25mm White</option>
+                                        <option value="18mm-white-single">18mm White Single</option>
+                                        <option value="25mm-white-single">25mm White Single</option>
+                                        <option value="18mm-woodgrain">18mm Woodgrain</option>
+                                        <option value="25mm-woodgrain">25mm Woodgrain</option>
+                                        <option value="18mm-brown">18mm Brown</option>
+                                        <option value="25mm-brown">25mm Brown</option>
+                                        <option value="8mm-gold">8mm Gold</option>
+                                        <option value="8mm-chrome">8mm Chrome</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- Duplex Grid Options -->
+                            <div id="singleDuplexOptions" class="mt-4 hidden">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Duplex Grid Size</label>
+                                    <select id="singleDuplexSize" class="input-field w-full">
+                                        <option value="">Select</option>
+                                        <option value="18mm-integral">18mm Integral</option>
+                                        <option value="18mm-single-integral">18mm Single Integral</option>
+                                        <option value="24mm-integral">24mm Integral</option>
+                                        <option value="24mm-single-integral">24mm Single Integral</option>
+                                        <option value="39mm-integral">39mm Integral</option>
+                                        <option value="39mm-single-integral">39mm Single Integral</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">Pet Flap/Vent Hole</label>
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                <div>
+                                    <p class="font-medium text-gray-800">Add Pet Flap/Vent Hole</p>
+                                    <p class="text-sm text-gray-600">+£50 additional cost</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="singlePetFlap" data-price="50" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Double Glazed Tab -->
+                <div id="doubleGlazed" class="tab-content hidden">
+                    <!-- Step 1: Glass Configuration -->
+                    <div class="form-section">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mr-3">1</div>
+                                <h3 class="text-xl font-semibold text-gray-800">Glass Configuration</h3>
+                            </div>
+                            <img src="https://cdn-icons-png.flaticon.com/512/2593/2593551.png" alt="Double Glazed Glass" class="w-12 h-12 opacity-60">
+                        </div>
+                        
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
+                            <p class="text-sm text-blue-800 font-medium">Argon gas filled as standard</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">External Glass</label>
+                                <select id="doubleOuterGlass" class="input-field w-full">
+                                    <option value="">Select</option>
+                                    <option value="4mm-clear" data-price="39.75">4mm Clear</option>
+                                    <option value="4mm-pattern" data-price="45.05">4mm Pattern</option>
+                                    <option value="4mm-satin" data-price="99.60">4mm Satin</option>
+                                    <option value="6mm-clear" data-price="65.25">6mm Clear</option>
+                                    <option value="6.4mm-clear-laminate" data-price="95.00">6.4mm Clear Laminate</option>
+                                    <option value="6.8mm-acoustic" data-price="111.30">6.8mm Acoustic</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Internal Glass</label>
+                                <select id="doubleInnerGlass" class="input-field w-full">
+                                    <option value="">Select</option>
+                                    <option value="4mm-clear" data-price="39.75">4mm Clear</option>
+                                    <option value="4mm-planitherm" data-price="45.05">4mm Planitherm</option>
+                                    <option value="4mm-planitherm-1" data-price="65.40">4mm Planitherm 1.0</option>
+                                    <option value="6mm-clear" data-price="65.25">6mm Clear</option>
+                                    <option value="6mm-planitherm" data-price="89.70">6mm Planitherm</option>
+                                    <option value="6mm-planitherm-laminate" data-price="106.00">6mm Planitherm Laminate</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-3">Spacer Bar</label>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Width</label>
+                                    <select id="doubleSpacerWidth" class="input-field w-full">
+                                        <option value="">Select</option>
+                                        <option value="6" data-price="0">6mm</option>
+                                        <option value="8" data-price="0">8mm</option>
+                                        <option value="10" data-price="0">10mm</option>
+                                        <option value="12" data-price="0">12mm</option>
+                                        <option value="14" data-price="0">14mm</option>
+                                        <option value="16" data-price="0">16mm</option>
+                                        <option value="18" data-price="0">18mm</option>
+                                        <option value="20" data-price="0">20mm</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Colour</label>
+                                    <select id="doubleSpacerType" class="input-field w-full">
+                                        <option value="silver" data-price="0">Silver</option>
+                                        <option value="gold" data-price="0">Gold</option>
+                                        <option value="warm-edge-white" data-price="0">Warm Edge White</option>
+                                        <option value="warm-edge-grey" data-price="0">Warm Edge Grey</option>
+                                        <option value="warm-edge-black" data-price="0">Warm Edge Black</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Toughened Glass *</label>
+                            <div class="flex gap-4">
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="radio" name="doubleToughened" value="yes" data-price="30" class="mr-2">
+                                    <span>Yes (+30%)</span>
+                                </label>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="radio" name="doubleToughened" value="no" data-price="0" class="mr-2">
+                                    <span>No</span>
+                                </label>
+                            </div>
+                            <div id="doubleToughenedError" class="error-message hidden">Please select toughened glass option</div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Shape Selection -->
+                    <div class="form-section">
+                        <div class="flex items-center mb-4">
+                            <div class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mr-3">2</div>
+                            <h3 class="text-xl font-semibold text-gray-800">Shape Selection</h3>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-3">Select Shape *</label>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <div class="double-shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center hover:border-blue-400 transition-all" data-shape="square" data-price="0" data-tab="double">
+                                    <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=120&h=120&fit=crop&crop=center" alt="Square Shape" class="w-20 h-20 object-cover rounded-lg mx-auto mb-3">
+                                    <p class="text-sm font-medium">Square</p>
+                                    <p class="text-xs text-gray-500">+0% price modifier</p>
+                                </div>
+                                <div class="double-shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center hover:border-blue-400 transition-all" data-shape="triangle" data-price="15" data-tab="double">
+                                    <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=120&h=120&fit=crop&crop=center" alt="Triangle Shape" class="w-20 h-20 object-cover rounded-lg mx-auto mb-3">
+                                    <p class="text-sm font-medium">Right Angle Triangle</p>
+                                    <p class="text-xs text-gray-500">+15% price modifier</p>
+                                </div>
+                                <div class="double-shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center hover:border-blue-400 transition-all" data-shape="rake" data-price="20" data-tab="double">
+                                    <img src="https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=120&h=120&fit=crop&crop=center" alt="Rake Shape" class="w-20 h-20 object-cover rounded-lg mx-auto mb-3">
+                                    <p class="text-sm font-medium">Rake</p>
+                                    <p class="text-xs text-gray-500">+20% price modifier</p>
+                                </div>
+                                <div class="double-shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center hover:border-blue-400 transition-all" data-shape="arched" data-price="25" data-tab="double">
+                                    <img src="https://images.unsplash.com/photo-1572021335469-31706a17aaef?w=120&h=120&fit=crop&crop=center" alt="Arched Shape" class="w-20 h-20 object-cover rounded-lg mx-auto mb-3">
+                                    <p class="text-sm font-medium">Arched-Top</p>
+                                    <p class="text-xs text-gray-500">+25% price modifier</p>
+                                </div>
+                                <div class="double-shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center hover:border-blue-400 transition-all" data-shape="circle" data-price="20" data-tab="double">
+                                    <img src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=120&h=120&fit=crop&crop=center" alt="Circle Shape" class="w-20 h-20 object-cover rounded-lg mx-auto mb-3">
+                                    <p class="text-sm font-medium">Circle</p>
+                                    <p class="text-xs text-gray-500">+20% price modifier</p>
+                                </div>
+                                <div class="double-shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center hover:border-blue-400 transition-all" data-shape="other" data-price="30" data-tab="double">
+                                    <img src="https://images.unsplash.com/photo-1557804506-669a67965ba0?w=120&h=120&fit=crop&crop=center" alt="Other Shape" class="w-20 h-20 object-cover rounded-lg mx-auto mb-3">
+                                    <p class="text-sm font-medium">Other</p>
+                                    <p class="text-xs text-gray-500">+30% price modifier</p>
+                                </div>
+                            </div>
+                            <input type="hidden" id="doubleShape" required>
+                            <div id="doubleShapeError" class="error-message hidden">Please select a shape</div>
+                        </div>
+
+                        <!-- Shape Summary (shown after selection) -->
+                        <div id="doubleShapeSummary" class="hidden bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-semibold text-blue-800 mb-2">Selected Shape Configuration</h4>
+                                    <p class="text-sm text-blue-700"><strong>Shape:</strong> <span id="doubleSelectedShapeName">-</span></p>
+                                    <p class="text-sm text-blue-700"><strong>Dimensions:</strong> <span id="doubleSelectedDimensions">-</span></p>
+                                    <p class="text-sm text-blue-700"><strong>Area:</strong> <span id="doubleSelectedArea">-</span></p>
+                                    <p class="text-sm text-blue-700" id="doubleSelectedReference" style="display: none;"><strong>Reference:</strong> <span id="doubleSelectedReferenceText">-</span></p>
+                                    <p class="text-sm text-blue-700"><strong>Weight:</strong> <span id="doubleSelectedWeight">-</span></p>
+                                
+                                </div>
+                                <button type="button" id="doubleEditShape" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Edit</button>
+                            </div>
+                        </div>
+
+                        <!-- Hidden form fields for validation -->
+                        <input type="hidden" id="doubleWidth" required>
+                        <input type="hidden" id="doubleHeight" required>
+                        <input type="hidden" id="doubleReference">
+                        <input type="hidden" id="doubleCustomShape">
+                        <div id="doubleWidthError" class="error-message hidden">Width must be between 100-2800mm</div>
+                        <div id="doubleHeightError" class="error-message hidden">Height must be between 100-2800mm</div>
+                        <div id="doubleCustomShapeError" class="error-message hidden">Please describe the custom shape</div>
+                        
+                        <!-- Area display for calculations -->
+                        <div class="hidden">
+                            <span id="doubleArea">0.000 m²</span>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Optional Extras -->
+                    <div class="form-section">
+                        <div class="flex items-center mb-4">
+                            <div class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mr-3">3</div>
+                            <h3 class="text-xl font-semibold text-gray-800">Optional Extras</h3>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Additional Features</label>
+                            <select id="doubleExtras" class="input-field w-full">
+                                <option value="none" data-price="0">None</option>
+                                <option value="georgian" data-price="57.50">18mm White Georgian</option>
+                                <option value="lead-square" data-price="62.50">9mm Square Lead</option>
+                                <option value="lead-diamond" data-price="70">9mm Diamond Lead</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">Pet Flap/Vent Hole</label>
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                <div>
+                                    <p class="font-medium text-gray-800">Add Pet Flap/Vent Hole</p>
+                                    <p class="text-sm text-gray-600">+£50 additional cost</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="doublePetFlap" data-price="50" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Triple Glazed Tab -->
+                <div id="tripleGlazed" class="tab-content hidden">
+                    <!-- Step 1: Glass Configuration -->
+                    <div class="form-section">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mr-3">1</div>
+                                <h3 class="text-xl font-semibold text-gray-800">Glass Configuration</h3>
+                            </div>
+                            <img src="https://cdn-icons-png.flaticon.com/512/2593/2593553.png" alt="Triple Glazed Glass" class="w-12 h-12 opacity-60">
+                        </div>
+                        
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
+                            <p class="text-sm text-blue-800 font-medium">Argon gas filled as standard</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">External Glass</label>
+                                <select id="tripleOuterGlass" class="input-field w-full">
+                                    <option value="">Select</option>
+                                    <option value="4mm-clear" data-price="39.75">4mm Clear</option>
+                                    <option value="4mm-pattern" data-price="45.05">4mm Pattern</option>
+                                    <option value="4mm-satin" data-price="99.60">4mm Satin</option>
+                                    <option value="6mm-clear" data-price="65.25">6mm Clear</option>
+                                    <option value="6.4mm-clear-laminate" data-price="95.00">6.4mm Clear Laminate</option>
+                                    <option value="6.8mm-acoustic" data-price="111.30">6.8mm Acoustic</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Centre Glass</label>
+                                <select id="tripleCentreGlass" class="input-field w-full">
+                                    <option value="">Select</option>
+                                    <option value="4mm-clear" data-price="39.75">4mm Clear</option>
+                                    <option value="4mm-planitherm" data-price="45.05">4mm Planitherm</option>
+                                    <option value="4mm-planitherm-1" data-price="65.40">4mm Planitherm 1.0</option>
+                                    <option value="6mm-clear" data-price="65.25">6mm Clear</option>
+                                    <option value="6mm-planitherm" data-price="89.70">6mm Planitherm</option>
+                                    <option value="6mm-planitherm-laminate" data-price="106.00">6mm Planitherm Laminate</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Internal Glass</label>
+                                <select id="tripleInnerGlass" class="input-field w-full">
+                                    <option value="">Select</option>
+                                    <option value="4mm-clear" data-price="39.75">4mm Clear</option>
+                                    <option value="4mm-planitherm" data-price="45.05">4mm Planitherm</option>
+                                    <option value="4mm-planitherm-1" data-price="65.40">4mm Planitherm 1.0</option>
+                                    <option value="6mm-clear" data-price="65.25">6mm Clear</option>
+                                    <option value="6mm-planitherm" data-price="89.70">6mm Planitherm</option>
+                                    <option value="6mm-planitherm-laminate" data-price="106.00">6mm Planitherm Laminate</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-3">Spacer Bars</label>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Spacer Bar 1 Width</label>
+                                    <select id="tripleSpacer1Width" class="input-field w-full">
+                                        <option value="">Select</option>
+                                        <option value="6" data-price="0">6mm</option>
+                                        <option value="8" data-price="0">8mm</option>
+                                        <option value="10" data-price="0">10mm</option>
+                                        <option value="12" data-price="0">12mm</option>
+                                        <option value="14" data-price="0">14mm</option>
+                                        <option value="16" data-price="0">16mm</option>
+                                        <option value="18" data-price="0">18mm</option>
+                                        <option value="20" data-price="0">20mm</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Spacer Bar 2 Width</label>
+                                    <select id="tripleSpacer2Width" class="input-field w-full">
+                                        <option value="">Select</option>
+                                        <option value="6" data-price="0">6mm</option>
+                                        <option value="8" data-price="0">8mm</option>
+                                        <option value="10" data-price="0">10mm</option>
+                                        <option value="12" data-price="0">12mm</option>
+                                        <option value="14" data-price="0">14mm</option>
+                                        <option value="16" data-price="0">16mm</option>
+                                        <option value="18" data-price="0">18mm</option>
+                                        <option value="20" data-price="0">20mm</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Spacer Bar Colour</label>
+                                    <select id="tripleSpacerType" class="input-field w-full">
+                                        <option value="silver" data-price="0">Silver</option>
+                                        <option value="gold" data-price="0">Gold</option>
+                                        <option value="warm-edge-white" data-price="0">Warm Edge White</option>
+                                        <option value="warm-edge-grey" data-price="0">Warm Edge Grey</option>
+                                        <option value="warm-edge-black" data-price="0">Warm Edge Black</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Toughened Glass *</label>
+                            <div class="flex gap-4">
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="radio" name="tripleToughened" value="yes" data-price="30" class="mr-2">
+                                    <span>Yes (+30%)</span>
+                                </label>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="radio" name="tripleToughened" value="no" data-price="0" class="mr-2">
+                                    <span>No</span>
+                                </label>
+                            </div>
+                            <div id="tripleToughenedError" class="error-message hidden">Please select toughened glass option</div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Shape Selection -->
+                    <div class="form-section">
+                        <div class="flex items-center mb-4">
+                            <div class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mr-3">2</div>
+                            <h3 class="text-xl font-semibold text-gray-800">Shape Selection</h3>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-3">Select Shape *</label>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <div class="triple-shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center hover:border-blue-400 transition-all" data-shape="square" data-price="0" data-tab="triple">
+                                    <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=120&h=120&fit=crop&crop=center" alt="Square Shape" class="w-20 h-20 object-cover rounded-lg mx-auto mb-3">
+                                    <p class="text-sm font-medium">Square</p>
+                                    <p class="text-xs text-gray-500">+0% price modifier</p>
+                                </div>
+                                <div class="triple-shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center hover:border-blue-400 transition-all" data-shape="triangle" data-price="15" data-tab="triple">
+                                    <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=120&h=120&fit=crop&crop=center" alt="Triangle Shape" class="w-20 h-20 object-cover rounded-lg mx-auto mb-3">
+                                    <p class="text-sm font-medium">Right Angle Triangle</p>
+                                    <p class="text-xs text-gray-500">+15% price modifier</p>
+                                </div>
+                                <div class="triple-shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center hover:border-blue-400 transition-all" data-shape="rake" data-price="20" data-tab="triple">
+                                    <img src="https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=120&h=120&fit=crop&crop=center" alt="Rake Shape" class="w-20 h-20 object-cover rounded-lg mx-auto mb-3">
+                                    <p class="text-sm font-medium">Rake</p>
+                                    <p class="text-xs text-gray-500">+20% price modifier</p>
+                                </div>
+                                <div class="triple-shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center hover:border-blue-400 transition-all" data-shape="arched" data-price="25" data-tab="triple">
+                                    <img src="https://images.unsplash.com/photo-1572021335469-31706a17aaef?w=120&h=120&fit=crop&crop=center" alt="Arched Shape" class="w-20 h-20 object-cover rounded-lg mx-auto mb-3">
+                                    <p class="text-sm font-medium">Arched-Top</p>
+                                    <p class="text-xs text-gray-500">+25% price modifier</p>
+                                </div>
+                                <div class="triple-shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center hover:border-blue-400 transition-all" data-shape="circle" data-price="20" data-tab="triple">
+                                    <img src="https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=120&h=120&fit=crop&crop=center" alt="Circle Shape" class="w-20 h-20 object-cover rounded-lg mx-auto mb-3">
+                                    <p class="text-sm font-medium">Circle</p>
+                                    <p class="text-xs text-gray-500">+20% price modifier</p>
+                                </div>
+                                <div class="triple-shape-option cursor-pointer p-4 border-2 border-gray-200 rounded-lg text-center hover:border-blue-400 transition-all" data-shape="other" data-price="30" data-tab="triple">
+                                    <img src="https://images.unsplash.com/photo-1557804506-669a67965ba0?w=120&h=120&fit=crop&crop=center" alt="Other Shape" class="w-20 h-20 object-cover rounded-lg mx-auto mb-3">
+                                    <p class="text-sm font-medium">Other</p>
+                                    <p class="text-xs text-gray-500">+30% price modifier</p>
+                                </div>
+                            </div>
+                            <input type="hidden" id="tripleShape" required>
+                            <div id="tripleShapeError" class="error-message hidden">Please select a shape</div>
+                        </div>
+
+                        <!-- Shape Summary (shown after selection) -->
+                        <div id="tripleShapeSummary" class="hidden bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-semibold text-blue-800 mb-2">Selected Shape Configuration</h4>
+                                    <p class="text-sm text-blue-700"><strong>Shape:</strong> <span id="tripleSelectedShapeName">-</span></p>
+                                    <p class="text-sm text-blue-700"><strong>Dimensions:</strong> <span id="tripleSelectedDimensions">-</span></p>
+                                    <p class="text-sm text-blue-700"><strong>Area:</strong> <span id="tripleSelectedArea">-</span></p>
+                                    <p class="text-sm text-blue-700" id="tripleSelectedReference" style="display: none;"><strong>Reference:</strong> <span id="tripleSelectedReferenceText">-</span></p>
+                                    <p class="text-sm text-blue-700"><strong>Weight:</strong> <span id="tripleSelectedWeight">-</span></p>
+                                </div>
+                                <button type="button" id="tripleEditShape" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Edit</button>
+                            </div>
+                        </div>
+
+                        <!-- Hidden form fields for validation -->
+                        <input type="hidden" id="tripleWidth" required>
+                        <input type="hidden" id="tripleHeight" required>
+                        <input type="hidden" id="tripleReference">
+                        <input type="hidden" id="tripleCustomShape">
+                        <div id="tripleWidthError" class="error-message hidden">Width must be between 100-2800mm</div>
+                        <div id="tripleHeightError" class="error-message hidden">Height must be between 100-2800mm</div>
+                        <div id="tripleCustomShapeError" class="error-message hidden">Please describe the custom shape</div>
+                        
+                        <!-- Area display for calculations -->
+                        <div class="hidden">
+                            <span id="tripleArea">0.000 m²</span>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Optional Extras -->
+                    <div class="form-section">
+                        <div class="flex items-center mb-4">
+                            <div class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mr-3">3</div>
+                            <h3 class="text-xl font-semibold text-gray-800">Optional Extras</h3>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Additional Features</label>
+                            <select id="tripleExtras" class="input-field w-full">
+                                <option value="none" data-price="0">None</option>
+                                <option value="georgian" data-price="57.50">18mm White Georgian</option>
+                                <option value="lead-square" data-price="62.50">9mm Square Lead</option>
+                                <option value="lead-diamond" data-price="70">9mm Diamond Lead</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">Pet Flap/Vent Hole</label>
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                <div>
+                                    <p class="font-medium text-gray-800">Add Pet Flap/Vent Hole</p>
+                                    <p class="text-sm text-gray-600">+£50 additional cost</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="triplePetFlap" data-price="50" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-8">
+                    <button id="addToCart" class="btn-primary text-lg px-8 py-4">Add to Cart</button>
+                </div>
+            </div>
+
+            <!-- Price Display & Cart -->
+            <div class="xl:col-span-1">
+                <div class="price-display mb-6">
+                    <h3 class="text-2xl font-bold mb-4">Current Price</h3>
+                    <div class="space-y-2">
+                        <div class="text-3xl font-bold">£<span id="currentPrice">0.00</span></div>
+                        <div class="text-sm opacity-90">
+                            <p>Price excludes VAT</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                    <div class="cart-header">
+                        <h3 class="text-xl font-bold">Shopping Cart</h3>
+                        <p class="text-sm opacity-90 mt-1">Review your glass orders</p>
+                    </div>
+                    <div class="px-6 pb-6">
+                        <div id="cartItems">
+                            <div class="cart-empty">
+                                <svg fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
+                                </svg>
+                                <p class="text-lg font-medium">Your cart is empty</p>
+                                <p class="text-sm mt-2">Add some glass units to get started</p>
+                            </div>
+                        </div>
+                        <div id="cartSummary" class="hidden border-t pt-6 mt-6">
+                            <div class="space-y-3">
+                                <div class="flex justify-between text-sm">
+                                    <span>Subtotal:</span>
+                                    <span>£<span id="cartSubtotal">0.00</span></span>
+                                </div>
+                                <div id="cartShippingRow" class="flex justify-between text-sm hidden">
+                                    <span id="cartShippingLabel">Shipping:</span>
+                                    <span>£<span id="cartShipping">0.00</span></span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span>VAT (20%):</span>
+                                    <span>£<span id="cartVAT">0.00</span></span>
+                                </div>
+                                <div class="flex justify-between text-lg font-bold border-t pt-3">
+                                    <span>Total:</span>
+                                    <span class="text-blue-600">£<span id="cartTotal">0.00</span></span>
+                                </div>
+                            </div>
+                            <button class="w-full mt-6 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200">
+                                Proceed to Checkout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delivery Area Selection Modal -->
+    <div id="deliveryModal" class="delivery-modal hidden">
+        <div class="delivery-modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Select Delivery Area</h2>
+                <button id="closeDeliveryModal" class="text-gray-500 hover:text-gray-700 text-2xl font-bold">&times;</button>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="delivery-area" data-area="1" data-charge="37.50">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-lg font-semibold text-gray-800">Delivery Area 1</h3>
+                        <div class="text-right">
+                            <p class="text-lg font-bold text-blue-600">£37.50 + VAT</p>
+                            <p class="text-sm text-gray-500">per delivery</p>
+                        </div>
+                    </div>
+                    <div class="delivery-counties">
+                        <div class="delivery-county">Bedfordshire</div>
+                        <div class="delivery-county">Berkshire</div>
+                        <div class="delivery-county">Buckinghamshire</div>
+                        <div class="delivery-county">Cambridgeshire</div>
+                        <div class="delivery-county">Essex</div>
+                        <div class="delivery-county">Hampshire</div>
+                        <div class="delivery-county">Hertfordshire</div>
+                        <div class="delivery-county">Kent</div>
+                        <div class="delivery-county">Middlesex</div>
+                        <div class="delivery-county">Oxfordshire</div>
+                        <div class="delivery-county">Norfolk</div>
+                        <div class="delivery-county">Suffolk</div>
+                        <div class="delivery-county">Surrey</div>
+                        <div class="delivery-county">Sussex</div>
+                        <div class="delivery-county">Wiltshire</div>
+                    </div>
+                </div>
+                
+                <div class="delivery-area" data-area="2" data-charge="67.50">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-lg font-semibold text-gray-800">Delivery Area 2</h3>
+                        <div class="text-right">
+                            <p class="text-lg font-bold text-blue-600">£67.50 + VAT</p>
+                            <p class="text-sm text-gray-500">per delivery</p>
+                            <p class="text-xs text-green-600 mt-1">£37.50 + VAT for orders over £2000</p>
+                        </div>
+                    </div>
+                    <div class="delivery-counties">
+                        <div class="delivery-county">Derbyshire</div>
+                        <div class="delivery-county">Dorset</div>
+                        <div class="delivery-county">Gloucestershire</div>
+                        <div class="delivery-county">Herefordshire</div>
+                        <div class="delivery-county">Leicestershire</div>
+                        <div class="delivery-county">Lincolnshire</div>
+                        <div class="delivery-county">Nottinghamshire</div>
+                        <div class="delivery-county">Rutland</div>
+                        <div class="delivery-county">Shropshire</div>
+                        <div class="delivery-county">Somerset</div>
+                        <div class="delivery-county">Staffordshire</div>
+                        <div class="delivery-county">Warwickshire</div>
+                        <div class="delivery-county">Worcestershire</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex justify-end gap-4 mt-8">
+                <button id="cancelDelivery" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                    Cancel
+                </button>
+                <button id="confirmDelivery" class="btn-primary" disabled>
+                    Confirm & Add to Cart
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Glass Configuration Modal -->
+    <div id="glassConfigModal" class="pattern-modal hidden">
+        <div class="pattern-modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Glass Configuration</h2>
+                <button id="closeGlassConfigModal" class="text-gray-500 hover:text-gray-700 text-2xl font-bold">&times;</button>
+            </div>
+            
+            <!-- Thickness Selection -->
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Select Thickness</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4" id="thicknessOptions">
+                    <!-- Thickness options will be populated dynamically -->
+                </div>
+            </div>
+            
+            <!-- Tinted Glass Color Selection (only for tinted glass) -->
+            <div id="tintedColorSection" class="mb-6 hidden">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Select Tinted Glass Color</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="pattern-option tinted-color-option" data-color="grey">
+                        <img src="https://images.unsplash.com/photo-1557804506-669a67965ba0?w=150&h=150&fit=crop&crop=center" 
+                             alt="Grey Tinted Glass" class="glass-config-image">
+                        <h4 class="text-md font-semibold text-gray-800">Grey</h4>
+                        <p class="text-sm text-gray-600 mt-2">Grey tinted glass</p>
+                    </div>
+                    <div class="pattern-option tinted-color-option" data-color="bronze">
+                        <img src="https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=150&h=150&fit=crop&crop=center" 
+                             alt="Bronze Tinted Glass" class="glass-config-image">
+                        <h4 class="text-md font-semibold text-gray-800">Bronze</h4>
+                        <p class="text-sm text-gray-600 mt-2">Bronze tinted glass</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Corners Selection -->
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Select Corners</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div class="pattern-option corner-option" data-corner="straight">
+                        <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=150&h=150&fit=crop&crop=center" 
+                             alt="Straight Corners" class="glass-config-image">
+                        <h4 class="text-md font-semibold text-gray-800">Straight</h4>
+                        <p class="text-sm text-gray-600 mt-2">90° straight corners</p>
+                    </div>
+                    <div class="pattern-option corner-option" data-corner="dubbed">
+                        <img src="https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=150&h=150&fit=crop&crop=center" 
+                             alt="Dubbed Corners" class="glass-config-image">
+                        <h4 class="text-md font-semibold text-gray-800">Dubbed</h4>
+                        <p class="text-sm text-gray-600 mt-2">Slightly rounded corners</p>
+                    </div>
+                    <div class="pattern-option corner-option" data-corner="radius">
+                        <img src="https://images.unsplash.com/photo-1572021335469-31706a17aaef?w=150&h=150&fit=crop&crop=center" 
+                             alt="Radius Corners" class="glass-config-image">
+                        <h4 class="text-md font-semibold text-gray-800">Radius</h4>
+                        <p class="text-sm text-gray-600 mt-2">Rounded radius corners</p>
+                    </div>
+                    <div class="pattern-option corner-option" data-corner="clipped">
+                        <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=150&h=150&fit=crop&crop=center" 
+                             alt="Clipped Corners" class="glass-config-image">
+                        <h4 class="text-md font-semibold text-gray-800">Clipped</h4>
+                        <p class="text-sm text-gray-600 mt-2">Angled clipped corners</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex justify-end gap-4 mt-8">
+                <button id="cancelGlassConfig" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                    Cancel
+                </button>
+                <button id="confirmGlassConfig" class="btn-primary" disabled>
+                    Confirm Configuration
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pattern Selection Modal -->
+    <div id="patternModal" class="pattern-modal hidden">
+        <div class="pattern-modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Select Pattern Type</h2>
+                <button id="closePatternModal" class="text-gray-500 hover:text-gray-700 text-2xl font-bold">&times;</button>
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
+                <div class="pattern-option" data-pattern="flemish">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/flemish-min.png?mh=500" 
+                         alt="Flemish Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">Flemish</h3>
+                    <p class="text-sm text-gray-600 mt-2">Classic textured pattern with subtle geometric design</p>
+                </div>
+                
+                <div class="pattern-option" data-pattern="minster">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/minster-min.png?mh=500" 
+                         alt="Minster Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">Minster</h3>
+                    <p class="text-sm text-gray-600 mt-2">Traditional cathedral-style textured pattern</p>
+                </div>
+                
+                <div class="pattern-option" data-pattern="warwick">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/warwick-min.png?mh=500" 
+                         alt="Warwick Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">Warwick</h3>
+                    <p class="text-sm text-gray-600 mt-2">Elegant textured glass with refined pattern</p>
+                </div>
+                
+                <div class="pattern-option" data-pattern="chantilly">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/chantilly-min.png?mh=500" 
+                         alt="Chantilly Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">Chantilly</h3>
+                    <p class="text-sm text-gray-600 mt-2">Delicate lace-like textured pattern</p>
+                </div>
+                
+                <div class="pattern-option" data-pattern="reeded">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/reeded-min.png?mh=500" 
+                         alt="Reeded Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">Reeded</h3>
+                    <p class="text-sm text-gray-600 mt-2">Linear vertical ridged pattern</p>
+                </div>
+                
+                <div class="pattern-option" data-pattern="digital">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/digital-min.png?mh=500" 
+                         alt="Digital Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">Digital</h3>
+                    <p class="text-sm text-gray-600 mt-2">Modern pixelated textured design</p>
+                </div>
+                
+                <div class="pattern-option" data-pattern="taffeta">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/taffeta-min.png?mh=500" 
+                         alt="Taffeta Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">Taffeta</h3>
+                    <p class="text-sm text-gray-600 mt-2">Silk-like woven texture pattern</p>
+                </div>
+                
+                <div class="pattern-option" data-pattern="oak">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/oak-min.png?mh=500" 
+                         alt="Oak Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">Oak</h3>
+                    <p class="text-sm text-gray-600 mt-2">Natural wood grain inspired texture</p>
+                </div>
+                
+                <div class="pattern-option" data-pattern="florielle">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/contora-min.png?mh=500" 
+                         alt="Florielle Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">Florielle</h3>
+                    <p class="text-sm text-gray-600 mt-2">Floral-inspired decorative pattern</p>
+                </div>
+                
+                <div class="pattern-option" data-pattern="mayflower">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/mayflower-min.png?mh=500" 
+                         alt="MayFlower Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">MayFlower</h3>
+                    <p class="text-sm text-gray-600 mt-2">Botanical textured glass design</p>
+                </div>
+                
+                <div class="pattern-option" data-pattern="pelerine">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/pereline-min.png?mh=500" 
+                         alt="Pelerine Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">Pelerine</h3>
+                    <p class="text-sm text-gray-600 mt-2">Sophisticated curved line pattern</p>
+                </div>
+                
+                <div class="pattern-option" data-pattern="everglade">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/everglade-min.png?mh=500" 
+                         alt="Everglade Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">Everglade</h3>
+                    <p class="text-sm text-gray-600 mt-2">Nature-inspired organic texture</p>
+                </div>
+                
+                <div class="pattern-option" data-pattern="cassini">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/cassini-min.png?mh=500" 
+                         alt="Cassini Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">Cassini</h3>
+                    <p class="text-sm text-gray-600 mt-2">Geometric circular pattern design</p>
+                </div>
+                
+                <div class="pattern-option" data-pattern="tribal">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/tribal-min.png?mh=500" 
+                         alt="Tribal Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">Tribal</h3>
+                    <p class="text-sm text-gray-600 mt-2">Bold ethnic-inspired pattern</p>
+                </div>
+                
+                <div class="pattern-option" data-pattern="sycamore">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/sycamore-min.png?mh=500" 
+                         alt="Sycamore Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">Sycamore</h3>
+                    <p class="text-sm text-gray-600 mt-2">Wood grain textured pattern</p>
+                </div>
+                
+                <div class="pattern-option" data-pattern="autumn">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/autumn-min.png?mh=500" 
+                         alt="Autumn Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">Autumn</h3>
+                    <p class="text-sm text-gray-600 mt-2">Seasonal leaf-inspired texture</p>
+                </div>
+                
+                <div class="pattern-option" data-pattern="arctic">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/arctic-min.png?mh=500" 
+                         alt="Arctic Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">Arctic</h3>
+                    <p class="text-sm text-gray-600 mt-2">Ice crystal inspired pattern</p>
+                </div>
+                
+                <div class="pattern-option" data-pattern="stippolyte">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/stippolyte-min.png?mh=500" 
+                         alt="Stippolyte Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">Stippolyte</h3>
+                    <p class="text-sm text-gray-600 mt-2">Fine stippled texture pattern</p>
+                </div>
+                
+                <div class="pattern-option" data-pattern="cotswold">
+                    <img src="https://www.pilkington.com/-/media/pilkington/site-content/_base/texture-glass-images/cotswold-min2.png?mh=500" 
+                         alt="Cotswold Pattern" class="pattern-image">
+                    <h3 class="text-lg font-semibold text-gray-800">Cotswold</h3>
+                    <p class="text-sm text-gray-600 mt-2">Traditional countryside texture</p>
+                </div>
+            </div>
+            
+            <div class="flex justify-end gap-4 mt-8">
+                <button id="cancelPattern" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                    Cancel
+                </button>
+                <button id="confirmPattern" class="btn-primary" disabled>
+                    Confirm Selection
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shape Dimensions Modal -->
+    <div id="shapeDimensionsModal" class="pattern-modal hidden">
+        <div class="pattern-modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Shape Configuration</h2>
+                <button id="closeShapeDimensionsModal" class="text-gray-500 hover:text-gray-700 text-2xl font-bold">&times;</button>
+            </div>
+            
+            <!-- Selected Shape Display -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div class="flex items-center gap-4">
+                    <img id="modalShapeImage" src="" alt="Selected Shape" class="w-16 h-16 object-cover rounded-lg">
+                    <div>
+                        <h3 class="text-lg font-semibold text-blue-800" id="modalShapeName">Shape Name</h3>
+                        <p class="text-sm text-blue-600" id="modalShapePrice">Price modifier</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Custom Shape Input (only for "Other") -->
+            <div id="modalCustomShapeContainer" class="mb-6 hidden">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Describe the custom shape *</label>
+                <input type="text" id="modalCustomShape" class="input-field w-full" placeholder="e.g., Hexagonal, L-shaped, Curved bottom">
+                <div id="modalCustomShapeError" class="error-message hidden">Please describe the custom shape</div>
+            </div>
+            
+            <!-- Unit Dimensions -->
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Unit Dimensions</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Width (mm) *</label>
+                        <input type="number" id="modalWidth" class="input-field w-full" min="100" max="2800" required>
+                        <div id="modalWidthError" class="error-message hidden">Width must be between 100-2800mm</div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Height (mm) *</label>
+                        <input type="number" id="modalHeight" class="input-field w-full" min="100" max="2800" required>
+                        <div id="modalHeightError" class="error-message hidden">Height must be between 100-2800mm</div>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Reference</label>
+                    <input type="text" id="modalReference" class="input-field w-full" placeholder="Optional reference">
+                </div>
+                <div class="mt-4">
+                    <p class="text-sm text-gray-600">Area: <span id="modalArea" class="font-semibold">0.000 m²</span></p>
+                </div>
+            </div>
+            
+            <!-- Drawing Upload -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Upload Drawing/Specification</label>
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+                    <input type="file" id="modalDrawingFile" accept=".png,.jpg,.jpeg,.pdf,.docx" class="hidden" multiple>
+                    <div class="upload-area" onclick="document.getElementById('modalDrawingFile').click()">
+                        <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <p class="text-sm text-gray-600 mb-2">
+                            <span class="font-medium text-blue-600 hover:text-blue-500 cursor-pointer">Click to upload</span> or drag and drop
+                        </p>
+                        <p class="text-xs text-gray-500">PNG, JPG, PDF, DOCX up to 10MB each</p>
+                    </div>
+                    <div id="modalFileList" class="mt-4 text-left hidden"></div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">Upload technical drawings, sketches, or specifications to help us understand your requirements</p>
+            </div>
+            
+            <div class="flex justify-end gap-4 mt-8">
+                <button id="cancelShapeDimensions" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                    Cancel
+                </button>
+                <button id="confirmShapeDimensions" class="btn-primary">
+                    Confirm Configuration
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Popup -->
+    <div id="successPopup" class="success-popup">
+        <div class="popup-content">
+            <svg class="popup-icon" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            <div class="popup-text">
+                <div class="popup-title">Success!</div>
+                <div class="popup-message">Item added to cart successfully</div>
+            </div>
+        </div>
+    </div>
+
+   <!---- <script>
+        // Global variables
+        let currentTab = 'single';
+        let cart = [];
+        let currentPrice = 0;
+        let selectedDeliveryArea = null;
+        let deliveryCharge = 0;
+        let pendingCartItem = null;
+        let selectedPattern = null;
+        let pendingPatternSelection = null;
+        let pendingGlassConfigSelection = null;
+        let pendingShapeSelection = null;
+        let selectedShapeData = {
+            shape: null,
+            customShape: '',
+            width: null,
+            height: null,
+            reference: '',
+            uploadedFiles: []
+        };
+        let selectedGlassConfig = {
+            thickness: null,
+            tintedColor: null,
+            corner: null
+        };
+
+        // Helper functions for shape data
+        function getShapePriceModifier(shape) {
+            const priceMap = {
+                'square': '0',
+                'triangle': '15',
+                'rake': '20',
+                'arched': '25',
+                'circle': '20',
+                'other': '30'
+            };
+            return priceMap[shape] || '0';
+        }
+
+        function getTypeThumbnail(type) {
+            const thumbnailMap = {
+                'single': 'https://cdn-icons-png.flaticon.com/512/2593/2593549.png',
+                'double': 'https://cdn-icons-png.flaticon.com/512/2593/2593551.png',
+                'triple': 'https://cdn-icons-png.flaticon.com/512/2593/2593553.png'
+            };
+            return thumbnailMap[type] || thumbnailMap['single'];
+        }
+
+        function getShapeDisplayName(shape) {
+            const nameMap = {
+                'square': 'Square',
+                'triangle': 'Right Angle Triangle',
+                'rake': 'Rake',
+                'arched': 'Arched-Top',
+                'circle': 'Circle',
+                'other': 'Other'
+            };
+            return nameMap[shape] || 'Square';
+        }
+
+        function getShapeImage(shape) {
+            const imageMap = {
+                'square': 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=120&h=120&fit=crop&crop=center',
+                'triangle': 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=120&h=120&fit=crop&crop=center',
+                'rake': 'https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=120&h=120&fit=crop&crop=center',
+                'arched': 'https://images.unsplash.com/photo-1572021335469-31706a17aaef?w=120&h=120&fit=crop&crop=center',
+                'circle': 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=120&h=120&fit=crop&crop=center',
+                'other': 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=120&h=120&fit=crop&crop=center'
+            };
+            return imageMap[shape] || imageMap['square'];
+        }
+
+        // Initialize the calculator
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTabs();
+            initializeEventListeners();
+            initializeShapeDimensionsModal();
+            calculatePrice();
+        });
+
+        // Initialize extras dropdowns
+        function initializeExtrasDropdowns() {
+            ['single', 'double', 'triple'].forEach(type => {
+                const extrasSelect = document.getElementById(type + 'Extras');
+                if (extrasSelect) {
+                    extrasSelect.addEventListener('change', function() {
+                        const value = this.value;
+                        
+                        // Hide all option containers
+                        const georgianOptions = document.getElementById(type + 'GeorgianOptions');
+                        const duplexOptions = document.getElementById(type + 'DuplexOptions');
+                        
+                        if (georgianOptions) georgianOptions.classList.add('hidden');
+                        if (duplexOptions) duplexOptions.classList.add('hidden');
+                        
+                        // Show relevant option container
+                        if (value === 'georgian' && georgianOptions) {
+                            georgianOptions.classList.remove('hidden');
+                        } else if (value === 'duplex' && duplexOptions) {
+                            duplexOptions.classList.remove('hidden');
+                        }
+                        
+                        calculatePrice();
+                    });
+                }
+            });
+        }
+
+        // Tab functionality
+        function initializeTabs() {
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const tabId = this.id.replace('Tab', '');
+                    switchTab(tabId);
+                });
+            });
+        }
+
+        function switchTab(tabId) {
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('tab-active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
+
+            // Add active class to selected tab
+            document.getElementById(tabId + 'Tab').classList.add('tab-active');
+            
+            // Show corresponding content
+            if (tabId === 'single') {
+                document.getElementById('singleUnit').classList.remove('hidden');
+                currentTab = 'single';
+            } else if (tabId === 'double') {
+                document.getElementById('doubleGlazed').classList.remove('hidden');
+                currentTab = 'double';
+            } else if (tabId === 'triple') {
+                document.getElementById('tripleGlazed').classList.remove('hidden');
+                currentTab = 'triple';
+            }
+
+            // Clear any error messages when switching tabs
+            document.querySelectorAll('.error-message').forEach(error => error.classList.add('hidden'));
+            
+            calculatePrice();
+        }
+
+        // Event listeners
+        function initializeEventListeners() {
+            // Dimension inputs
+            ['single', 'double', 'triple'].forEach(type => {
+                const widthInput = document.getElementById(type + 'Width');
+                const heightInput = document.getElementById(type + 'Height');
+                
+                if (widthInput) widthInput.addEventListener('input', () => updateArea(type));
+                if (heightInput) heightInput.addEventListener('input', () => updateArea(type));
+            });
+
+            // Shape selection - separate handlers for each tab
+            document.querySelectorAll('.single-shape-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    pendingShapeSelection = 'single';
+                    showShapeDimensionsModal(this);
+                });
+            });
+
+            document.querySelectorAll('.double-shape-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    pendingShapeSelection = 'double';
+                    showShapeDimensionsModal(this);
+                });
+            });
+
+            document.querySelectorAll('.triple-shape-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    pendingShapeSelection = 'triple';
+                    showShapeDimensionsModal(this);
+                });
+            });
+
+            // Edit shape buttons for all tabs
+            document.addEventListener('click', function(e) {
+                if (e.target.id === 'singleEditShape' || e.target.id === 'doubleEditShape' || e.target.id === 'tripleEditShape') {
+                    let tabType;
+                    if (e.target.id === 'singleEditShape') tabType = 'single';
+                    else if (e.target.id === 'doubleEditShape') tabType = 'double';
+                    else if (e.target.id === 'tripleEditShape') tabType = 'triple';
+                    
+                    pendingShapeSelection = tabType;
+                    
+                    // Get the stored shape value
+                    const storedShape = selectedShapeData.shape || document.getElementById(tabType + 'Shape').value;
+                    
+                    // Create a mock shape element with the stored data
+                    const mockShapeElement = {
+                        dataset: {
+                            shape: storedShape,
+                            price: getShapePriceModifier(storedShape)
+                        },
+                        querySelector: () => ({ textContent: getShapeDisplayName(storedShape) }),
+                        querySelector: () => ({ src: getShapeImage(storedShape) })
+                    };
+                    
+                    showShapeDimensionsModal(mockShapeElement);
+                }
+            });
+
+            // All other inputs
+            document.addEventListener('change', function(e) {
+                // Check if pattern glass is selected
+                if (e.target.tagName === 'SELECT' && e.target.value === '4mm-pattern') {
+                    showPatternModal(e.target);
+                } else if (e.target.id === 'singleGlassType' && e.target.value && e.target.value !== '') {
+                    // Show glass configuration modal for single unit glass types
+                    showGlassConfigModal(e.target);
+                } else {
+                    calculatePrice();
+                }
+            });
+            document.addEventListener('input', calculatePrice);
+
+            // Extras dropdown functionality
+            initializeExtrasDropdowns();
+
+            // File upload functionality
+            initializeFileUploads();
+
+            // Add to cart button
+            document.getElementById('addToCart').addEventListener('click', addToCart);
+
+            // Delivery modal listeners
+            initializeDeliveryModal();
+
+            // Pattern modal listeners
+            initializePatternModal();
+
+            // Glass configuration modal listeners
+            initializeGlassConfigModal();
+        }
+
+        // File upload functionality
+        function initializeFileUploads() {
+            ['single', 'double', 'triple'].forEach(type => {
+                const fileInput = document.getElementById(type + 'DrawingFile');
+                if (fileInput) {
+                    fileInput.addEventListener('change', function(e) {
+                        handleFileUpload(e, type);
+                    });
+                }
+            });
+        }
+
+        function handleFileUpload(event, type) {
+            const files = Array.from(event.target.files);
+            const fileListContainer = document.getElementById(type + 'FileList');
+            
+            if (files.length === 0) return;
+            
+            // Validate files
+            const validFiles = [];
+            const maxSize = 10 * 1024 * 1024; // 10MB
+            const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+            
+            files.forEach(file => {
+                if (file.size > maxSize) {
+                    alert(`File "${file.name}" is too large. Maximum size is 10MB.`);
+                    return;
+                }
+                
+                if (!allowedTypes.includes(file.type)) {
+                    alert(`File "${file.name}" is not a supported format. Please use PNG, JPG, PDF, or DOCX.`);
+                    return;
+                }
+                
+                validFiles.push(file);
+            });
+            
+            if (validFiles.length === 0) {
+                event.target.value = ''; // Clear the input
+                return;
+            }
+            
+            // Store files in a global object for later use
+            if (!window.uploadedFiles) {
+                window.uploadedFiles = {};
+            }
+            if (!window.uploadedFiles[type]) {
+                window.uploadedFiles[type] = [];
+            }
+            
+            // Add new files to existing ones
+            window.uploadedFiles[type] = [...window.uploadedFiles[type], ...validFiles];
+            
+            // Update display
+            updateFileDisplay(type);
+            
+            // Clear the input so the same file can be selected again if needed
+            event.target.value = '';
+        }
+
+        function updateFileDisplay(type) {
+            const fileListContainer = document.getElementById(type + 'FileList');
+            const files = window.uploadedFiles && window.uploadedFiles[type] ? window.uploadedFiles[type] : [];
+            
+            if (files.length === 0) {
+                fileListContainer.classList.add('hidden');
+                return;
+            }
+            
+            fileListContainer.classList.remove('hidden');
+            
+            let html = '';
+            files.forEach((file, index) => {
+                const fileSize = formatFileSize(file.size);
+                const fileIcon = getFileIcon(file.type);
+                
+                html += `
+                    <div class="file-item">
+                        ${fileIcon}
+                        <div class="file-info">
+                            <div class="file-name" title="${file.name}">${file.name}</div>
+                            <div class="file-size">${fileSize}</div>
+                        </div>
+                        <svg class="file-remove" onclick="removeFile('${type}', ${index})" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                `;
+            });
+            
+            fileListContainer.innerHTML = html;
+        }
+
+        function removeFile(type, index) {
+            if (window.uploadedFiles && window.uploadedFiles[type]) {
+                window.uploadedFiles[type].splice(index, 1);
+                updateFileDisplay(type);
+            }
+        }
+
+        function clearUploadedFiles(type) {
+            if (window.uploadedFiles && window.uploadedFiles[type]) {
+                window.uploadedFiles[type] = [];
+                updateFileDisplay(type);
+            }
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function getFileIcon(fileType) {
+            if (fileType.startsWith('image/')) {
+                return `<svg class="file-icon" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path>
+                </svg>`;
+            } else if (fileType === 'application/pdf') {
+                return `<svg class="file-icon" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"></path>
+                </svg>`;
+            } else {
+                return `<svg class="file-icon" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"></path>
+                </svg>`;
+            }
+        }
+
+        // Update area calculation
+        function updateArea(type) {
+            const width = parseFloat(document.getElementById(type + 'Width').value) || 0;
+            const height = parseFloat(document.getElementById(type + 'Height').value) || 0;
+            const areaInSquareMeters = (width / 1000) * (height / 1000);
+            
+            document.getElementById(type + 'Area').textContent = areaInSquareMeters.toFixed(3) + ' m²';
+            calculatePrice();
+        }
+
+        // Price calculation
+        function calculatePrice() {
+            let price = 0;
+
+            if (currentTab === 'single') {
+                price = calculateSinglePrice();
+            } else if (currentTab === 'double') {
+                price = calculateDoublePrice();
+            } else if (currentTab === 'triple') {
+                price = calculateTriplePrice();
+            }
+
+            currentPrice = price; // Store price for cart
+            
+            // Update current price display (excludes VAT)
+            document.getElementById('currentPrice').textContent = price.toFixed(2);
+        }
+
+        /*function calculateSinglePrice() {
+            const width = parseFloat(document.getElementById('singleWidth').value) || 0;
+            const height = parseFloat(document.getElementById('singleHeight').value) || 0;
+            
+            if (width === 0 || height === 0) return 0;
+
+            // Convert mm to meters and calculate area
+            const areaInSquareMeters = (width / 1000) * (height / 1000);
+            
+            // Apply minimum charge of 0.3 square meters
+            const chargeableArea = Math.max(areaInSquareMeters, 0.3);
+
+            let price = 0;
+
+            // Glass type price (per square meter)
+            const glassTypeSelect = document.getElementById('singleGlassType');
+            const glassTypePrice = parseFloat(glassTypeSelect.options[glassTypeSelect.selectedIndex].dataset.price) || 0;
+            price = chargeableArea * glassTypePrice;
+
+            // Shape modifier (percentage)
+            const shapeModifier = parseFloat(document.querySelector('.single-shape-option.shape-selected')?.dataset.price) || 0;
+            price *= (1 + shapeModifier / 100);
+
+            // Polished glass (always yes for single panel, +30%)
+            const polishedRadio = document.querySelector('input[name="singlePolished"]:checked');
+            if (polishedRadio) {
+                const polishedModifier = parseFloat(polishedRadio.dataset.price) || 0;
+                price *= (1 + polishedModifier / 100);
+            }
+
+            // Toughened glass (always yes for single panel, +30%)
+            const toughenedRadio = document.querySelector('input[name="singleToughened"]:checked');
+            if (toughenedRadio) {
+                const toughenedModifier = parseFloat(toughenedRadio.dataset.price) || 0;
+                price *= (1 + toughenedModifier / 100);
+            }
+
+            // Pet flap (fixed price)
+            const petFlapCheckbox = document.getElementById('singlePetFlap');
+            if (petFlapCheckbox && petFlapCheckbox.checked) {
+                const petFlapPrice = parseFloat(petFlapCheckbox.dataset.price) || 0;
+                price += petFlapPrice;
+            }
+
+            // Optional extras (fixed price)
+            const extrasSelect = document.getElementById('singleExtras');
+            const extrasPrice = parseFloat(extrasSelect.options[extrasSelect.selectedIndex].dataset.price) || 0;
+            price += extrasPrice;
+
+            return price;
+        }*/
+       // ...existing code...
+
+function calculateSinglePrice() {
+    const width = parseFloat(document.getElementById('singleWidth').value) || 0;
+    const height = parseFloat(document.getElementById('singleHeight').value) || 0;
+    if (width === 0 || height === 0) return 0;
+
+    // Area in m²
+    const areaInSquareMeters = (width / 1000) * (height / 1000);
+    const chargeableArea = Math.max(areaInSquareMeters, 0.3);
+
+    // Get selected thickness (from glass config modal)
+    const glassTypeSelect = document.getElementById('singleGlassType');
+    const glassThicknessStr = glassTypeSelect.dataset.selectedThickness || '4mm';
+    const thickness_mm = parseFloat(glassThicknessStr.replace('mm', '')) || 4;
+    const thickness_m = thickness_mm / 1000;
+
+    // Glass density (kg/m³)
+    const density = 2500;
+
+    // Calculate weight
+    const weight_kg = chargeableArea * thickness_m * density;
+
+    // Price per kg (set your value, e.g. £2.5 per kg)
+    const price_per_kg = 2.5;
+
+    let price = weight_kg * price_per_kg;
+
+    // Shape modifier (percentage)
+    const shapeModifier = parseFloat(document.querySelector('.single-shape-option.shape-selected')?.dataset.price) || 0;
+    price *= (1 + shapeModifier / 100);
+
+    // Polished glass (always yes for single panel, +30%)
+    const polishedRadio = document.querySelector('input[name="singlePolished"]:checked');
+    if (polishedRadio) {
+        const polishedModifier = parseFloat(polishedRadio.dataset.price) || 0;
+        price *= (1 + polishedModifier / 100);
+    }
+
+    // Toughened glass (always yes for single panel, +30%)
+    const toughenedRadio = document.querySelector('input[name="singleToughened"]:checked');
+    if (toughenedRadio) {
+        const toughenedModifier = parseFloat(toughenedRadio.dataset.price) || 0;
+        price *= (1 + toughenedModifier / 100);
+    }
+
+    // Pet flap (fixed price)
+    const petFlapCheckbox = document.getElementById('singlePetFlap');
+    if (petFlapCheckbox && petFlapCheckbox.checked) {
+        const petFlapPrice = parseFloat(petFlapCheckbox.dataset.price) || 0;
+        price += petFlapPrice;
+    }
+
+    // Optional extras (fixed price)
+    const extrasSelect = document.getElementById('singleExtras');
+    const extrasPrice = parseFloat(extrasSelect.options[extrasSelect.selectedIndex].dataset.price) || 0;
+    price += extrasPrice;
+
+    return price;
+}
+function calculateSingleWeight() {
+    const width = parseFloat(document.getElementById('singleWidth').value) || 0;
+    const height = parseFloat(document.getElementById('singleHeight').value) || 0;
+    const area = Math.max((width / 1000) * (height / 1000), 0.3);
+
+    // Get selected thickness
+    const glassTypeSelect = document.getElementById('singleGlassType');
+    const glassThicknessStr = glassTypeSelect.dataset.selectedThickness || '4mm';
+    const thickness_mm = parseFloat(glassThicknessStr.replace('mm', '')) || 4;
+    const thickness_m = thickness_mm / 1000;
+
+    // Glass density (kg/m³)
+    const density = 2500;
+
+    // Calculate weight
+    const weight_kg = area * thickness_m * density;
+    return weight_kg;
+}
+// ...existing code...
+
+        /*function calculateDoublePrice() {
+            const width = parseFloat(document.getElementById('doubleWidth').value) || 0;
+            const height = parseFloat(document.getElementById('doubleHeight').value) || 0;
+            
+            if (width === 0 || height === 0) return 0;
+
+            // Convert mm to meters and calculate area
+            const areaInSquareMeters = (width / 1000) * (height / 1000);
+            
+            // Apply minimum charge of 0.3 square meters
+            const chargeableArea = Math.max(areaInSquareMeters, 0.3);
+
+            let price = 0;
+
+            // External glass
+            const outerGlassSelect = document.getElementById('doubleOuterGlass');
+            const outerGlassPrice = parseFloat(outerGlassSelect.options[outerGlassSelect.selectedIndex].dataset.price) || 0;
+            price += chargeableArea * outerGlassPrice;
+
+            // Internal glass
+            const innerGlassSelect = document.getElementById('doubleInnerGlass');
+            const innerGlassPrice = parseFloat(innerGlassSelect.options[innerGlassSelect.selectedIndex].dataset.price) || 0;
+            price += chargeableArea * innerGlassPrice;
+
+            // Spacer bar type (per sqm)
+            const spacerTypeSelect = document.getElementById('doubleSpacerType');
+            const spacerTypePrice = parseFloat(spacerTypeSelect.options[spacerTypeSelect.selectedIndex].dataset.price) || 0;
+            price += chargeableArea * spacerTypePrice;
+
+            // Shape modifier (percentage)
+            const shapeModifier = parseFloat(document.querySelector('.double-shape-option.shape-selected')?.dataset.price) || 0;
+            price *= (1 + shapeModifier / 100);
+
+            // Toughened glass (percentage)
+            const toughenedRadio = document.querySelector('input[name="doubleToughened"]:checked');
+            if (toughenedRadio) {
+                const toughenedModifier = parseFloat(toughenedRadio.dataset.price) || 0;
+                price *= (1 + toughenedModifier / 100);
+            }
+
+            // Pet flap (fixed price)
+            const petFlapCheckbox = document.getElementById('doublePetFlap');
+            if (petFlapCheckbox && petFlapCheckbox.checked) {
+                const petFlapPrice = parseFloat(petFlapCheckbox.dataset.price) || 0;
+                price += petFlapPrice;
+            }
+
+            // Optional extras (per sqm)
+            const extrasSelect = document.getElementById('doubleExtras');
+            const extrasPrice = parseFloat(extrasSelect.options[extrasSelect.selectedIndex].dataset.price) || 0;
+            price += chargeableArea * extrasPrice;
+
+            return price;
+        }*/
+       function calculateDoublePrice() {
+    const width = parseFloat(document.getElementById('doubleWidth').value) || 0;
+    const height = parseFloat(document.getElementById('doubleHeight').value) || 0;
+    if (width === 0 || height === 0) return 0;
+
+    // Area in m²
+    const areaInSquareMeters = (width / 1000) * (height / 1000);
+    const chargeableArea = Math.max(areaInSquareMeters, 0.3);
+
+    // Get selected thicknesses from glass names
+    const outerGlassSelect = document.getElementById('doubleOuterGlass');
+    const innerGlassSelect = document.getElementById('doubleInnerGlass');
+    const outerThicknessMatch = outerGlassSelect.options[outerGlassSelect.selectedIndex].text.match(/(\d+(\.\d+)?)mm/);
+    const innerThicknessMatch = innerGlassSelect.options[innerGlassSelect.selectedIndex].text.match(/(\d+(\.\d+)?)mm/);
+
+    const outerThickness_mm = outerThicknessMatch ? parseFloat(outerThicknessMatch[1]) : 4;
+    const innerThickness_mm = innerThicknessMatch ? parseFloat(innerThicknessMatch[1]) : 4;
+
+    // Glass density (kg/m³)
+    const density = 2500;
+
+    // Calculate total weight for both panes
+    const totalThickness_m = (outerThickness_mm + innerThickness_mm) / 1000;
+    const weight_kg = chargeableArea * totalThickness_m * density;
+
+    // Price per kg (set your value, e.g. £2.5 per kg)
+    const price_per_kg = 2.5;
+
+    let price = weight_kg * price_per_kg;
+
+    // Shape modifier (percentage)
+    const shapeModifier = parseFloat(document.querySelector('.double-shape-option.shape-selected')?.dataset.price) || 0;
+    price *= (1 + shapeModifier / 100);
+
+    // Toughened glass (percentage)
+    const toughenedRadio = document.querySelector('input[name="doubleToughened"]:checked');
+    if (toughenedRadio) {
+        const toughenedModifier = parseFloat(toughenedRadio.dataset.price) || 0;
+        price *= (1 + toughenedModifier / 100);
+    }
+
+    // Pet flap (fixed price)
+    const petFlapCheckbox = document.getElementById('doublePetFlap');
+    if (petFlapCheckbox && petFlapCheckbox.checked) {
+        const petFlapPrice = parseFloat(petFlapCheckbox.dataset.price) || 0;
+        price += petFlapPrice;
+    }
+
+    // Optional extras (per sqm)
+    const extrasSelect = document.getElementById('doubleExtras');
+    const extrasPrice = parseFloat(extrasSelect.options[extrasSelect.selectedIndex].dataset.price) || 0;
+    price += chargeableArea * extrasPrice;
+
+    return price;
+}
+function calculateDoubleWeight() {
+    const width = parseFloat(document.getElementById('doubleWidth').value) || 0;
+    const height = parseFloat(document.getElementById('doubleHeight').value) || 0;
+    const area = Math.max((width / 1000) * (height / 1000), 0.3);
+
+    // Get selected thicknesses
+    const outerGlassSelect = document.getElementById('doubleOuterGlass');
+    const innerGlassSelect = document.getElementById('doubleInnerGlass');
+    const outerThicknessStr = outerGlassSelect.options[outerGlassSelect.selectedIndex].text.match(/(\d+(\.\d+)?)mm/);
+    const innerThicknessStr = innerGlassSelect.options[innerGlassSelect.selectedIndex].text.match(/(\d+(\.\d+)?)mm/);
+
+    const outerThickness_mm = outerThicknessStr ? parseFloat(outerThicknessStr[1]) : 4;
+    const innerThickness_mm = innerThicknessStr ? parseFloat(innerThicknessStr[1]) : 4;
+
+    // Spacer bar thickness (optional, usually not counted in weight)
+    // If you want to include, get from spacer width select
+
+    // Glass density (kg/m³)
+    const density = 2500;
+
+    // Calculate weight for both panes
+    const weight_kg = area * ((outerThickness_mm + innerThickness_mm) / 1000) * density;
+    return weight_kg;
+}
+
+
+        /*function calculateTriplePrice() {
+            const width = parseFloat(document.getElementById('tripleWidth').value) || 0;
+            const height = parseFloat(document.getElementById('tripleHeight').value) || 0;
+            
+            if (width === 0 || height === 0) return 0;
+
+            // Convert mm to meters and calculate area
+            const areaInSquareMeters = (width / 1000) * (height / 1000);
+            
+            // Apply minimum charge of 0.3 square meters
+            const chargeableArea = Math.max(areaInSquareMeters, 0.3);
+
+            let price = 0;
+
+            // External glass
+            const outerGlassSelect = document.getElementById('tripleOuterGlass');
+            const outerGlassPrice = parseFloat(outerGlassSelect.options[outerGlassSelect.selectedIndex].dataset.price) || 0;
+            price += chargeableArea * outerGlassPrice;
+
+            // Centre glass
+            const centreGlassSelect = document.getElementById('tripleCentreGlass');
+            const centreGlassPrice = parseFloat(centreGlassSelect.options[centreGlassSelect.selectedIndex].dataset.price) || 0;
+            price += chargeableArea * centreGlassPrice;
+
+            // Internal glass
+            const innerGlassSelect = document.getElementById('tripleInnerGlass');
+            const innerGlassPrice = parseFloat(innerGlassSelect.options[innerGlassSelect.selectedIndex].dataset.price) || 0;
+            price += chargeableArea * innerGlassPrice;
+
+            // Spacer bar type (per sqm)
+            const spacerTypeSelect = document.getElementById('tripleSpacerType');
+            const spacerTypePrice = parseFloat(spacerTypeSelect.options[spacerTypeSelect.selectedIndex].dataset.price) || 0;
+            price += chargeableArea * spacerTypePrice;
+
+            // Shape modifier (percentage)
+            const shapeModifier = parseFloat(document.querySelector('.triple-shape-option.shape-selected')?.dataset.price) || 0;
+            price *= (1 + shapeModifier / 100);
+
+            // Toughened glass (percentage)
+            const toughenedRadio = document.querySelector('input[name="tripleToughened"]:checked');
+            if (toughenedRadio) {
+                const toughenedModifier = parseFloat(toughenedRadio.dataset.price) || 0;
+                price *= (1 + toughenedModifier / 100);
+            }
+
+            // Pet flap (fixed price)
+            const petFlapCheckbox = document.getElementById('triplePetFlap');
+            if (petFlapCheckbox && petFlapCheckbox.checked) {
+                const petFlapPrice = parseFloat(petFlapCheckbox.dataset.price) || 0;
+                price += petFlapPrice;
+            }
+
+            // Optional extras (per sqm)
+            const extrasSelect = document.getElementById('tripleExtras');
+            const extrasPrice = parseFloat(extrasSelect.options[extrasSelect.selectedIndex].dataset.price) || 0;
+            price += chargeableArea * extrasPrice;
+
+            return price;
+        }*/
+       function calculateTriplePrice() {
+    const width = parseFloat(document.getElementById('tripleWidth').value) || 0;
+    const height = parseFloat(document.getElementById('tripleHeight').value) || 0;
+    if (width === 0 || height === 0) return 0;
+
+    // Area in m²
+    const areaInSquareMeters = (width / 1000) * (height / 1000);
+    const chargeableArea = Math.max(areaInSquareMeters, 0.3);
+
+    // Get selected thicknesses from glass names
+    const outerGlassSelect = document.getElementById('tripleOuterGlass');
+    const centreGlassSelect = document.getElementById('tripleCentreGlass');
+    const innerGlassSelect = document.getElementById('tripleInnerGlass');
+    const outerThicknessMatch = outerGlassSelect.options[outerGlassSelect.selectedIndex].text.match(/(\d+(\.\d+)?)mm/);
+    const centreThicknessMatch = centreGlassSelect.options[centreGlassSelect.selectedIndex].text.match(/(\d+(\.\d+)?)mm/);
+    const innerThicknessMatch = innerGlassSelect.options[innerGlassSelect.selectedIndex].text.match(/(\d+(\.\d+)?)mm/);
+
+    const outerThickness_mm = outerThicknessMatch ? parseFloat(outerThicknessMatch[1]) : 4;
+    const centreThickness_mm = centreThicknessMatch ? parseFloat(centreThicknessMatch[1]) : 4;
+    const innerThickness_mm = innerThicknessMatch ? parseFloat(innerThicknessMatch[1]) : 4;
+
+    // Glass density (kg/m³)
+    const density = 2500;
+
+    // Calculate total weight for all panes
+    const totalThickness_m = (outerThickness_mm + centreThickness_mm + innerThickness_mm) / 1000;
+    const weight_kg = chargeableArea * totalThickness_m * density;
+
+    // Price per kg (set your value, e.g. £2.5 per kg)
+    const price_per_kg = 2.5;
+
+    let price = weight_kg * price_per_kg;
+
+    // Shape modifier (percentage)
+    const shapeModifier = parseFloat(document.querySelector('.triple-shape-option.shape-selected')?.dataset.price) || 0;
+    price *= (1 + shapeModifier / 100);
+
+    // Toughened glass (percentage)
+    const toughenedRadio = document.querySelector('input[name="tripleToughened"]:checked');
+    if (toughenedRadio) {
+        const toughenedModifier = parseFloat(toughenedRadio.dataset.price) || 0;
+        price *= (1 + toughenedModifier / 100);
+    }
+
+    // Pet flap (fixed price)
+    const petFlapCheckbox = document.getElementById('triplePetFlap');
+    if (petFlapCheckbox && petFlapCheckbox.checked) {
+        const petFlapPrice = parseFloat(petFlapCheckbox.dataset.price) || 0;
+        price += petFlapPrice;
+    }
+
+    // Optional extras (per sqm)
+    const extrasSelect = document.getElementById('tripleExtras');
+    const extrasPrice = parseFloat(extrasSelect.options[extrasSelect.selectedIndex].dataset.price) || 0;
+    price += chargeableArea * extrasPrice;
+
+    return price;
+}
+function calculateTripleWeight() {
+    const width = parseFloat(document.getElementById('tripleWidth').value) || 0;
+    const height = parseFloat(document.getElementById('tripleHeight').value) || 0;
+    const area = Math.max((width / 1000) * (height / 1000), 0.3);
+
+    // Get selected thicknesses from glass names
+    const outerGlassSelect = document.getElementById('tripleOuterGlass');
+    const centreGlassSelect = document.getElementById('tripleCentreGlass');
+    const innerGlassSelect = document.getElementById('tripleInnerGlass');
+    const outerThicknessMatch = outerGlassSelect.options[outerGlassSelect.selectedIndex].text.match(/(\d+(\.\d+)?)mm/);
+    const centreThicknessMatch = centreGlassSelect.options[centreGlassSelect.selectedIndex].text.match(/(\d+(\.\d+)?)mm/);
+    const innerThicknessMatch = innerGlassSelect.options[innerGlassSelect.selectedIndex].text.match(/(\d+(\.\d+)?)mm/);
+
+    const outerThickness_mm = outerThicknessMatch ? parseFloat(outerThicknessMatch[1]) : 4;
+    const centreThickness_mm = centreThicknessMatch ? parseFloat(centreThicknessMatch[1]) : 4;
+    const innerThickness_mm = innerThicknessMatch ? parseFloat(innerThicknessMatch[1]) : 4;
+
+    const density = 2500;
+    const totalThickness_m = (outerThickness_mm + centreThickness_mm + innerThickness_mm) / 1000;
+    const weight_kg = area * totalThickness_m * density;
+    return weight_kg;
+}
+        // Validation
+        function validateForm() {
+            let isValid = true;
+
+            // Clear previous errors
+            document.querySelectorAll('.error-message').forEach(error => error.classList.add('hidden'));
+
+            if (currentTab === 'single') {
+                isValid = validateSingleForm() && isValid;
+            } else if (currentTab === 'double') {
+                isValid = validateDoubleForm() && isValid;
+            } else if (currentTab === 'triple') {
+                isValid = validateTripleForm() && isValid;
+            }
+
+            return isValid;
+        }
+
+        function validateSingleForm() {
+            let isValid = true;
+
+            // Validate glass type selection
+            const glassTypeSelect = document.getElementById('singleGlassType');
+            if (!glassTypeSelect.value) {
+                alert('Please select a glass type');
+                isValid = false;
+            }
+
+            // Validate shape selection first - check both selectedShapeData and form value
+            const shapeValue = selectedShapeData.shape || document.getElementById('singleShape').value;
+            if (!shapeValue) {
+                alert('Please select and configure a shape');
+                isValid = false;
+            }
+
+            // Validate dimensions - check both selectedShapeData and form values
+            const width = selectedShapeData.width || parseFloat(document.getElementById('singleWidth').value);
+            const height = selectedShapeData.height || parseFloat(document.getElementById('singleHeight').value);
+
+            if (!width || width < 100 || width > 2800) {
+                alert('Please configure the shape dimensions (width must be between 100-2800mm)');
+                isValid = false;
+            }
+
+            if (!height || height < 100 || height > 2800) {
+                alert('Please configure the shape dimensions (height must be between 100-2800mm)');
+                isValid = false;
+            }
+
+            // Validate custom shape if "Other" is selected
+            if (shapeValue === 'other') {
+                const customShape = selectedShapeData.customShape || document.getElementById('singleCustomShape').value.trim();
+                if (!customShape) {
+                    alert('Please describe the custom shape');
+                    isValid = false;
+                }
+            }
+
+            return isValid;
+        }
+
+        function validateDoubleForm() {
+            let isValid = true;
+
+            // Validate dimensions - check both selectedShapeData and form values
+            const width = selectedShapeData.width || parseFloat(document.getElementById('doubleWidth').value);
+            const height = selectedShapeData.height || parseFloat(document.getElementById('doubleHeight').value);
+
+            if (!width || width < 100 || width > 2800) {
+                alert('Please configure the shape dimensions (width must be between 100-2800mm)');
+                isValid = false;
+            }
+
+            if (!height || height < 100 || height > 2800) {
+                alert('Please configure the shape dimensions (height must be between 100-2800mm)');
+                isValid = false;
+            }
+
+            // Validate shape - check both selectedShapeData and form value
+            const shapeValue = selectedShapeData.shape || document.getElementById('doubleShape').value;
+            if (!shapeValue) {
+                alert('Please select and configure a shape');
+                isValid = false;
+            }
+
+            // Validate custom shape if "Other" is selected
+            if (shapeValue === 'other') {
+                const customShape = selectedShapeData.customShape || document.getElementById('doubleCustomShape').value.trim();
+                if (!customShape) {
+                    alert('Please describe the custom shape');
+                    isValid = false;
+                }
+            }
+
+            // Validate toughened glass
+            if (!document.querySelector('input[name="doubleToughened"]:checked')) {
+                alert('Please select toughened glass option');
+                isValid = false;
+            }
+
+            // Pet flap is now optional (toggle switch), no validation needed
+
+            return isValid;
+        }
+
+        function validateTripleForm() {
+            let isValid = true;
+
+            // Validate dimensions - check both selectedShapeData and form values
+            const width = selectedShapeData.width || parseFloat(document.getElementById('tripleWidth').value);
+            const height = selectedShapeData.height || parseFloat(document.getElementById('tripleHeight').value);
+
+            if (!width || width < 100 || width > 2800) {
+                alert('Please configure the shape dimensions (width must be between 100-2800mm)');
+                isValid = false;
+            }
+
+            if (!height || height < 100 || height > 2800) {
+                alert('Please configure the shape dimensions (height must be between 100-2800mm)');
+                isValid = false;
+            }
+
+            // Validate shape - check both selectedShapeData and form value
+            const shapeValue = selectedShapeData.shape || document.getElementById('tripleShape').value;
+            if (!shapeValue) {
+                alert('Please select and configure a shape');
+                isValid = false;
+            }
+
+            // Validate custom shape if "Other" is selected
+            if (shapeValue === 'other') {
+                const customShape = selectedShapeData.customShape || document.getElementById('tripleCustomShape').value.trim();
+                if (!customShape) {
+                    alert('Please describe the custom shape');
+                    isValid = false;
+                }
+            }
+
+            // Validate toughened glass
+            if (!document.querySelector('input[name="tripleToughened"]:checked')) {
+                alert('Please select toughened glass option');
+                isValid = false;
+            }
+
+            // Pet flap is now optional (toggle switch), no validation needed
+
+            return isValid;
+        }
+
+        // Cart functionality
+        function addToCart() {
+            if (!validateForm()) {
+                alert('Please fill in all required fields correctly.');
+                return;
+            }
+
+            // Store the pending item details
+            pendingCartItem = {
+                id: Date.now(),
+                type: currentTab,
+                unitPrice: currentPrice,
+                quantity: 1,
+                details: getItemDetails()
+            };
+
+            console.log('Pending cart item:', pendingCartItem); // Debug log
+
+            // Only show delivery modal if no delivery area has been selected yet
+            if (!selectedDeliveryArea) {
+                showDeliveryModal();
+            } else {
+                // Use existing delivery area selection for all subsequent orders
+                addItemToCart();
+            }
+        }
+
+        function getItemDetails() {
+            let details = {};
+            
+            if (currentTab === 'single') {
+                // Get shape data from selectedShapeData or fallback to form values
+                const shapeValue = selectedShapeData.shape || document.getElementById('singleShape').value;
+                const customShape = shapeValue === 'other' ? (selectedShapeData.customShape || document.getElementById('singleCustomShape').value) : '';
+                const width = selectedShapeData.width || document.getElementById('singleWidth').value;
+                const height = selectedShapeData.height || document.getElementById('singleHeight').value;
+                const reference = selectedShapeData.reference || document.getElementById('singleReference').value;
+                
+                const extrasSelect = document.getElementById('singleExtras');
+                const glassTypeSelect = document.getElementById('singleGlassType');
+                
+                // Get radio button values safely
+                const polishedRadio = document.querySelector('input[name="singlePolished"]:checked');
+                const toughenedRadio = document.querySelector('input[name="singleToughened"]:checked');
+                
+                details = {
+                    width: width || '0',
+                    height: height || '0',
+                    reference: reference || '',
+                    glassType: glassTypeSelect.selectedIndex > 0 ? glassTypeSelect.options[glassTypeSelect.selectedIndex].text : 'Not selected',
+                    glassThickness: glassTypeSelect.dataset.selectedThickness || 'Not specified',
+                    glassCorner: glassTypeSelect.dataset.selectedCorner || 'Not specified',
+                    glassTintedColor: glassTypeSelect.dataset.selectedTintedColor || null,
+                    shape: getShapeDisplayName(shapeValue) || 'Not selected',
+                    customShape: customShape,
+                    polished: polishedRadio ? (polishedRadio.value === 'yes' ? 'Yes' : 'No') : 'Yes',
+                    toughened: toughenedRadio ? (toughenedRadio.value === 'yes' ? 'Yes' : 'No') : 'Yes',
+                    petFlap: document.getElementById('singlePetFlap').checked ? 'Yes' : 'No',
+                    extras: extrasSelect.selectedIndex > 0 ? extrasSelect.options[extrasSelect.selectedIndex].text : 'None',
+                    uploadedFiles: selectedShapeData.uploadedFiles || []
+                };
+            } else if (currentTab === 'double') {
+                const shapeValue = document.getElementById('doubleShape').value;
+                const customShape = shapeValue === 'other' ? document.getElementById('doubleCustomShape').value : '';
+                const extrasSelect = document.getElementById('doubleExtras');
+                
+                const outerGlassSelect = document.getElementById('doubleOuterGlass');
+                const innerGlassSelect = document.getElementById('doubleInnerGlass');
+                const spacerWidthSelect = document.getElementById('doubleSpacerWidth');
+                const spacerTypeSelect = document.getElementById('doubleSpacerType');
+                
+                // Get radio button values safely
+                const toughenedRadio = document.querySelector('input[name="doubleToughened"]:checked');
+                
+                details = {
+                    width: document.getElementById('doubleWidth').value || '0',
+                    height: document.getElementById('doubleHeight').value || '0',
+                    reference: document.getElementById('doubleReference').value || '',
+                    outerGlass: outerGlassSelect.selectedIndex > 0 ? outerGlassSelect.options[outerGlassSelect.selectedIndex].text : 'Not selected',
+                    outerGlassPattern: outerGlassSelect.dataset.selectedPattern || null,
+                    innerGlass: innerGlassSelect.selectedIndex > 0 ? innerGlassSelect.options[innerGlassSelect.selectedIndex].text : 'Not selected',
+                    innerGlassPattern: innerGlassSelect.dataset.selectedPattern || null,
+                    spacerWidth: spacerWidthSelect.selectedIndex > 0 ? spacerWidthSelect.options[spacerWidthSelect.selectedIndex].text : 'Not selected',
+                    spacerColor: spacerTypeSelect.selectedIndex >= 0 ? spacerTypeSelect.options[spacerTypeSelect.selectedIndex].text : 'Silver',
+                    shape: getShapeDisplayName(shapeValue) || 'Not selected',
+                    customShape: customShape,
+                    toughened: toughenedRadio ? (toughenedRadio.value === 'yes' ? 'Yes' : 'No') : 'Not selected',
+                    petFlap: document.getElementById('doublePetFlap').checked ? 'Yes' : 'No',
+                    extras: extrasSelect.selectedIndex > 0 ? extrasSelect.options[extrasSelect.selectedIndex].text : 'None',
+                    uploadedFiles: window.uploadedFiles && window.uploadedFiles['double'] ? [...window.uploadedFiles['double']] : []
+                };
+            } else if (currentTab === 'triple') {
+                const shapeValue = document.getElementById('tripleShape').value;
+                const customShape = shapeValue === 'other' ? document.getElementById('tripleCustomShape').value : '';
+                const extrasSelect = document.getElementById('tripleExtras');
+                
+                const outerGlassSelect = document.getElementById('tripleOuterGlass');
+                const centreGlassSelect = document.getElementById('tripleCentreGlass');
+                const innerGlassSelect = document.getElementById('tripleInnerGlass');
+                const spacer1WidthSelect = document.getElementById('tripleSpacer1Width');
+                const spacer2WidthSelect = document.getElementById('tripleSpacer2Width');
+                const spacerTypeSelect = document.getElementById('tripleSpacerType');
+                
+                // Get radio button values safely
+                const toughenedRadio = document.querySelector('input[name="tripleToughened"]:checked');
+                
+                details = {
+                    width: document.getElementById('tripleWidth').value || '0',
+                    height: document.getElementById('tripleHeight').value || '0',
+                    reference: document.getElementById('tripleReference').value || '',
+                    outerGlass: outerGlassSelect.selectedIndex > 0 ? outerGlassSelect.options[outerGlassSelect.selectedIndex].text : 'Not selected',
+                    outerGlassPattern: outerGlassSelect.dataset.selectedPattern || null,
+                    centreGlass: centreGlassSelect.selectedIndex > 0 ? centreGlassSelect.options[centreGlassSelect.selectedIndex].text : 'Not selected',
+                    centreGlassPattern: centreGlassSelect.dataset.selectedPattern || null,
+                    innerGlass: innerGlassSelect.selectedIndex > 0 ? innerGlassSelect.options[innerGlassSelect.selectedIndex].text : 'Not selected',
+                    innerGlassPattern: innerGlassSelect.dataset.selectedPattern || null,
+                    spacer1Width: spacer1WidthSelect.selectedIndex > 0 ? spacer1WidthSelect.options[spacer1WidthSelect.selectedIndex].text : 'Not selected',
+                    spacer2Width: spacer2WidthSelect.selectedIndex > 0 ? spacer2WidthSelect.options[spacer2WidthSelect.selectedIndex].text : 'Not selected',
+                    spacerColor: spacerTypeSelect.selectedIndex >= 0 ? spacerTypeSelect.options[spacerTypeSelect.selectedIndex].text : 'Silver',
+                    shape: getShapeDisplayName(shapeValue) || 'Not selected',
+                    customShape: customShape,
+                    toughened: toughenedRadio ? (toughenedRadio.value === 'yes' ? 'Yes' : 'No') : 'Not selected',
+                    petFlap: document.getElementById('triplePetFlap').checked ? 'Yes' : 'No',
+                    extras: extrasSelect.selectedIndex > 0 ? extrasSelect.options[extrasSelect.selectedIndex].text : 'None',
+                    uploadedFiles: window.uploadedFiles && window.uploadedFiles['triple'] ? [...window.uploadedFiles['triple']] : []
+                };
+            }
+            
+            console.log('Item details for', currentTab, ':', details); // Debug log
+            return details;
+        }
+
+        function addItemToCart() {
+            if (!pendingCartItem) return;
+
+            cart.push(pendingCartItem);
+            updateCartDisplay();
+            showSuccessPopup();
+            clearForm();
+            pendingCartItem = null;
+        }
+
+        function clearForm() {
+            // Clear form inputs for current tab
+            if (currentTab === 'single') {
+                document.getElementById('singleWidth').value = '';
+                document.getElementById('singleHeight').value = '';
+                document.getElementById('singleReference').value = '';
+                document.getElementById('singleShape').value = '';
+                document.getElementById('singleCustomShape').value = '';
+                document.getElementById('singleGlassType').selectedIndex = 0;
+                document.getElementById('singleExtras').selectedIndex = 0;
+                // Reset radio buttons to default checked state for single unit
+                document.querySelectorAll('input[name="singlePolished"]').forEach(radio => {
+                    radio.checked = radio.value === 'yes';
+                });
+                document.querySelectorAll('input[name="singleToughened"]').forEach(radio => {
+                    radio.checked = radio.value === 'yes';
+                });
+                document.getElementById('singlePetFlap').checked = false;
+                document.querySelectorAll('.single-shape-option').forEach(opt => opt.classList.remove('shape-selected'));
+                document.getElementById('singleArea').textContent = '0.000 m²';
+                document.getElementById('singleShapeSummary').classList.add('hidden');
+                clearUploadedFiles('single');
+            } else if (currentTab === 'double') {
+                document.getElementById('doubleWidth').value = '';
+                document.getElementById('doubleHeight').value = '';
+                document.getElementById('doubleReference').value = '';
+                document.getElementById('doubleShape').value = '';
+                document.getElementById('doubleCustomShape').value = '';
+                document.getElementById('doubleOuterGlass').selectedIndex = 0;
+                document.getElementById('doubleInnerGlass').selectedIndex = 0;
+                document.getElementById('doubleSpacerWidth').selectedIndex = 0;
+                document.getElementById('doubleSpacerType').selectedIndex = 0;
+                document.getElementById('doubleExtras').selectedIndex = 0;
+                document.querySelectorAll('input[name="doubleToughened"]').forEach(radio => radio.checked = false);
+                document.getElementById('doublePetFlap').checked = false;
+                document.querySelectorAll('.double-shape-option').forEach(opt => opt.classList.remove('shape-selected'));
+                document.getElementById('doubleArea').textContent = '0.000 m²';
+                document.getElementById('doubleShapeSummary').classList.add('hidden');
+                clearUploadedFiles('double');
+            } else if (currentTab === 'triple') {
+                document.getElementById('tripleWidth').value = '';
+                document.getElementById('tripleHeight').value = '';
+                document.getElementById('tripleReference').value = '';
+                document.getElementById('tripleShape').value = '';
+                document.getElementById('tripleCustomShape').value = '';
+                document.getElementById('tripleOuterGlass').selectedIndex = 0;
+                document.getElementById('tripleCentreGlass').selectedIndex = 0;
+                document.getElementById('tripleInnerGlass').selectedIndex = 0;
+                document.getElementById('tripleSpacer1Width').selectedIndex = 0;
+                document.getElementById('tripleSpacer2Width').selectedIndex = 0;
+                document.getElementById('tripleSpacerType').selectedIndex = 0;
+                document.getElementById('tripleExtras').selectedIndex = 0;
+                document.querySelectorAll('input[name="tripleToughened"]').forEach(radio => radio.checked = false);
+                document.getElementById('triplePetFlap').checked = false;
+                document.querySelectorAll('.triple-shape-option').forEach(opt => opt.classList.remove('shape-selected'));
+                document.getElementById('tripleArea').textContent = '0.000 m²';
+                document.getElementById('tripleShapeSummary').classList.add('hidden');
+                clearUploadedFiles('triple');
+            }
+            
+            // Clear the global shape data
+            selectedShapeData = {
+                shape: null,
+                customShape: '',
+                width: null,
+                height: null,
+                reference: '',
+                uploadedFiles: []
+            };
+            
+            calculatePrice();
+        }
+
+        function updateCartDisplay() {
+            const cartItemsContainer = document.getElementById('cartItems');
+            const cartSummary = document.getElementById('cartSummary');
+            
+            if (cart.length === 0) {
+                cartItemsContainer.innerHTML = `
+                    <div class="cart-empty">
+                        <svg fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
+                        </svg>
+                        <p class="text-lg font-medium">Your cart is empty</p>
+                        <p class="text-sm mt-2">Add some glass units to get started</p>
+                    </div>
+                `;
+                cartSummary.classList.add('hidden');
+                return;
+            }
+            
+            let cartHTML = '';
+            cart.forEach((item, index) => {
+                const totalPrice = item.unitPrice * item.quantity;
+                const area = (parseFloat(item.details.width) / 1000) * (parseFloat(item.details.height) / 1000);
+                
+                // Get thumbnail image based on type
+                const thumbnailImage = getTypeThumbnail(item.type);
+                
+                cartHTML += `
+                    <div class="cart-item">
+                        <div class="flex gap-4 mb-3">
+                            <div class="flex-shrink-0">
+                                <img src="${thumbnailImage}" alt="${item.type} glass" class="w-16 h-16 object-cover rounded-lg border-2 border-gray-200">
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800 capitalize">${item.type} ${item.type === 'single' ? 'Unit' : 'Glazed'}</h4>
+                                        <p class="text-sm text-gray-600">${item.details.width}mm × ${item.details.height}mm (${area.toFixed(3)} m²)</p>
+                                        ${item.details.reference ? `<p class="text-sm text-gray-500">Ref: ${item.details.reference}</p>` : ''}
+                                    </div>
+                                    <button onclick="removeFromCart(${index})" class="text-red-500 hover:text-red-700 ml-2">
+                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-sm text-gray-600 space-y-1 mb-3">
+                            ${getItemDisplayDetails(item)}
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <div class="quantity-controls">
+                                <button class="quantity-btn" onclick="updateQuantity(${index}, -1)" ${item.quantity <= 1 ? 'disabled' : ''}>-</button>
+                                <span class="quantity-display">${item.quantity}</span>
+                                <button class="quantity-btn" onclick="updateQuantity(${index}, 1)">+</button>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-lg font-bold text-blue-600">£${totalPrice.toFixed(2)}</p>
+                                <p class="text-xs text-gray-500">excl. VAT</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            cartItemsContainer.innerHTML = cartHTML;
+            cartSummary.classList.remove('hidden');
+            updateCartSummary();
+        }
+
+        function getItemDisplayDetails(item) {
+            let details = [];
+            
+            if (item.type === 'single') {
+                // Glass type with configuration details - avoid duplication
+                let glassInfo = item.details.glassType;
+                const width = parseFloat(item.details.width) || 0;
+    const height = parseFloat(item.details.height) || 0;
+    const area = Math.max((width / 1000) * (height / 1000), 0.3);
+    const thickness_mm = parseFloat(item.details.glassThickness) || 4;
+    const thickness_m = thickness_mm / 1000;
+    const density = 2500;
+    const weight_kg = area * thickness_m * density;
+    details.push(`Weight: ${weight_kg.toFixed(2)} kg`);
+                // Check if configuration is already in the glass type name
+                if (!glassInfo.includes('(') && item.details.glassThickness && item.details.glassThickness !== 'Not specified') {
+                    glassInfo += ` (${item.details.glassThickness}`;
+                    if (item.details.glassCorner && item.details.glassCorner !== 'Not specified') {
+                        glassInfo += `, ${item.details.glassCorner}`;
+                    }
+                    if (item.details.glassTintedColor) {
+                        glassInfo += `, ${item.details.glassTintedColor}`;
+                    }
+                    glassInfo += ')';
+                }
+                details.push(`Glass: ${glassInfo}`);
+                
+                // Shape
+                const shapeDisplay = item.details.customShape && item.details.customShape.trim() ? 
+                    item.details.customShape : item.details.shape;
+                details.push(`Shape: ${shapeDisplay}`);
+                
+                // Polished and Toughened
+                details.push(`Polished (P.A.R): ${item.details.polished}`);
+                details.push(`Toughened: ${item.details.toughened}`);
+                
+                // Pet Flap
+                if (item.details.petFlap === 'Yes') {
+                    details.push(`Pet Flap: Yes`);
+                }
+                
+                // Extras
+                if (item.details.extras && item.details.extras !== 'None') {
+                    details.push(`Extras: ${item.details.extras}`);
+                }
+            } else {
+                // Double/Triple glazed details - check if pattern is already in the glass name
+                if (item.type === 'double') {
+    const width = parseFloat(item.details.width) || 0;
+    const height = parseFloat(item.details.height) || 0;
+    const area = Math.max((width / 1000) * (height / 1000), 0.3);
+
+    const outerThicknessMatch = item.details.outerGlass.match(/(\d+(\.\d+)?)mm/);
+    const innerThicknessMatch = item.details.innerGlass.match(/(\d+(\.\d+)?)mm/);
+
+    const outerThickness_mm = outerThicknessMatch ? parseFloat(outerThicknessMatch[1]) : 4;
+    const innerThickness_mm = innerThicknessMatch ? parseFloat(innerThicknessMatch[1]) : 4;
+
+    const density = 2500;
+    const totalThickness_m = (outerThickness_mm + innerThickness_mm) / 1000;
+    const weight_kg = area * totalThickness_m * density;
+    details.push(`Weight: ${weight_kg.toFixed(2)} kg`);
+} else if (item.type === 'triple') {
+    const width = parseFloat(item.details.width) || 0;
+    const height = parseFloat(item.details.height) || 0;
+    const area = Math.max((width / 1000) * (height / 1000), 0.3);
+
+    const outerThicknessMatch = item.details.outerGlass.match(/(\d+(\.\d+)?)mm/);
+    const centreThicknessMatch = item.details.centreGlass.match(/(\d+(\.\d+)?)mm/);
+    const innerThicknessMatch = item.details.innerGlass.match(/(\d+(\.\d+)?)mm/);
+
+    const outerThickness_mm = outerThicknessMatch ? parseFloat(outerThicknessMatch[1]) : 4;
+    const centreThickness_mm = centreThicknessMatch ? parseFloat(centreThicknessMatch[1]) : 4;
+    const innerThickness_mm = innerThicknessMatch ? parseFloat(innerThicknessMatch[1]) : 4;
+
+    const density = 2500;
+    const totalThickness_m = (outerThickness_mm + centreThickness_mm + innerThickness_mm) / 1000;
+    const weight_kg = area * totalThickness_m * density;
+    details.push(`Weight: ${weight_kg.toFixed(2)} kg`);
+}
+                const outerGlassDisplay = item.details.outerGlass.includes('(') ? 
+                    item.details.outerGlass : 
+                    `${item.details.outerGlass}${item.details.outerGlassPattern ? ` (${item.details.outerGlassPattern})` : ''}`;
+                details.push(`Outer: ${outerGlassDisplay}`);
+                
+                if (item.details.centreGlass && item.details.centreGlass !== 'Not selected') {
+                    const centreGlassDisplay = item.details.centreGlass.includes('(') ? 
+                        item.details.centreGlass : 
+                        `${item.details.centreGlass}${item.details.centreGlassPattern ? ` (${item.details.centreGlassPattern})` : ''}`;
+                    details.push(`Centre: ${centreGlassDisplay}`);
+                }
+                
+                const innerGlassDisplay = item.details.innerGlass.includes('(') ? 
+                    item.details.innerGlass : 
+                    `${item.details.innerGlass}${item.details.innerGlassPattern ? ` (${item.details.innerGlassPattern})` : ''}`;
+                details.push(`Inner: ${innerGlassDisplay}`);
+                
+                // Spacer information
+                if (item.details.spacerWidth && item.details.spacerWidth !== 'Not selected') {
+                    details.push(`Spacer & Colour: ${item.details.spacerWidth} ${item.details.spacerColor}`);
+                } else if (item.details.spacer1Width && item.details.spacer1Width !== 'Not selected') {
+                    details.push(`Spacers & Colour: ${item.details.spacer1Width} & ${item.details.spacer2Width} ${item.details.spacerColor}`);
+                }
+                
+                // Shape
+                const shapeDisplay = item.details.customShape && item.details.customShape.trim() ? 
+                    item.details.customShape : item.details.shape;
+                details.push(`Shape: ${shapeDisplay}`);
+                
+                // Toughened
+                details.push(`Toughened: ${item.details.toughened}`);
+                
+                // Pet Flap
+                if (item.details.petFlap === 'Yes') {
+                    details.push(`Pet Flap: Yes`);
+                }
+                
+                // Extras
+                if (item.details.extras && item.details.extras !== 'None') {
+                    details.push(`Extras: ${item.details.extras}`);
+                }
+            }
+            
+            // Add reference if available
+            if (item.details.reference && item.details.reference.trim()) {
+                details.push(`Reference: ${item.details.reference}`);
+            }
+            
+            // Add file count if files uploaded
+            if (item.details.uploadedFiles && item.details.uploadedFiles.length > 0) {
+                details.push(`Files: ${item.details.uploadedFiles.length} uploaded`);
+            }
+            
+            return details.map(detail => `<p>• ${detail}</p>`).join('');
+        }
+
+        function updateQuantity(index, change) {
+            if (cart[index]) {
+                cart[index].quantity = Math.max(1, cart[index].quantity + change);
+                updateCartDisplay();
+            }
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCartDisplay();
+        }
+
+        function updateCartSummary() {
+            const subtotal = cart.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
+            const vat = subtotal * 0.2;
+            const total = subtotal + vat + deliveryCharge;
+            
+            document.getElementById('cartSubtotal').textContent = subtotal.toFixed(2);
+            document.getElementById('cartVAT').textContent = vat.toFixed(2);
+            document.getElementById('cartTotal').textContent = total.toFixed(2);
+            
+            // Show/hide shipping row
+            const shippingRow = document.getElementById('cartShippingRow');
+            const shippingLabel = document.getElementById('cartShippingLabel');
+            const shippingAmount = document.getElementById('cartShipping');
+            
+            if (deliveryCharge > 0) {
+                shippingRow.classList.remove('hidden');
+                shippingLabel.textContent = selectedDeliveryArea === 1 ? 'Delivery (Area 1):' : 'Delivery (Area 2):';
+                shippingAmount.textContent = deliveryCharge.toFixed(2);
+            } else {
+                shippingRow.classList.add('hidden');
+            }
+        }
+
+        // Delivery modal functionality
+        function initializeDeliveryModal() {
+            const modal = document.getElementById('deliveryModal');
+            const closeBtn = document.getElementById('closeDeliveryModal');
+            const cancelBtn = document.getElementById('cancelDelivery');
+            const confirmBtn = document.getElementById('confirmDelivery');
+            
+            closeBtn.addEventListener('click', hideDeliveryModal);
+            cancelBtn.addEventListener('click', hideDeliveryModal);
+            confirmBtn.addEventListener('click', confirmDeliverySelection);
+            
+            // Delivery area selection
+            document.querySelectorAll('.delivery-area').forEach(area => {
+                area.addEventListener('click', function() {
+                    document.querySelectorAll('.delivery-area').forEach(a => a.classList.remove('selected'));
+                    this.classList.add('selected');
+                    
+                    const areaNumber = parseInt(this.dataset.area);
+                    const charge = parseFloat(this.dataset.charge);
+                    
+                    selectedDeliveryArea = areaNumber;
+                    deliveryCharge = charge;
+                    
+                    confirmBtn.disabled = false;
+                });
+            });
+        }
+
+        function showDeliveryModal() {
+            document.getElementById('deliveryModal').classList.remove('hidden');
+        }
+
+        function hideDeliveryModal() {
+            document.getElementById('deliveryModal').classList.add('hidden');
+            pendingCartItem = null;
+        }
+
+        function confirmDeliverySelection() {
+            hideDeliveryModal();
+            addItemToCart();
+        }
+
+        // Pattern modal functionality
+        function initializePatternModal() {
+            const modal = document.getElementById('patternModal');
+            const closeBtn = document.getElementById('closePatternModal');
+            const cancelBtn = document.getElementById('cancelPattern');
+            const confirmBtn = document.getElementById('confirmPattern');
+            
+            closeBtn.addEventListener('click', hidePatternModal);
+            cancelBtn.addEventListener('click', hidePatternModal);
+            confirmBtn.addEventListener('click', confirmPatternSelection);
+            
+            // Pattern selection
+            document.querySelectorAll('.pattern-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.pattern-option').forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                    
+                    selectedPattern = this.dataset.pattern;
+                    confirmBtn.disabled = false;
+                });
+            });
+        }
+
+        function showPatternModal(selectElement) {
+            pendingPatternSelection = selectElement;
+            selectedPattern = null;
+            document.querySelectorAll('.pattern-option').forEach(opt => opt.classList.remove('selected'));
+            document.getElementById('confirmPattern').disabled = true;
+            document.getElementById('patternModal').classList.remove('hidden');
+        }
+
+        function hidePatternModal() {
+            document.getElementById('patternModal').classList.add('hidden');
+            if (pendingPatternSelection && !selectedPattern) {
+                // Reset the select to previous value if no pattern was selected
+                pendingPatternSelection.selectedIndex = 0;
+            }
+            pendingPatternSelection = null;
+            selectedPattern = null;
+        }
+
+        function confirmPatternSelection() {
+            if (pendingPatternSelection && selectedPattern) {
+                // Store the selected pattern in the select element's dataset
+                pendingPatternSelection.dataset.selectedPattern = selectedPattern;
+                
+                // Update the display text to show pattern selection
+                const selectedOption = pendingPatternSelection.options[pendingPatternSelection.selectedIndex];
+                const baseText = selectedOption.text.split(' (')[0];
+                selectedOption.text = `${baseText} (${selectedPattern})`;
+            }
+            
+            hidePatternModal();
+            calculatePrice();
+        }
+
+        // Shape dimensions modal functionality
+        function initializeShapeDimensionsModal() {
+            const modal = document.getElementById('shapeDimensionsModal');
+            const closeBtn = document.getElementById('closeShapeDimensionsModal');
+            const cancelBtn = document.getElementById('cancelShapeDimensions');
+            const confirmBtn = document.getElementById('confirmShapeDimensions');
+            
+            if (closeBtn) closeBtn.addEventListener('click', hideShapeDimensionsModal);
+            if (cancelBtn) cancelBtn.addEventListener('click', hideShapeDimensionsModal);
+            if (confirmBtn) confirmBtn.addEventListener('click', confirmShapeDimensionsSelection);
+            
+            // Modal dimension inputs
+            const modalWidth = document.getElementById('modalWidth');
+            const modalHeight = document.getElementById('modalHeight');
+            
+            if (modalWidth) modalWidth.addEventListener('input', updateModalArea);
+            if (modalHeight) modalHeight.addEventListener('input', updateModalArea);
+            
+            // Modal file upload
+            const modalFileInput = document.getElementById('modalDrawingFile');
+            if (modalFileInput) {
+                modalFileInput.addEventListener('change', function(e) {
+                    handleModalFileUpload(e);
+                });
+            }
+        }
+
+        function showShapeDimensionsModal(shapeElement) {
+            const modal = document.getElementById('shapeDimensionsModal');
+            
+            // Extract shape data from the clicked element
+            const shapeData = {
+                shape: shapeElement.dataset.shape,
+                price: shapeElement.dataset.price,
+                name: shapeElement.querySelector('p.text-sm.font-medium').textContent,
+                image: shapeElement.querySelector('img').src
+            };
+            
+            // Store the current shape being configured
+            selectedShapeData.shape = shapeData.shape;
+            
+            // Populate modal with shape info
+            document.getElementById('modalShapeImage').src = shapeData.image;
+            document.getElementById('modalShapeImage').alt = shapeData.name + ' Shape';
+            document.getElementById('modalShapeName').textContent = shapeData.name;
+            document.getElementById('modalShapePrice').textContent = `+${shapeData.price}% price modifier`;
+            
+            // Show/hide custom shape input
+            const customShapeContainer = document.getElementById('modalCustomShapeContainer');
+            if (shapeData.shape === 'other') {
+                customShapeContainer.classList.remove('hidden');
+            } else {
+                customShapeContainer.classList.add('hidden');
+            }
+            
+            // Pre-fill with existing data if editing the same shape
+            const existingWidth = document.getElementById(pendingShapeSelection + 'Width').value;
+            const existingHeight = document.getElementById(pendingShapeSelection + 'Height').value;
+            const existingReference = document.getElementById(pendingShapeSelection + 'Reference').value;
+            const existingCustomShape = document.getElementById(pendingShapeSelection + 'CustomShape').value;
+            
+            if (existingWidth && existingHeight) {
+                document.getElementById('modalWidth').value = existingWidth;
+                document.getElementById('modalHeight').value = existingHeight;
+                document.getElementById('modalReference').value = existingReference || '';
+                document.getElementById('modalCustomShape').value = existingCustomShape || '';
+                
+                // Restore uploaded files for this tab
+                selectedShapeData.uploadedFiles = window.uploadedFiles && window.uploadedFiles[pendingShapeSelection] ? [...window.uploadedFiles[pendingShapeSelection]] : [];
+                
+                updateModalArea();
+                updateModalFileDisplay();
+            } else {
+                // Clear form for new selection
+                document.getElementById('modalWidth').value = '';
+                document.getElementById('modalHeight').value = '';
+                document.getElementById('modalReference').value = '';
+                document.getElementById('modalCustomShape').value = '';
+                document.getElementById('modalArea').textContent = '0.000 m²';
+                selectedShapeData.uploadedFiles = [];
+                updateModalFileDisplay();
+            }
+            
+            // Clear error messages
+            document.querySelectorAll('#shapeDimensionsModal .error-message').forEach(error => error.classList.add('hidden'));
+            
+            modal.classList.remove('hidden');
+        }
+
+        function hideShapeDimensionsModal() {
+            document.getElementById('shapeDimensionsModal').classList.add('hidden');
+            pendingShapeSelection = null;
+        }
+
+        function confirmShapeDimensionsSelection() {
+            // Validate form
+            let isValid = true;
+            const width = parseFloat(document.getElementById('modalWidth').value);
+            const height = parseFloat(document.getElementById('modalHeight').value);
+            const customShape = document.getElementById('modalCustomShape').value.trim();
+            
+            // Clear previous errors
+            document.querySelectorAll('#shapeDimensionsModal .error-message').forEach(error => error.classList.add('hidden'));
+            
+            if (!width || width < 100 || width > 2800) {
+                document.getElementById('modalWidthError').classList.remove('hidden');
+                isValid = false;
+            }
+            
+            if (!height || height < 100 || height > 2800) {
+                document.getElementById('modalHeightError').classList.remove('hidden');
+                isValid = false;
+            }
+            
+            // Check custom shape if "Other" is selected
+            if (selectedShapeData.shape === 'other' && !customShape) {
+                document.getElementById('modalCustomShapeError').classList.remove('hidden');
+                isValid = false;
+            }
+            
+            if (!isValid) return;
+            
+            // Store the complete shape data
+            selectedShapeData = {
+                shape: selectedShapeData.shape,
+                customShape: customShape,
+                width: width,
+                height: height,
+                reference: document.getElementById('modalReference').value,
+                uploadedFiles: [...(selectedShapeData.uploadedFiles || [])]
+            };
+            
+            // Update the main form
+            updateMainFormFromModal();
+            
+            // Close the modal automatically
+            hideShapeDimensionsModal();
+        }
+
+        function updateMainFormFromModal() {
+            if (!pendingShapeSelection) return;
+            
+            const tabType = pendingShapeSelection;
+            
+            // Update hidden inputs and displays
+            document.getElementById(tabType + 'Shape').value = selectedShapeData.shape;
+            document.getElementById(tabType + 'Width').value = selectedShapeData.width;
+            document.getElementById(tabType + 'Height').value = selectedShapeData.height;
+            document.getElementById(tabType + 'Reference').value = selectedShapeData.reference;
+            
+            if (selectedShapeData.shape === 'other') {
+                document.getElementById(tabType + 'CustomShape').value = selectedShapeData.customShape;
+            }
+            
+            // Update area display
+            updateArea(tabType);
+            
+            // Update shape summary
+            const shapeSummary = document.getElementById(tabType + 'ShapeSummary');
+            if (shapeSummary) {
+                const shapeName = document.getElementById(tabType + 'SelectedShapeName');
+                const shapeDimensions = document.getElementById(tabType + 'SelectedDimensions');
+                const shapeArea = document.getElementById(tabType + 'SelectedArea');
+                const referenceElement = document.getElementById(tabType + 'SelectedReference');
+                const referenceText = document.getElementById(tabType + 'SelectedReferenceText');
+                
+                if (shapeName) {
+                    const displayName = selectedShapeData.shape === 'other' ? selectedShapeData.customShape : getShapeDisplayName(selectedShapeData.shape);
+                    shapeName.textContent = displayName;
+                }
+                
+                if (shapeDimensions) {
+                    shapeDimensions.textContent = `${selectedShapeData.width}mm × ${selectedShapeData.height}mm`;
+                }
+                
+                if (shapeArea) {
+                    const area = (selectedShapeData.width / 1000) * (selectedShapeData.height / 1000);
+                    shapeArea.textContent = area.toFixed(3) + ' m²';
+                }
+                const weightSpan = document.getElementById(tabType + 'SelectedWeight');
+if (weightSpan) {
+    let weight = 0;
+    if (tabType === 'single') weight = calculateSingleWeight();
+    else if (tabType === 'double') weight = calculateDoubleWeight();
+    else if(tabType === 'triple') weight = calculateTripleWeight();
+    weightSpan.textContent = weight.toFixed(2) + ' kg';
+}
+                
+                if (selectedShapeData.reference && referenceElement && referenceText) {
+                    referenceText.textContent = selectedShapeData.reference;
+                    referenceElement.style.display = 'block';
+                } else if (referenceElement) {
+                    referenceElement.style.display = 'none';
+                }
+                
+                shapeSummary.classList.remove('hidden');
+            }
+            
+            // Update uploaded files for the tab
+            if (!window.uploadedFiles) window.uploadedFiles = {};
+            window.uploadedFiles[tabType] = [...selectedShapeData.uploadedFiles];
+            updateFileDisplay(tabType);
+            
+            // Mark shape as selected visually - use correct class names
+            const shapeClassMap = {
+                'single': 'single-shape-option',
+                'double': 'double-shape-option', 
+                'triple': 'triple-shape-option'
+            };
+            
+            const shapeClass = shapeClassMap[tabType];
+            if (shapeClass) {
+                // Clear all selections for this tab
+                document.querySelectorAll(`.${shapeClass}`).forEach(opt => opt.classList.remove('shape-selected'));
+                
+                // Mark the selected shape
+                const selectedShapeElement = document.querySelector(`.${shapeClass}[data-shape="${selectedShapeData.shape}"]`);
+                if (selectedShapeElement) {
+                    selectedShapeElement.classList.add('shape-selected');
+                }
+            }
+            
+            calculatePrice();
+        }
+
+        function updateModalArea() {
+            const width = parseFloat(document.getElementById('modalWidth').value) || 0;
+            const height = parseFloat(document.getElementById('modalHeight').value) || 0;
+            const areaInSquareMeters = (width / 1000) * (height / 1000);
+            
+            document.getElementById('modalArea').textContent = areaInSquareMeters.toFixed(3) + ' m²';
+        }
+
+        function handleModalFileUpload(event) {
+            const files = Array.from(event.target.files);
+            
+            if (files.length === 0) return;
+            
+            // Validate files
+            const validFiles = [];
+            const maxSize = 10 * 1024 * 1024; // 10MB
+            const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+            
+            files.forEach(file => {
+                if (file.size > maxSize) {
+                    alert(`File "${file.name}" is too large. Maximum size is 10MB.`);
+                    return;
+                }
+                
+                if (!allowedTypes.includes(file.type)) {
+                    alert(`File "${file.name}" is not a supported format. Please use PNG, JPG, PDF, or DOCX.`);
+                    return;
+                }
+                
+                validFiles.push(file);
+            });
+            
+            if (validFiles.length === 0) {
+                event.target.value = '';
+                return;
+            }
+            
+            // Add to selectedShapeData
+            selectedShapeData.uploadedFiles = [...selectedShapeData.uploadedFiles, ...validFiles];
+            
+            // Update display
+            updateModalFileDisplay();
+            
+            // Clear the input
+            event.target.value = '';
+        }
+
+        function updateModalFileDisplay() {
+            const fileListContainer = document.getElementById('modalFileList');
+            const files = selectedShapeData.uploadedFiles || [];
+            
+            if (files.length === 0) {
+                fileListContainer.classList.add('hidden');
+                return;
+            }
+            
+            fileListContainer.classList.remove('hidden');
+            
+            let html = '';
+            files.forEach((file, index) => {
+                const fileSize = formatFileSize(file.size);
+                const fileIcon = getFileIcon(file.type);
+                
+                html += `
+                    <div class="file-item">
+                        ${fileIcon}
+                        <div class="file-info">
+                            <div class="file-name" title="${file.name}">${file.name}</div>
+                            <div class="file-size">${fileSize}</div>
+                        </div>
+                        <svg class="file-remove" onclick="removeModalFile(${index})" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                `;
+            });
+            
+            fileListContainer.innerHTML = html;
+        }
+
+        function removeModalFile(index) {
+            selectedShapeData.uploadedFiles.splice(index, 1);
+            updateModalFileDisplay();
+        }
+
+        // Glass configuration modal functionality
+        function initializeGlassConfigModal() {
+            const modal = document.getElementById('glassConfigModal');
+            const closeBtn = document.getElementById('closeGlassConfigModal');
+            const cancelBtn = document.getElementById('cancelGlassConfig');
+            const confirmBtn = document.getElementById('confirmGlassConfig');
+            
+            closeBtn.addEventListener('click', hideGlassConfigModal);
+            cancelBtn.addEventListener('click', hideGlassConfigModal);
+            confirmBtn.addEventListener('click', confirmGlassConfigSelection);
+            
+            // Thickness selection
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.thickness-option')) {
+                    document.querySelectorAll('.thickness-option').forEach(opt => opt.classList.remove('selected'));
+                    e.target.closest('.thickness-option').classList.add('selected');
+                    selectedGlassConfig.thickness = e.target.closest('.thickness-option').dataset.thickness;
+                    updateConfirmButton();
+                }
+            });
+            
+            // Tinted color selection
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.tinted-color-option')) {
+                    document.querySelectorAll('.tinted-color-option').forEach(opt => opt.classList.remove('selected'));
+                    e.target.closest('.tinted-color-option').classList.add('selected');
+                    selectedGlassConfig.tintedColor = e.target.closest('.tinted-color-option').dataset.color;
+                    updateConfirmButton();
+                }
+            });
+            
+            // Corner selection
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.corner-option')) {
+                    document.querySelectorAll('.corner-option').forEach(opt => opt.classList.remove('selected'));
+                    e.target.closest('.corner-option').classList.add('selected');
+                    selectedGlassConfig.corner = e.target.closest('.corner-option').dataset.corner;
+                    updateConfirmButton();
+                }
+            });
+        }
+
+        function showGlassConfigModal(selectElement) {
+            pendingGlassConfigSelection = selectElement;
+            selectedGlassConfig = {
+                thickness: null,
+                tintedColor: null,
+                corner: null
+            };
+            
+            const glassType = selectElement.value;
+            
+            // Clear previous selections
+            document.querySelectorAll('.thickness-option, .tinted-color-option, .corner-option').forEach(opt => opt.classList.remove('selected'));
+            
+            // Populate thickness options based on glass type
+            populateThicknessOptions(glassType);
+            
+            // Show/hide tinted color section
+            const tintedColorSection = document.getElementById('tintedColorSection');
+            if (glassType === 'tinted-tgh') {
+                tintedColorSection.classList.remove('hidden');
+            } else {
+                tintedColorSection.classList.add('hidden');
+                selectedGlassConfig.tintedColor = null; // Reset tinted color if not tinted glass
+            }
+            
+            updateConfirmButton();
+            document.getElementById('glassConfigModal').classList.remove('hidden');
+        }
+
+        function populateThicknessOptions(glassType) {
+            const thicknessContainer = document.getElementById('thicknessOptions');
+            let thicknesses = [];
+            
+            // Define available thicknesses based on glass type
+            if (glassType === 'tinted-tgh') {
+                thicknesses = ['6mm', '10mm'];
+            } else {
+                thicknesses = ['4mm', '6mm', '8mm', '10mm'];
+            }
+            
+            // Define different images for each thickness
+            const thicknessImages = {
+                '4mm': 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=150&h=150&fit=crop&crop=center',
+                '6mm': 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=150&h=150&fit=crop&crop=center',
+                '8mm': 'https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=150&h=150&fit=crop&crop=center',
+                '10mm': 'https://images.unsplash.com/photo-1572021335469-31706a17aaef?w=150&h=150&fit=crop&crop=center'
+            };
+            
+            let html = '';
+            thicknesses.forEach(thickness => {
+                html += `
+                    <div class="pattern-option thickness-option" data-thickness="${thickness}">
+                        <img src="${thicknessImages[thickness]}" 
+                             alt="${thickness} Thickness" class="glass-config-image">
+                        <h4 class="text-md font-semibold text-gray-800">${thickness}</h4>
+                        <p class="text-sm text-gray-600 mt-2">${thickness} thickness</p>
+                    </div>
+                `;
+            });
+            
+            thicknessContainer.innerHTML = html;
+        }
+
+        function updateConfirmButton() {
+            const confirmBtn = document.getElementById('confirmGlassConfig');
+            const glassType = pendingGlassConfigSelection ? pendingGlassConfigSelection.value : '';
+            
+            // Check if all required selections are made
+            let isValid = selectedGlassConfig.thickness && selectedGlassConfig.corner;
+            
+            // For tinted glass, also require color selection
+            if (glassType === 'tinted-tgh') {
+                isValid = isValid && selectedGlassConfig.tintedColor;
+            }
+            
+            confirmBtn.disabled = !isValid;
+        }
+
+        function hideGlassConfigModal() {
+            document.getElementById('glassConfigModal').classList.add('hidden');
+            if (pendingGlassConfigSelection && (!selectedGlassConfig.thickness || !selectedGlassConfig.corner)) {
+                // Reset the select to previous value if configuration was not completed
+                pendingGlassConfigSelection.selectedIndex = 0;
+            }
+            pendingGlassConfigSelection = null;
+            selectedGlassConfig = {
+                thickness: null,
+                tintedColor: null,
+                corner: null
+            };
+        }
+
+        function confirmGlassConfigSelection() {
+            if (pendingGlassConfigSelection && selectedGlassConfig.thickness && selectedGlassConfig.corner) {
+                // Store the selected configuration in the select element's dataset
+                pendingGlassConfigSelection.dataset.selectedThickness = selectedGlassConfig.thickness;
+                pendingGlassConfigSelection.dataset.selectedCorner = selectedGlassConfig.corner;
+                
+                if (selectedGlassConfig.tintedColor) {
+                    pendingGlassConfigSelection.dataset.selectedTintedColor = selectedGlassConfig.tintedColor;
+                }
+                
+                // Update the display text to show configuration
+                const selectedOption = pendingGlassConfigSelection.options[pendingGlassConfigSelection.selectedIndex];
+                let configText = ` (${selectedGlassConfig.thickness}, ${selectedGlassConfig.corner}`;
+                
+                if (selectedGlassConfig.tintedColor) {
+                    configText += `, ${selectedGlassConfig.tintedColor}`;
+                }
+                
+                configText += ')';
+                
+                // Remove any existing configuration text and add new one
+                selectedOption.text = selectedOption.text.split(' (')[0] + configText;
+            }
+            
+            hideGlassConfigModal();
+            calculatePrice();
+        }
+
+        // Success popup
+        function showSuccessPopup() {
+            const popup = document.getElementById('successPopup');
+            popup.classList.add('show');
+            
+            setTimeout(() => {
+                popup.classList.remove('show');
+            }, 3000);
+        }
+    </script>-->
+    <script src="scr.js"></script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'972b324300d5b540',t:'MTc1NTc5MDQ4NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
+

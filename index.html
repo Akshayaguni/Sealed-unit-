@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Under Maintenance</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        @keyframes slideIn {
+            0% { transform: translateX(-100%); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+        
+        .float { animation: float 3s ease-in-out infinite; }
+        .spin { animation: spin 2s linear infinite; }
+        .pulse { animation: pulse 2s ease-in-out infinite; }
+        .slide-in { animation: slideIn 0.8s ease-out forwards; }
+        
+
+        
+        .tool-bounce {
+            animation: float 2s ease-in-out infinite;
+            animation-delay: var(--delay);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-2xl w-full text-center px-4 sm:px-0">
+        <!-- Floating Tools Animation -->
+        <div class="relative mb-6 sm:mb-8">
+            <div class="tool-bounce absolute -top-2 -left-4 sm:-top-4 sm:-left-8 text-2xl sm:text-4xl" style="--delay: 0s;">🔧</div>
+            <div class="tool-bounce absolute -top-4 right-2 sm:-top-8 sm:right-4 text-xl sm:text-3xl" style="--delay: 0.5s;">⚙️</div>
+            <div class="tool-bounce absolute top-2 -right-4 sm:top-4 sm:-right-8 text-2xl sm:text-4xl" style="--delay: 1s;">🔨</div>
+            <div class="tool-bounce absolute -bottom-2 left-2 sm:-bottom-4 sm:left-4 text-xl sm:text-3xl" style="--delay: 1.5s;">⚡</div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="bg-white/10 backdrop-blur-lg rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-2xl border border-white/20">
+            <!-- Spinning Gear Icon -->
+            <div class="flex justify-center mb-6">
+                <div class="spin text-6xl">⚙️</div>
+            </div>
+            
+            <!-- Title -->
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-3 sm:mb-4 slide-in">
+                Under Maintenance
+            </h1>
+            
+            <!-- Subtitle -->
+            <p class="text-lg sm:text-xl text-blue-200 mb-6 sm:mb-8 slide-in" style="animation-delay: 0.2s;">
+                We're making things better for you!
+            </p>
+            
+
+            
+            <!-- Interactive Elements -->
+            <div class="space-y-4 sm:space-y-6">
+                <!-- Fun Facts -->
+                <div class="bg-white/10 rounded-xl sm:rounded-2xl p-3 sm:p-4">
+                    <h3 class="text-base sm:text-lg font-semibold text-white mb-3">Did You Know?</h3>
+                    <div id="fun-fact" class="text-sm sm:text-base text-blue-200 italic min-h-[3rem] flex items-center justify-center">
+                        Loading fun fact...
+                    </div>
+                </div>
+                
+                <!-- Status Updates -->
+                <div class="bg-white/10 rounded-xl sm:rounded-2xl p-3 sm:p-4">
+                    <h3 class="text-base sm:text-lg font-semibold text-white mb-3">What We're Working On</h3>
+                    <div id="status-list" class="space-y-2 text-left text-sm sm:text-base">
+                        <div class="flex items-center text-green-300">
+                            <span class="mr-2">✅</span>
+                            <span>Database optimization</span>
+                        </div>
+                        <div class="flex items-center text-yellow-300">
+                            <span class="mr-2 pulse">🔄</span>
+                            <span>Server upgrades</span>
+                        </div>
+                        <div class="flex items-center text-blue-300">
+                            <span class="mr-2">⏳</span>
+                            <span>Security enhancements</span>
+                        </div>
+                        <div class="flex items-center text-gray-400">
+                            <span class="mr-2">⏳</span>
+                            <span>Final testing</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Interactive Buttons -->
+                <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+                    <button id="notify-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold transition-all duration-300 transform hover:scale-105">
+                        Notify Me When Ready
+                    </button>
+                    <button id="status-btn" class="bg-purple-600 hover:bg-purple-700 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold transition-all duration-300 transform hover:scale-105">
+                        Check Status
+                    </button>
+                </div>
+                
+                <!-- Interactive Game -->
+                <div class="pt-3 sm:pt-4">
+                    <p class="text-blue-200 mb-3 sm:mb-4 text-sm sm:text-base">While you wait, play a quick game!</p>
+                    <div class="bg-white/10 rounded-xl p-4 mb-4">
+                        <h4 class="text-white font-semibold mb-3">Guess the Number (1-10)</h4>
+                        <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+                            <input type="number" id="guess-input" min="1" max="10" placeholder="Your guess" 
+                                   class="bg-white/20 text-white placeholder-blue-200 px-3 py-2 rounded-lg text-center w-24 border border-white/30 focus:outline-none focus:border-blue-400">
+                            <button id="guess-btn" class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg font-semibold transition-all duration-300">
+                                Guess!
+                            </button>
+                        </div>
+                        <div id="game-result" class="mt-3 text-center text-sm font-semibold"></div>
+                        <div id="game-score" class="mt-2 text-center text-xs text-blue-200">Score: 0</div>
+                    </div>
+                    
+                    <!-- Motivational Messages -->
+                    <div class="bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl p-4">
+                        <div id="motivational-message" class="text-center text-white font-medium">
+                            ✨ Great things are coming your way! ✨
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="mt-6 sm:mt-8 text-blue-300 text-xs sm:text-sm px-2">
+            <p>We'll be back soon with something amazing! 🚀</p>
+        </div>
+    </div>
+
+    <script>
+
+        
+        // Fun facts rotation
+        const funFacts = [
+            "🌟 The first website ever created is still online today!",
+            "🚀 A single Google search travels about 1,500 miles to get you an answer!",
+            "💡 The '@' symbol was used in emails for the first time in 1971!",
+            "🌍 There are over 1.7 billion websites on the internet!",
+            "⚡ The internet weighs about the same as a strawberry!",
+            "🎨 The first banner ad had a 44% click-through rate!",
+            "📱 Mobile devices account for over 50% of web traffic!",
+            "🔒 HTTPS was invented to make online shopping safer!",
+            "🎵 The first YouTube video was uploaded on April 23, 2005!",
+            "💻 The term 'bug' in programming came from an actual bug found in a computer!"
+        ];
+        
+        let currentFactIndex = 0;
+        const funFactElement = document.getElementById('fun-fact');
+        
+        function rotateFunFact() {
+            funFactElement.style.opacity = '0';
+            setTimeout(() => {
+                funFactElement.textContent = funFacts[currentFactIndex];
+                funFactElement.style.opacity = '1';
+                currentFactIndex = (currentFactIndex + 1) % funFacts.length;
+            }, 300);
+        }
+        
+        // Show first fact immediately
+        setTimeout(rotateFunFact, 500);
+        setInterval(rotateFunFact, 4000);
+        
+        // Motivational messages
+        const motivationalMessages = [
+            "✨ Great things are coming your way! ✨",
+            "🌟 Every moment of waiting brings you closer to something amazing!",
+            "🚀 We're crafting something special just for you!",
+            "💫 Good things come to those who wait!",
+            "🎯 Excellence takes time, and you're worth it!",
+            "🌈 The best experiences are worth waiting for!",
+            "⭐ Your patience will be rewarded!",
+            "🎨 We're adding the finishing touches to something beautiful!"
+        ];
+        
+        let currentMessageIndex = 0;
+        const motivationalElement = document.getElementById('motivational-message');
+        
+        function rotateMotivationalMessage() {
+            motivationalElement.style.opacity = '0';
+            setTimeout(() => {
+                motivationalElement.textContent = motivationalMessages[currentMessageIndex];
+                motivationalElement.style.opacity = '1';
+                currentMessageIndex = (currentMessageIndex + 1) % motivationalMessages.length;
+            }, 300);
+        }
+        
+        setInterval(rotateMotivationalMessage, 6000);
+        
+        // Number guessing game
+        let targetNumber = Math.floor(Math.random() * 10) + 1;
+        let gameScore = 0;
+        const guessInput = document.getElementById('guess-input');
+        const guessBtn = document.getElementById('guess-btn');
+        const gameResult = document.getElementById('game-result');
+        const gameScoreElement = document.getElementById('game-score');
+        
+        function playGame() {
+            const guess = parseInt(guessInput.value);
+            
+            if (!guess || guess < 1 || guess > 10) {
+                gameResult.textContent = '🤔 Please enter a number between 1 and 10!';
+                gameResult.className = 'mt-3 text-center text-sm font-semibold text-yellow-300';
+                return;
+            }
+            
+            if (guess === targetNumber) {
+                gameScore += 10;
+                gameResult.textContent = '🎉 Correct! You got it!';
+                gameResult.className = 'mt-3 text-center text-sm font-semibold text-green-300';
+                targetNumber = Math.floor(Math.random() * 10) + 1;
+            } else if (Math.abs(guess - targetNumber) === 1) {
+                gameResult.textContent = '🔥 So close! Try again!';
+                gameResult.className = 'mt-3 text-center text-sm font-semibold text-orange-300';
+            } else {
+                gameResult.textContent = `❌ Nope! The number was ${targetNumber}. New number generated!`;
+                gameResult.className = 'mt-3 text-center text-sm font-semibold text-red-300';
+                targetNumber = Math.floor(Math.random() * 10) + 1;
+            }
+            
+            gameScoreElement.textContent = `Score: ${gameScore}`;
+            guessInput.value = '';
+        }
+        
+        guessBtn.addEventListener('click', playGame);
+        guessInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                playGame();
+            }
+        });
+        
+        // Status updates
+        const statusItems = [
+            { text: 'Database optimization', status: 'complete' },
+            { text: 'Server upgrades', status: 'progress' },
+            { text: 'Security enhancements', status: 'pending' },
+            { text: 'Final testing', status: 'pending' }
+        ];
+        
+        function updateStatus() {
+            const currentProgress = statusItems.find(item => item.status === 'progress');
+            if (currentProgress && Math.random() > 0.7) {
+                currentProgress.status = 'complete';
+                const nextPending = statusItems.find(item => item.status === 'pending');
+                if (nextPending) {
+                    nextPending.status = 'progress';
+                }
+                renderStatus();
+            }
+        }
+        
+        function renderStatus() {
+            const statusList = document.getElementById('status-list');
+            statusList.innerHTML = statusItems.map(item => {
+                let icon, color;
+                switch(item.status) {
+                    case 'complete':
+                        icon = '✅';
+                        color = 'text-green-300';
+                        break;
+                    case 'progress':
+                        icon = '<span class="pulse">🔄</span>';
+                        color = 'text-yellow-300';
+                        break;
+                    default:
+                        icon = '⏳';
+                        color = 'text-blue-300';
+                }
+                return `
+                    <div class="flex items-center ${color}">
+                        <span class="mr-2">${icon}</span>
+                        <span>${item.text}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        setInterval(updateStatus, 8000);
+        
+        // Button interactions
+        document.getElementById('notify-btn').addEventListener('click', function() {
+            this.innerHTML = '✅ You\'ll be notified!';
+            this.classList.add('bg-green-600');
+            this.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            setTimeout(() => {
+                this.innerHTML = 'Notify Me When Ready';
+                this.classList.remove('bg-green-600');
+                this.classList.add('bg-blue-600', 'hover:bg-blue-700');
+            }, 3000);
+        });
+        
+        document.getElementById('status-btn').addEventListener('click', function() {
+            const originalText = this.innerHTML;
+            this.innerHTML = 'Checking...';
+            this.disabled = true;
+            setTimeout(() => {
+                this.innerHTML = 'Status: All systems operational';
+                setTimeout(() => {
+                    this.innerHTML = originalText;
+                    this.disabled = false;
+                }, 2000);
+            }, 1500);
+        });
+        
+        // Add some random floating elements
+        function createFloatingElement() {
+            const elements = ['✨', '🔧', '⚡', '🚀', '💫'];
+            const element = document.createElement('div');
+            element.textContent = elements[Math.floor(Math.random() * elements.length)];
+            element.className = 'fixed text-2xl pointer-events-none opacity-50';
+            element.style.left = Math.random() * window.innerWidth + 'px';
+            element.style.top = window.innerHeight + 'px';
+            element.style.animation = 'float 4s ease-in-out forwards';
+            document.body.appendChild(element);
+            
+            setTimeout(() => {
+                element.remove();
+            }, 4000);
+        }
+        
+        setInterval(createFloatingElement, 3000);
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9633366be7ed9379',t:'MTc1MzE5MDE4Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
