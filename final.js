@@ -1,7 +1,7 @@
 // Global variables
 let currentTab = "single";
 // Auto-detect current tab based on URL
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   const path = window.location.pathname.toLowerCase();
   if (path.includes("doubleglazed")) {
     currentTab = "double";
@@ -123,18 +123,142 @@ document.addEventListener("DOMContentLoaded", function () {
   initializeTabs();
   initializeEventListeners();
   initializeShapeModalListeners();
+  setupFormStatePersistence();
+  // Clear saved form state on every load
+  localStorage.removeItem(getFormStateKey());
+  restoreFormState();
   calculatePrice();
 });
+
+const FORM_STATE_KEY_PREFIX = "glassFormState_";
+
+function getFormStateKey() {
+  return FORM_STATE_KEY_PREFIX + currentTab;
+}
+
+function setupFormStatePersistence() {
+  const fields = document.querySelectorAll("input, select, textarea");
+  fields.forEach((field) => {
+    if (field.type === "file") return;
+    field.addEventListener("input", saveFormState);
+    field.addEventListener("change", saveFormState);
+  });
+  window.addEventListener("beforeunload", saveFormState);
+}
+
+function saveFormState() {
+  const state = {
+    inputs: {},
+    checks: {},
+    radios: {},
+    selects: {},
+    textareas: {},
+    shape: {
+      value: "",
+      target: currentTab,
+      data: { ...shapeData },
+    },
+  };
+
+  document.querySelectorAll("input").forEach((input) => {
+    if (!input.id && !input.name) return;
+    if (input.type === "file") return;
+    if (input.type === "radio") {
+      if (input.checked && input.name) {
+        state.radios[input.name] = input.value;
+      }
+      return;
+    }
+    if (input.type === "checkbox") {
+      if (input.id) state.checks[input.id] = input.checked;
+      return;
+    }
+    if (input.id) state.inputs[input.id] = input.value;
+  });
+
+  document.querySelectorAll("select").forEach((select) => {
+    if (select.id) state.selects[select.id] = select.value;
+  });
+
+  document.querySelectorAll("textarea").forEach((textarea) => {
+    if (textarea.id) state.textareas[textarea.id] = textarea.value;
+  });
+
+  const shapeInput = document.getElementById(currentTab + "Shape");
+  if (shapeInput) state.shape.value = shapeInput.value || "";
+
+  localStorage.setItem(getFormStateKey(), JSON.stringify(state));
+}
+
+function restoreFormState() {
+  const raw = localStorage.getItem(getFormStateKey());
+  if (!raw) return;
+  let state = null;
+  try {
+    state = JSON.parse(raw);
+  } catch (error) {
+    return;
+  }
+  if (!state) return;
+
+  Object.keys(state.inputs || {}).forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.value = state.inputs[id];
+  });
+  Object.keys(state.selects || {}).forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.value = state.selects[id];
+  });
+  Object.keys(state.textareas || {}).forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.value = state.textareas[id];
+  });
+  Object.keys(state.checks || {}).forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.checked = state.checks[id];
+  });
+  Object.keys(state.radios || {}).forEach((name) => {
+    const el = document.querySelector(
+      `input[type="radio"][name="${name}"][value="${state.radios[name]}"]`,
+    );
+    if (el) el.checked = true;
+  });
+
+  if (state.shape && state.shape.data) {
+    shapeData = { ...shapeData, ...state.shape.data };
+  }
+
+  const shapeValue = state.shape ? state.shape.value : "";
+  const target = currentTab;
+  if (shapeValue) {
+    const shapeInput = document.getElementById(target + "Shape");
+    const shapeText = document.getElementById(target + "ShapeText");
+    const detailsDiv = document.getElementById(target + "ShapeDetails");
+    if (shapeInput) shapeInput.value = shapeValue;
+    if (shapeText) {
+      const shapeItem = shapes.find((item) => item.value === shapeValue);
+      shapeText.textContent = shapeItem ? shapeItem.name : shapeValue;
+      shapeText.classList.remove("text-gray-500");
+      shapeText.classList.add("text-gray-800");
+      selectedShape = shapeItem || null;
+    }
+    if (detailsDiv) detailsDiv.classList.remove("hidden");
+
+    const rotationInput = document.getElementById("shapeRotation");
+    if (rotationInput) rotationInput.value = String(shapeData.rotation || 0);
+    updateShapeDetailsDisplay();
+  }
+}
 
 function initializeShapeModalListeners() {
   // Rotation button listeners
   document.querySelectorAll(".rotation-btn").forEach((btn) => {
     btn.addEventListener("click", function () {
-      // clear active state from all rotation buttons
+      // Clear active state from all rotation buttons
       document.querySelectorAll(".rotation-btn").forEach((b) => {
         b.classList.remove("border-blue-500", "bg-blue-50");
       });
-      // set active state on clicked button
+      // Set active state on clicked button
       this.classList.add("border-blue-500", "bg-blue-50");
 
       // set rotation value in hidden input and shapeData
@@ -150,7 +274,11 @@ function initializeShapeModalListeners() {
           updateShapePreview(imgUrl, selectedShape.dataset.name);
           // ALSO update the summary image to reflect the rotation
           if (currentShapeTarget) {
-            setSummaryShapeImage(currentShapeTarget, imgUrl, selectedShape.dataset.name);
+            setSummaryShapeImage(
+              currentShapeTarget,
+              imgUrl,
+              selectedShape.dataset.name,
+            );
           }
         }
       }
@@ -169,7 +297,7 @@ function initializeShapeModalListeners() {
           validateShapeForm();
         });
       }
-    }
+    },
   );
 }
 
@@ -181,11 +309,17 @@ function initializeTabs() {
 
   // Highlight the current tab based on currentTab variable (redundant if HTML is set correct, but good for safety)
   if (currentTab) {
-    const activeBtn = document.getElementById(currentTab + 'Tab');
-    if (activeBtn) activeBtn.classList.add('tab-active');
+    const activeBtn = document.getElementById(currentTab + "Tab");
+    if (activeBtn) activeBtn.classList.add("tab-active");
 
-    const content = document.getElementById(currentTab === 'single' ? 'singleUnit' : (currentTab === 'double' ? 'doubleGlazed' : 'tripleGlazed'));
-    if (content) content.classList.remove('hidden');
+    const content = document.getElementById(
+      currentTab === "single"
+        ? "singleUnit"
+        : currentTab === "double"
+          ? "doubleGlazed"
+          : "tripleGlazed",
+    );
+    if (content) content.classList.remove("hidden");
   }
 }
 
@@ -219,6 +353,7 @@ function switchTab(tabId) {
     .forEach((error) => error.classList.add("hidden"));
 
   calculatePrice();
+  saveFormState();
 }
 
 // Event listeners
@@ -242,7 +377,7 @@ function initializeEventListeners() {
 
       // Show/hide custom shape input
       const customContainer = document.getElementById(
-        tabType + "CustomShapeContainer"
+        tabType + "CustomShapeContainer",
       );
       if (shape === "other") {
         customContainer.classList.remove("hidden");
@@ -289,8 +424,18 @@ function initializeEventListeners() {
   // Add to cart button
   document.getElementById("addToCart").addEventListener("click", addToCart);
 
+  // Double shape change button (redundant to inline handler, but more reliable)
+  const doubleShapeChangeBtn = document.getElementById("doubleShapeChangeBtn");
+  if (doubleShapeChangeBtn) {
+    doubleShapeChangeBtn.addEventListener("click", function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      openShapeModal("double");
+    });
+  }
+
   // Single Corners Listener
-  document.querySelectorAll('input[name="singleCorners"]').forEach(radio => {
+  document.querySelectorAll('input[name="singleCorners"]').forEach((radio) => {
     radio.addEventListener("change", toggleSingleCornerOptions);
   });
 
@@ -300,7 +445,9 @@ function initializeEventListeners() {
 
 // Toggle Single Corner Options
 function toggleSingleCornerOptions() {
-  const corners = document.querySelector('input[name="singleCorners"]:checked')?.value;
+  const corners = document.querySelector(
+    'input[name="singleCorners"]:checked',
+  )?.value;
   const container = document.getElementById("singleCornerSizeContainer");
   const radiusDisplay = document.getElementById("singleRadiusSizeDisplay");
   const clippedDisplay = document.getElementById("singleClippedSizeDisplay");
@@ -542,9 +689,9 @@ function validateForm() {
     }
 
     // Glass type validation
-    const glassType = document.getElementById('singleGlassType');
+    const glassType = document.getElementById("singleGlassType");
     if (!glassType || !glassType.value) {
-      showError('singleGlassTypeError', 'Please select a glass type');
+      showError("singleGlassTypeError", "Please select a glass type");
       isValid = false;
     }
     if (!glassType) {
@@ -558,13 +705,21 @@ function validateForm() {
     }
 
     // Corner validation
-    const corners = document.querySelector('input[name="singleCorners"]:checked');
+    const corners = document.querySelector(
+      'input[name="singleCorners"]:checked',
+    );
     if (corners) {
-      if (corners.value === 'radius' && !document.getElementById('singleRadiusSize').value) {
-        showError('singleCornerSizeError', 'Please select radius size');
+      if (
+        corners.value === "radius" &&
+        !document.getElementById("singleRadiusSize").value
+      ) {
+        showError("singleCornerSizeError", "Please select radius size");
         isValid = false;
-      } else if (corners.value === 'clipped' && !document.getElementById('singleClippedSize').value) {
-        showError('singleCornerSizeError', 'Please select clipped size');
+      } else if (
+        corners.value === "clipped" &&
+        !document.getElementById("singleClippedSize").value
+      ) {
+        showError("singleCornerSizeError", "Please select clipped size");
         isValid = false;
       }
     }
@@ -678,13 +833,13 @@ function collectFormData() {
   };
 
   const shapeName = document.getElementById(
-    currentTab + "SelectedShape"
+    currentTab + "SelectedShape",
   ).textContent;
   const width = document.getElementById(
-    currentTab + "SelectedWidth"
+    currentTab + "SelectedWidth",
   ).textContent;
   const height = document.getElementById(
-    currentTab + "SelectedHeight"
+    currentTab + "SelectedHeight",
   ).textContent;
   item.description = `${shapeName} (${width} x ${height})`;
 
@@ -727,10 +882,10 @@ function collectFormData() {
   // --- Add calculated metrics ---
   const area = document.getElementById(currentTab + "ShapeArea").textContent;
   const linear = document.getElementById(
-    currentTab + "ShapeLinear"
+    currentTab + "ShapeLinear",
   ).textContent;
   const weight = document.getElementById(
-    currentTab + "ShapeWeight"
+    currentTab + "ShapeWeight",
   ).textContent;
 
   item.details.push(`Area: ${area}`);
@@ -740,27 +895,27 @@ function collectFormData() {
   let itemPrice = parseFloat(
     document
       .getElementById(currentTab + "ShapeCost")
-      .textContent.replace("£", "")
+      .textContent.replace("£", ""),
   );
 
   if (currentTab === "single") {
     // Step 1: Glass Configuration
     const thickness = document.getElementById("singleGlassThickness").value;
-    const glassType = document.getElementById('singleGlassType').value;
+    const glassType = document.getElementById("singleGlassType").value;
     item.details.push(`Glass: ${thickness} ${glassType}`);
 
     if (glassType === "tinted") {
       const tint = document.querySelector(
-        'input[name="singleTintColor"]:checked'
+        'input[name="singleTintColor"]:checked',
       )?.value;
       if (tint)
         item.details.push(
-          `Tint: ${tint.charAt(0).toUpperCase() + tint.slice(1)}`
+          `Tint: ${tint.charAt(0).toUpperCase() + tint.slice(1)}`,
         );
     }
     if (glassType === "painted") {
       const colorType = document.querySelector(
-        'input[name="singleColorType"]:checked'
+        'input[name="singleColorType"]:checked',
       )?.value;
       if (colorType === "ral") {
         const ralColor = document.getElementById("singleRALColor").value;
@@ -775,10 +930,10 @@ function collectFormData() {
     item.details.push("Toughened Glass");
     // Step 3: Optional Extras
     const corners = document.querySelector(
-      'input[name="singleCorners"]:checked'
+      'input[name="singleCorners"]:checked',
     ).value;
     item.details.push(
-      `Corners: ${corners.charAt(0).toUpperCase() + corners.slice(1)}`
+      `Corners: ${corners.charAt(0).toUpperCase() + corners.slice(1)}`,
     );
 
     const holes = document.getElementById("singleHoles").value;
@@ -800,33 +955,42 @@ function collectFormData() {
   } else if (currentTab === "double" || currentTab === "triple") {
     // Step 1: Glass Configuration
     item.details.push(
-      `Outer: ${document.getElementById(currentTab + "OuterGlassText").textContent
-      }`
+      `Outer: ${
+        document.getElementById(currentTab + "OuterGlassText").textContent
+      }`,
     );
     if (
       document.getElementById(currentTab + "OuterGlass").value === "4mm-pattern"
     ) {
       const pattern = document.querySelector(
-        `input[name="${currentTab}OuterPattern"]:checked`
+        `input[name="${currentTab}OuterPattern"]:checked`,
       )?.value;
       if (pattern) item.details.push(`- Pattern: ${pattern}`);
     }
     item.details.push("Toughened Glass");
     if (currentTab === "triple") {
       item.details.push(
-        `Centre: ${document.getElementById("tripleCentreGlassText").textContent
-        }`
+        `Centre: ${
+          document.getElementById("tripleCentreGlassText").textContent
+        }`,
       );
     }
     item.details.push(
-      `Inner: ${document.getElementById(currentTab + "InnerGlassText").textContent
-      }`
+      `Inner: ${
+        document.getElementById(currentTab + "InnerGlassText").textContent
+      }`,
     );
     // Add Spacer details from dropdowns
-    const spacerWidth = document.getElementById(currentTab + "SpacerWidth").value;
-    const spacerColor = document.getElementById(currentTab + "SpacerColor").value;
+    const spacerWidth = document.getElementById(
+      currentTab + "SpacerWidth",
+    ).value;
+    const spacerColor = document.getElementById(
+      currentTab + "SpacerColor",
+    ).value;
     if (spacerWidth && spacerColor) {
-      item.details.push(`Spacer: ${spacerWidth}mm, ${spacerColor.charAt(0).toUpperCase() + spacerColor.slice(1)}`);
+      item.details.push(
+        `Spacer: ${spacerWidth}mm, ${spacerColor.charAt(0).toUpperCase() + spacerColor.slice(1)}`,
+      );
     }
 
     // Step 3: Optional Extras
@@ -841,7 +1005,7 @@ function collectFormData() {
 
     if (document.getElementById(currentTab + "PetFlap").checked) {
       const petFlapPrice = parseFloat(
-        document.getElementById(currentTab + "PetFlap").dataset.price
+        document.getElementById(currentTab + "PetFlap").dataset.price,
       );
       item.details.push("Pet Flap/Vent Hole");
       itemPrice += petFlapPrice;
@@ -1101,7 +1265,7 @@ function resetCurrentForm() {
     if (petFlap) petFlap.checked = false;
 
     const customContainer = document.getElementById(
-      "singleCustomShapeContainer"
+      "singleCustomShapeContainer",
     );
     if (customContainer) customContainer.classList.add("hidden");
   } else if (currentTab === "double") {
@@ -1131,7 +1295,7 @@ function resetCurrentForm() {
     if (petFlap) petFlap.checked = false;
 
     const customContainer = document.getElementById(
-      "doubleCustomShapeContainer"
+      "doubleCustomShapeContainer",
     );
     if (customContainer) customContainer.classList.add("hidden");
   } else if (currentTab === "triple") {
@@ -1162,7 +1326,7 @@ function resetCurrentForm() {
     if (petFlap) petFlap.checked = false;
 
     const customContainer = document.getElementById(
-      "tripleCustomShapeContainer"
+      "tripleCustomShapeContainer",
     );
     if (customContainer) customContainer.classList.add("hidden");
   }
@@ -1212,12 +1376,13 @@ function updateCartDisplay() {
                     <div class="cart-item">
                         <div class="flex justify-between items-start mb-3">
                             <div class="flex-1">
-                                <h4 class="font-semibold text-gray-800">${item.description
-      }</h4>
+                                <h4 class="font-semibold text-gray-800">${
+                                  item.description
+                                }</h4>
                                 <ul class="text-xs text-gray-600 list-disc list-inside mt-1">
                                     ${item.details
-        .map((detail) => `<li>${detail}</li>`)
-        .join("")}
+                                      .map((detail) => `<li>${detail}</li>`)
+                                      .join("")}
                                 </ul>
                             </div>
                             <button onclick="removeFromCart(${index})" class="text-red-500 hover:text-red-700 ml-4 flex-shrink-0">
@@ -1228,19 +1393,21 @@ function updateCartDisplay() {
                         </div>
                         <div class="flex justify-between items-center mt-4">
                             <div class="quantity-controls">
-                                <button class="quantity-btn" onclick="updateQuantity(${index}, -1)" ${item.quantity <= 1 ? "disabled" : ""
-      }>-</button>
-                                <span class="quantity-display">${item.quantity
-      }</span>
+                                <button class="quantity-btn" onclick="updateQuantity(${index}, -1)" ${
+                                  item.quantity <= 1 ? "disabled" : ""
+                                }>-</button>
+                                <span class="quantity-display">${
+                                  item.quantity
+                                }</span>
                                 <button class="quantity-btn" onclick="updateQuantity(${index}, 1)">+</button>
                             </div>
                             <div class="text-right">
                                 <p class="text-lg font-bold text-blue-600">£${itemTotal.toFixed(
-        2
-      )}</p>
+                                  2,
+                                )}</p>
                                 <p class="text-xs text-gray-500">£${item.price.toFixed(
-        2
-      )} each</p>
+                                  2,
+                                )} each</p>
                             </div>
                         </div>
                     </div>
@@ -1280,7 +1447,6 @@ function showSuccessPopup() {
   }, 1000);
 }
 
-
 // When glass thickness is selected, open the glass type modal
 const singleGlassThicknessEl = document.getElementById("singleGlassThickness");
 if (singleGlassThicknessEl) {
@@ -1305,7 +1471,9 @@ function closeGlassTypeModal() {
 
 function selectGlassTypeOption() {
   // Get selected glass type and sub-option
-  const selectedType = document.querySelector('input[name="modalGlassType"]:checked');
+  const selectedType = document.querySelector(
+    'input[name="modalGlassType"]:checked',
+  );
   if (!selectedType) return;
 
   let glassTypeValue = selectedType.value;
@@ -1316,13 +1484,16 @@ function selectGlassTypeOption() {
     if (tint) glassTypeValue += "-" + tint.value;
   }
   if (glassTypeValue === "painted") {
-    const colorType = document.querySelector('input[name="modalPaintedType"]:checked');
+    const colorType = document.querySelector(
+      'input[name="modalPaintedType"]:checked',
+    );
     if (colorType && colorType.value === "ral") {
       const ralColor = document.getElementById("modalRALColor").value;
-      glassTypeValue += "-" + ralColor.replace(/\s+/g, '-').toLowerCase();
+      glassTypeValue += "-" + ralColor.replace(/\s+/g, "-").toLowerCase();
     } else if (colorType && colorType.value === "custom") {
       const customColor = document.getElementById("modalCustomColor").value;
-      glassTypeValue += "-custom-" + customColor.replace(/\s+/g, '-').toLowerCase();
+      glassTypeValue +=
+        "-custom-" + customColor.replace(/\s+/g, "-").toLowerCase();
     }
   }
 
@@ -1378,14 +1549,19 @@ function handleGlassTypeSelection(type) {
     subOptions.classList.remove("hidden");
 
     // Add selection highlight for image radio buttons
-    subOptions.querySelectorAll('input[name="modalTintColor"]').forEach(radio => {
-      radio.addEventListener("change", function () {
-        subOptions.querySelectorAll(".glass-type-option").forEach(opt => {
-          opt.classList.remove("border-blue-500", "bg-blue-50");
+    subOptions
+      .querySelectorAll('input[name="modalTintColor"]')
+      .forEach((radio) => {
+        radio.addEventListener("change", function () {
+          subOptions.querySelectorAll(".glass-type-option").forEach((opt) => {
+            opt.classList.remove("border-blue-500", "bg-blue-50");
+          });
+          this.closest(".glass-type-option").classList.add(
+            "border-blue-500",
+            "bg-blue-50",
+          );
         });
-        this.closest(".glass-type-option").classList.add("border-blue-500", "bg-blue-50");
       });
-    });
   } else {
     subOptions.classList.add("hidden");
     subOptions.innerHTML = "";
@@ -1397,20 +1573,45 @@ function openGlassTypeModal(thickness) {
 
   // Example images for each glass type (replace with your own)
   const glassTypes = [
-    { value: "clear", label: "Clear", img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop" },
-    { value: "low-iron", label: "Low Iron", img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop" },
-    { value: "satin", label: "Satin", img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop" },
-    { value: "tinted", label: "Tinted", img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop" },
-    { value: "black", label: "Black", img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop" },
-    { value: "painted", label: "Painted", img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop" }
+    {
+      value: "clear",
+      label: "Clear",
+      img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop",
+    },
+    {
+      value: "low-iron",
+      label: "Low Iron",
+      img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop",
+    },
+    {
+      value: "satin",
+      label: "Satin",
+      img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop",
+    },
+    {
+      value: "tinted",
+      label: "Tinted",
+      img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop",
+    },
+    {
+      value: "black",
+      label: "Black",
+      img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop",
+    },
+    {
+      value: "painted",
+      label: "Painted",
+      img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop",
+    },
   ];
 
   const container = document.getElementById("glassTypeOptionsContainer");
   container.innerHTML = ""; // Clear previous options
 
-  glassTypes.forEach(type => {
+  glassTypes.forEach((type) => {
     const option = document.createElement("label");
-    option.className = "glass-type-option flex flex-col items-center cursor-pointer border-2 border-gray-200 rounded-lg p-2 mb-2 hover:border-blue-400 transition-all";
+    option.className =
+      "glass-type-option flex flex-col items-center cursor-pointer border-2 border-gray-200 rounded-lg p-2 mb-2 hover:border-blue-400 transition-all";
     option.innerHTML = `
       <input type="radio" name="modalGlassType" value="${type.value}" class="sr-only">
       <img src="${type.img}" alt="${type.label}" class="h-16 w-16 object-contain mb-2" onerror="this.style.display='none'">
@@ -1421,7 +1622,7 @@ function openGlassTypeModal(thickness) {
       document.getElementById("selectGlassTypeBtn").disabled = false;
 
       // Highlight selected
-      document.querySelectorAll(".glass-type-option").forEach(opt => {
+      document.querySelectorAll(".glass-type-option").forEach((opt) => {
         opt.classList.remove("border-blue-500", "bg-blue-50");
       });
       option.classList.add("border-blue-500", "bg-blue-50");
@@ -1437,22 +1638,102 @@ function openGlassTypeModal(thickness) {
 
 // Pattern glass data
 const patternGlassOptions = [
-  { value: "pattern1", name: "Autumn Leaves", img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop", desc: "Elegant leaf pattern" },
-  { value: "pattern2", name: "Cathedral", img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop", desc: "Classic cathedral style" },
-  { value: "pattern3", name: "Contora", img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop", desc: "Modern contora pattern" },
-  { value: "pattern4", name: "Cotswold", img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop", desc: "Rural cotswold design" },
-  { value: "pattern5", name: "Everglade", img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop", desc: "Nature-inspired everglade" },
-  { value: "pattern6", name: "Florielle", img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop", desc: "Floral florielle pattern" },
-  { value: "pattern7", name: "Mayflower", img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop", desc: "Delicate mayflower style" },
-  { value: "pattern8", name: "Minster", img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop", desc: "Traditional minster design" },
-  { value: "pattern9", name: "Oak", img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop", desc: "Natural oak pattern" },
-  { value: "pattern10", name: "Pelerine", img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop", desc: "Soft pelerine texture" },
-  { value: "pattern11", name: "Reeded", img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop", desc: "Linear reeded style" },
-  { value: "pattern12", name: "Sycamore", img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop", desc: "Sycamore leaf pattern" },
-  { value: "pattern13", name: "Taffeta", img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop", desc: "Smooth taffeta finish" },
-  { value: "pattern14", name: "Warwick", img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop", desc: "Classic warwick design" },
-  { value: "pattern15", name: "Arctic", img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop", desc: "Frosted arctic style" },
-  { value: "pattern16", name: "Chantilly", img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop", desc: "Elegant chantilly lace" },
+  {
+    value: "pattern1",
+    name: "Autumn Leaves",
+    img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop",
+    desc: "Elegant leaf pattern",
+  },
+  {
+    value: "pattern2",
+    name: "Cathedral",
+    img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop",
+    desc: "Classic cathedral style",
+  },
+  {
+    value: "pattern3",
+    name: "Contora",
+    img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop",
+    desc: "Modern contora pattern",
+  },
+  {
+    value: "pattern4",
+    name: "Cotswold",
+    img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop",
+    desc: "Rural cotswold design",
+  },
+  {
+    value: "pattern5",
+    name: "Everglade",
+    img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop",
+    desc: "Nature-inspired everglade",
+  },
+  {
+    value: "pattern6",
+    name: "Florielle",
+    img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop",
+    desc: "Floral florielle pattern",
+  },
+  {
+    value: "pattern7",
+    name: "Mayflower",
+    img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop",
+    desc: "Delicate mayflower style",
+  },
+  {
+    value: "pattern8",
+    name: "Minster",
+    img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop",
+    desc: "Traditional minster design",
+  },
+  {
+    value: "pattern9",
+    name: "Oak",
+    img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop",
+    desc: "Natural oak pattern",
+  },
+  {
+    value: "pattern10",
+    name: "Pelerine",
+    img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop",
+    desc: "Soft pelerine texture",
+  },
+  {
+    value: "pattern11",
+    name: "Reeded",
+    img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop",
+    desc: "Linear reeded style",
+  },
+  {
+    value: "pattern12",
+    name: "Sycamore",
+    img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop",
+    desc: "Sycamore leaf pattern",
+  },
+  {
+    value: "pattern13",
+    name: "Taffeta",
+    img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop",
+    desc: "Smooth taffeta finish",
+  },
+  {
+    value: "pattern14",
+    name: "Warwick",
+    img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop",
+    desc: "Classic warwick design",
+  },
+  {
+    value: "pattern15",
+    name: "Arctic",
+    img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop",
+    desc: "Frosted arctic style",
+  },
+  {
+    value: "pattern16",
+    name: "Chantilly",
+    img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=300&h=200&fit=crop",
+    desc: "Elegant chantilly lace",
+  },
 ];
 
 let currentPatternTarget = null;
@@ -1466,12 +1747,13 @@ function handleDoubleOuterGlassChange() {
   if (glassSelect.value === "4mm-pattern") {
     patternDisplay.classList.remove("hidden");
     // Auto-open the pattern modal for convenience
-    openPatternModal('doubleOuter');
+    openPatternModal("doubleOuter");
   } else {
     patternDisplay.classList.add("hidden");
     // Clear pattern selection
     document.getElementById("doubleOuterPattern").value = "";
-    document.getElementById("doubleOuterPatternName").textContent = "No pattern selected";
+    document.getElementById("doubleOuterPatternName").textContent =
+      "No pattern selected";
     document.getElementById("doubleOuterPatternDesc").textContent = "";
     document.getElementById("doubleOuterPatternImg").classList.add("hidden");
   }
@@ -1485,12 +1767,13 @@ function handleTripleOuterGlassChange() {
   if (glassSelect.value === "4mm-pattern") {
     patternDisplay.classList.remove("hidden");
     // Auto-open the pattern modal for convenience
-    openPatternModal('tripleOuter');
+    openPatternModal("tripleOuter");
   } else {
     patternDisplay.classList.add("hidden");
     // Clear pattern selection
     document.getElementById("tripleOuterPattern").value = "";
-    document.getElementById("tripleOuterPatternName").textContent = "No pattern selected";
+    document.getElementById("tripleOuterPatternName").textContent =
+      "No pattern selected";
     document.getElementById("tripleOuterPatternDesc").textContent = "";
     document.getElementById("tripleOuterPatternImg").classList.add("hidden");
   }
@@ -1510,9 +1793,10 @@ function openPatternModal(target) {
 
   // Populate pattern options
   container.innerHTML = "";
-  patternGlassOptions.forEach(pattern => {
+  patternGlassOptions.forEach((pattern) => {
     const option = document.createElement("div");
-    option.className = "pattern-option cursor-pointer border-2 border-gray-200 rounded-lg p-3 text-center hover:border-blue-400 transition-all";
+    option.className =
+      "pattern-option cursor-pointer border-2 border-gray-200 rounded-lg p-3 text-center hover:border-blue-400 transition-all";
     option.dataset.value = pattern.value;
     option.innerHTML = `
       <div class="w-16 h-16 bg-gray-100 rounded mx-auto mb-2 flex items-center justify-center overflow-hidden">
@@ -1524,7 +1808,7 @@ function openPatternModal(target) {
 
     option.addEventListener("click", function () {
       // Remove selection from all
-      container.querySelectorAll(".pattern-option").forEach(opt => {
+      container.querySelectorAll(".pattern-option").forEach((opt) => {
         opt.classList.remove("border-blue-500", "bg-blue-50");
       });
       // Add selection to clicked
@@ -1550,14 +1834,24 @@ function closePatternModal() {
 function selectPatternOption() {
   if (!selectedPatternValue || !currentPatternTarget) return;
 
-  const selectedPattern = patternGlassOptions.find(p => p.value === selectedPatternValue);
+  const selectedPattern = patternGlassOptions.find(
+    (p) => p.value === selectedPatternValue,
+  );
   if (!selectedPattern) return;
 
   // Update the hidden input and display for the target
-  const patternInput = document.getElementById(currentPatternTarget + "Pattern");
-  const patternImg = document.getElementById(currentPatternTarget + "PatternImg");
-  const patternName = document.getElementById(currentPatternTarget + "PatternName");
-  const patternDesc = document.getElementById(currentPatternTarget + "PatternDesc");
+  const patternInput = document.getElementById(
+    currentPatternTarget + "Pattern",
+  );
+  const patternImg = document.getElementById(
+    currentPatternTarget + "PatternImg",
+  );
+  const patternName = document.getElementById(
+    currentPatternTarget + "PatternName",
+  );
+  const patternDesc = document.getElementById(
+    currentPatternTarget + "PatternDesc",
+  );
 
   if (patternInput) patternInput.value = selectedPatternValue;
   if (patternImg) {
@@ -1578,7 +1872,7 @@ function selectPatternOption() {
 let selectedSingleGlassType = null;
 let selectedSingleThickness = null;
 let selectedSingleColour = null;
-let selectedPaintedColourType = 'stock';
+let selectedPaintedColourType = "stock";
 
 // Stock colours data
 const stockColours = [
@@ -1591,7 +1885,7 @@ const stockColours = [
   { value: "soft-pink", name: "Soft Pink", color: "#F3B6C6" },
   { value: "red-orange", name: "Red Orange", color: "#E84C2A" },
   { value: "bright-red", name: "Bright Red", color: "#E53935" },
-  { value: "dark-red", name: "Dark Red", color: "#A51E2D" }
+  { value: "dark-red", name: "Dark Red", color: "#A51E2D" },
 ];
 
 const cfteColours = [
@@ -1604,7 +1898,7 @@ const cfteColours = [
   { value: "lime-green", name: "Lime Green", color: "#B9D948" },
   { value: "apple-green", name: "Apple Green", color: "#9ACD32" },
   { value: "fresh-green", name: "Fresh Green", color: "#6FBF3A" },
-  { value: "pale-green", name: "Pale Green", color: "#C9CFA5" }
+  { value: "pale-green", name: "Pale Green", color: "#C9CFA5" },
 ];
 
 const ralColours = [
@@ -1617,10 +1911,8 @@ const ralColours = [
   { value: "orange", name: "Orange", color: "#F4A032" },
   { value: "light-pink", name: "Light Pink", color: "#F6C1CC" },
   { value: "coral-red", name: "Coral Red", color: "#E24B4B" },
-  { value: "orange-red", name: "Orange Red", color: "#F05A28" }
+  { value: "orange-red", name: "Orange Red", color: "#F05A28" },
 ];
-
-
 
 // Open Single Glass Configuration Modal
 function openSingleGlassConfigModal() {
@@ -1640,20 +1932,24 @@ function openSingleGlassConfigModal() {
     satin: "Satin Glass",
     tinted: "Tinted Glass",
     black: "Black Glass",
-    painted: "Painted Glass"
+    painted: "Painted Glass",
   };
-  document.getElementById("glassConfigModalTitle").textContent = typeNames[glassType] || "Glass Configuration";
+  document.getElementById("glassConfigModalTitle").textContent =
+    typeNames[glassType] || "Glass Configuration";
 
   // Reset thickness selection
-  document.querySelectorAll('input[name="modalThickness"]').forEach(radio => {
+  document.querySelectorAll('input[name="modalThickness"]').forEach((radio) => {
     radio.checked = false;
-    radio.closest("label").querySelector(".thickness-option").classList.remove("border-blue-500", "bg-blue-50");
+    radio
+      .closest("label")
+      .querySelector(".thickness-option")
+      .classList.remove("border-blue-500", "bg-blue-50");
   });
 
   // Filter thickness options based on glass type
   // For tinted glass, only show 6mm and 10mm
   const tintedOnlyThicknesses = ["6mm", "10mm"];
-  document.querySelectorAll('input[name="modalThickness"]').forEach(radio => {
+  document.querySelectorAll('input[name="modalThickness"]').forEach((radio) => {
     const label = radio.closest("label");
     if (glassType === "tinted") {
       if (tintedOnlyThicknesses.includes(radio.value)) {
@@ -1667,14 +1963,23 @@ function openSingleGlassConfigModal() {
   });
 
   // Show/hide colour sections based on glass type
-  document.getElementById("tintedColourSection").classList.toggle("hidden", glassType !== "tinted");
-  document.getElementById("paintedColourSection").classList.toggle("hidden", glassType !== "painted");
+  document
+    .getElementById("tintedColourSection")
+    .classList.toggle("hidden", glassType !== "tinted");
+  document
+    .getElementById("paintedColourSection")
+    .classList.toggle("hidden", glassType !== "painted");
 
   // Reset tint colour selection
-  document.querySelectorAll('input[name="modalTintColour"]').forEach(radio => {
-    radio.checked = false;
-    radio.closest("label").querySelector(".tint-option").classList.remove("border-blue-500", "bg-blue-50");
-  });
+  document
+    .querySelectorAll('input[name="modalTintColour"]')
+    .forEach((radio) => {
+      radio.checked = false;
+      radio
+        .closest("label")
+        .querySelector(".tint-option")
+        .classList.remove("border-blue-500", "bg-blue-50");
+    });
 
   // Populate painted colour grids if painted
   if (glassType === "painted") {
@@ -1700,7 +2005,7 @@ function populateColourGrid(containerId, colours) {
   const container = document.getElementById(containerId);
   container.innerHTML = "";
 
-  colours.forEach(colour => {
+  colours.forEach((colour) => {
     const swatch = document.createElement("label");
     swatch.className = "cursor-pointer";
 
@@ -1719,11 +2024,13 @@ function populateColourGrid(containerId, colours) {
 
     swatch.querySelector("input").addEventListener("change", function () {
       // Remove selection from all
-      document.querySelectorAll(".colour-swatch").forEach(s => {
+      document.querySelectorAll(".colour-swatch").forEach((s) => {
         s.classList.remove("border-blue-500", "ring-2", "ring-blue-300");
       });
       // Add selection
-      swatch.querySelector(".colour-swatch").classList.add("border-blue-500", "ring-2", "ring-blue-300");
+      swatch
+        .querySelector(".colour-swatch")
+        .classList.add("border-blue-500", "ring-2", "ring-blue-300");
       selectedSingleColour = colour.value;
       updateConfirmButtonState();
     });
@@ -1734,7 +2041,7 @@ function populateColourGrid(containerId, colours) {
 
 // Helper function to determine if a colour is light or dark
 function isLight(hexColor) {
-  const hex = hexColor.replace('#', '');
+  const hex = hexColor.replace("#", "");
   const r = parseInt(hex.substr(0, 2), 16);
   const g = parseInt(hex.substr(2, 2), 16);
   const b = parseInt(hex.substr(4, 2), 16);
@@ -1744,14 +2051,16 @@ function isLight(hexColor) {
 
 // Setup thickness selection listeners
 function setupThicknessListeners() {
-  document.querySelectorAll('input[name="modalThickness"]').forEach(radio => {
+  document.querySelectorAll('input[name="modalThickness"]').forEach((radio) => {
     radio.addEventListener("change", function () {
       // Remove selection from all
-      document.querySelectorAll(".thickness-option").forEach(opt => {
+      document.querySelectorAll(".thickness-option").forEach((opt) => {
         opt.classList.remove("border-blue-500", "bg-blue-50");
       });
       // Add selection
-      this.closest("label").querySelector(".thickness-option").classList.add("border-blue-500", "bg-blue-50");
+      this.closest("label")
+        .querySelector(".thickness-option")
+        .classList.add("border-blue-500", "bg-blue-50");
       selectedSingleThickness = this.value;
       updateConfirmButtonState();
     });
@@ -1760,18 +2069,22 @@ function setupThicknessListeners() {
 
 // Setup tint colour listeners
 function setupTintColourListeners() {
-  document.querySelectorAll('input[name="modalTintColour"]').forEach(radio => {
-    radio.addEventListener("change", function () {
-      // Remove selection from all
-      document.querySelectorAll(".tint-option").forEach(opt => {
-        opt.classList.remove("border-blue-500", "bg-blue-50");
+  document
+    .querySelectorAll('input[name="modalTintColour"]')
+    .forEach((radio) => {
+      radio.addEventListener("change", function () {
+        // Remove selection from all
+        document.querySelectorAll(".tint-option").forEach((opt) => {
+          opt.classList.remove("border-blue-500", "bg-blue-50");
+        });
+        // Add selection
+        this.closest("label")
+          .querySelector(".tint-option")
+          .classList.add("border-blue-500", "bg-blue-50");
+        selectedSingleColour = this.value;
+        updateConfirmButtonState();
       });
-      // Add selection
-      this.closest("label").querySelector(".tint-option").classList.add("border-blue-500", "bg-blue-50");
-      selectedSingleColour = this.value;
-      updateConfirmButtonState();
     });
-  });
 }
 
 // Switch painted colour tab
@@ -1779,19 +2092,21 @@ function switchPaintedColourTab(tabName) {
   selectedPaintedColourType = tabName;
 
   // Update tab button styles
-  document.querySelectorAll(".painted-tab").forEach(tab => {
+  document.querySelectorAll(".painted-tab").forEach((tab) => {
     tab.classList.remove("bg-blue-600", "text-white");
     tab.classList.add("bg-gray-200", "text-gray-700");
   });
 
-  const activeTab = document.getElementById("tab" + tabName.charAt(0).toUpperCase() + tabName.slice(1));
+  const activeTab = document.getElementById(
+    "tab" + tabName.charAt(0).toUpperCase() + tabName.slice(1),
+  );
   if (activeTab) {
     activeTab.classList.remove("bg-gray-200", "text-gray-700");
     activeTab.classList.add("bg-blue-600", "text-white");
   }
 
   // Show/hide tab content
-  document.querySelectorAll(".paint-tab-content").forEach(content => {
+  document.querySelectorAll(".paint-tab-content").forEach((content) => {
     content.classList.add("hidden");
   });
 
@@ -1812,11 +2127,11 @@ function switchPaintedColourTab(tabName) {
       if (customPreview) {
         if (val) {
           customPreview.style.backgroundColor = val;
-          // If the color is invalid, the browser will ignore the assignment, 
-          // but we can't easily detect that without more logic. 
+          // If the color is invalid, the browser will ignore the assignment,
+          // but we can't easily detect that without more logic.
           // For now, this is sufficient for a preview.
         } else {
-          customPreview.style.backgroundColor = '#f3f4f6'; // Match bg-gray-100
+          customPreview.style.backgroundColor = "#f3f4f6"; // Match bg-gray-100
         }
       }
       updateConfirmButtonState();
@@ -1835,7 +2150,10 @@ function updateConfirmButtonState() {
   }
 
   // For tinted/painted, also need colour
-  if (selectedSingleGlassType === "tinted" || selectedSingleGlassType === "painted") {
+  if (
+    selectedSingleGlassType === "tinted" ||
+    selectedSingleGlassType === "painted"
+  ) {
     if (!selectedSingleColour) {
       btn.disabled = true;
       return;
@@ -1855,7 +2173,8 @@ function confirmGlassConfiguration() {
   if (!selectedSingleThickness) return;
 
   // Update hidden inputs
-  document.getElementById("singleGlassThickness").value = selectedSingleThickness;
+  document.getElementById("singleGlassThickness").value =
+    selectedSingleThickness;
   document.getElementById("singleGlassType").value = selectedSingleGlassType;
 
   const colourInput = document.getElementById("singleGlassColour");
@@ -1871,7 +2190,7 @@ function confirmGlassConfiguration() {
     satin: "Satin",
     tinted: "Tinted",
     black: "Black",
-    painted: "Painted"
+    painted: "Painted",
   };
 
   // Set thickness image
@@ -1881,7 +2200,9 @@ function confirmGlassConfiguration() {
   thicknessImg.alt = selectedSingleThickness;
 
   // Handle colour image/swatch
-  const colourImgContainer = document.getElementById("singleConfigColourImgContainer");
+  const colourImgContainer = document.getElementById(
+    "singleConfigColourImgContainer",
+  );
   const colourImg = document.getElementById("singleConfigColourImg");
   const colourSwatch = document.getElementById("singleConfigColourSwatch");
 
@@ -1910,7 +2231,9 @@ function confirmGlassConfiguration() {
     } else {
       // Find the colour in our arrays
       const allColours = [...stockColours, ...cfteColours, ...ralColours];
-      const foundColour = allColours.find(c => c.value === selectedSingleColour);
+      const foundColour = allColours.find(
+        (c) => c.value === selectedSingleColour,
+      );
       if (foundColour) {
         colourSwatch.style.backgroundColor = foundColour.color;
         detailsText = `Colour: ${foundColour.name}`;
@@ -1930,23 +2253,158 @@ function confirmGlassConfiguration() {
   closeGlassConfigModal();
 }
 
-
 const shapes = [
   // Replace these example URLs with your real image paths.
   // Each shape provides a 0°, 90°, 180° and 270° image. 0° is the main image.
-  { value: "square", name: "Square/Rectangle", images: { "0": "/views/Square.jpg", "90": "/views/cnr-dubbed.jpg", "180": "/views/cnr-none.jpg", "270": "/views/cnr-radius.jpg" }, needsLength: false },
-  { value: "triangle", name: "Right Angle Triangle", images: { "0": "/views/right angle.jpg", "90": "/images/shapes/triangle_90.png", "180": "/images/shapes/triangle_180.png", "270": "/images/shapes/triangle_270.png" }, needsLength: false },
-  { value: "rake1", name: "Rake 1", images: { "0": "/views/Qad.jpg", "90": "/images/shapes/rake1_90.png", "180": "/images/shapes/rake1_180.png", "270": "/images/shapes/rake1_270.png" }, needsLength: true },
-  { value: "rake2", name: "Rake 2", images: { "0": "/views/right trapezoid.jpg", "90": "/images/shapes/rake2_90.png", "180": "/images/shapes/rake2_180.png", "270": "/images/shapes/rake2_270.png" }, needsLength: true },
-  { value: "rake3", name: "Rake 3", images: { "0": "/views/2.jpg", "90": "/images/shapes/rake3_90.png", "180": "/images/shapes/rake3_180.png", "270": "/images/shapes/rake3_270.png" }, needsLength: true },
-  { value: "rake4", name: "Rake 4", images: { "0": "/views/6.jpg", "90": "/images/shapes/rake4_90.png", "180": "/images/shapes/rake4_180.png", "270": "/images/shapes/rake4_270.png" }, needsLength: true },
-  { value: "circle", name: "Circle", images: { "0": "/views/circle.jpg", "90": "/images/shapes/circle_90.png", "180": "/images/shapes/circle_180.png", "270": "/images/shapes/circle_270.png" }, needsLength: false },
-  { value: "arched", name: "Arched-Top", images: { "0": "/views/7.jpg", "90": "/images/shapes/arched_90.png", "180": "/images/shapes/arched_180.png", "270": "/images/shapes/arched_270.png" }, needsLength: true },
-  { value: "quarter-circle", name: "1/4 Circle", images: { "0": "/views/10.jpg", "90": "/images/shapes/qcircle_90.png", "180": "/images/shapes/qcircle_180.png", "270": "/images/shapes/qcircle_270.png" }, needsLength: false },
-  { value: "trapezium", name: "Trapezium", images: { "0": "/views/11.jpg", "90": "/images/shapes/trapezium_90.png", "180": "/images/shapes/trapezium_180.png", "270": "/images/shapes/trapezium_270.png" }, needsLength: true },
-  { value: "parallelogram", name: "Parallelogram", images: { "0": "/views/8.jpg", "90": "/images/shapes/parallelogram_90.png", "180": "/images/shapes/parallelogram_180.png", "270": "/images/shapes/parallelogram_270.png" }, needsLength: true },
-  { value: "custom", name: "Custom", images: { "0": "/views/12.jpg", "90": "/images/shapes/custom_90.png", "180": "/images/shapes/custom_180.png", "270": "/images/shapes/custom_270.png" }, needsLength: false },
+  {
+    value: "square",
+    name: "Square/Rectangle",
+    images: {
+      0: "/views/Square.jpg",
+      90: "/views/cnr-dubbed.jpg",
+      180: "/views/cnr-none.jpg",
+      270: "/views/cnr-radius.jpg",
+    },
+    needsLength: false,
+  },
+  {
+    value: "triangle",
+    name: "Right Angle Triangle",
+    images: {
+      0: "/views/right angle.jpg",
+      90: "/images/shapes/triangle_90.png",
+      180: "/images/shapes/triangle_180.png",
+      270: "/images/shapes/triangle_270.png",
+    },
+    needsLength: false,
+  },
+  {
+    value: "rake1",
+    name: "Rake 1",
+    images: {
+      0: "/views/Qad.jpg",
+      90: "/images/shapes/rake1_90.png",
+      180: "/images/shapes/rake1_180.png",
+      270: "/images/shapes/rake1_270.png",
+    },
+    needsLength: true,
+  },
+  {
+    value: "rake2",
+    name: "Rake 2",
+    images: {
+      0: "/views/right trapezoid.jpg",
+      90: "/images/shapes/rake2_90.png",
+      180: "/images/shapes/rake2_180.png",
+      270: "/images/shapes/rake2_270.png",
+    },
+    needsLength: true,
+  },
+  {
+    value: "rake3",
+    name: "Rake 3",
+    images: {
+      0: "/views/2.jpg",
+      90: "/images/shapes/rake3_90.png",
+      180: "/images/shapes/rake3_180.png",
+      270: "/images/shapes/rake3_270.png",
+    },
+    needsLength: true,
+  },
+  {
+    value: "rake4",
+    name: "Rake 4",
+    images: {
+      0: "/views/6.jpg",
+      90: "/images/shapes/rake4_90.png",
+      180: "/images/shapes/rake4_180.png",
+      270: "/images/shapes/rake4_270.png",
+    },
+    needsLength: true,
+  },
+  {
+    value: "circle",
+    name: "Circle",
+    images: {
+      0: "/views/circle.jpg",
+      90: "/images/shapes/circle_90.png",
+      180: "/images/shapes/circle_180.png",
+      270: "/images/shapes/circle_270.png",
+    },
+    needsLength: false,
+  },
+  {
+    value: "arched",
+    name: "Arched-Top",
+    images: {
+      0: "/views/7.jpg",
+      90: "/images/shapes/arched_90.png",
+      180: "/images/shapes/arched_180.png",
+      270: "/images/shapes/arched_270.png",
+    },
+    needsLength: true,
+  },
+  {
+    value: "quarter-circle",
+    name: "1/4 Circle",
+    images: {
+      0: "/views/10.jpg",
+      90: "/images/shapes/qcircle_90.png",
+      180: "/images/shapes/qcircle_180.png",
+      270: "/images/shapes/qcircle_270.png",
+    },
+    needsLength: false,
+  },
+  {
+    value: "trapezium",
+    name: "Trapezium",
+    images: {
+      0: "/views/11.jpg",
+      90: "/images/shapes/trapezium_90.png",
+      180: "/images/shapes/trapezium_180.png",
+      270: "/images/shapes/trapezium_270.png",
+    },
+    needsLength: true,
+  },
+  {
+    value: "parallelogram",
+    name: "Parallelogram",
+    images: {
+      0: "/views/8.jpg",
+      90: "/images/shapes/parallelogram_90.png",
+      180: "/images/shapes/parallelogram_180.png",
+      270: "/images/shapes/parallelogram_270.png",
+    },
+    needsLength: true,
+  },
+  {
+    value: "custom",
+    name: "Custom",
+    images: {
+      0: "/views/12.jpg",
+      90: "/images/shapes/custom_90.png",
+      180: "/images/shapes/custom_180.png",
+      270: "/images/shapes/custom_270.png",
+    },
+    needsLength: false,
+  },
 ];
+
+// Shape descriptions
+const shapeDescriptions = {
+  square: "A standard rectangular shape with 90-degree angles",
+  triangle: "A triangular shape with one right angle",
+  rake1: "A sloped roof top design - Rake style 1",
+  rake2: "A sloped roof top design - Rake style 2",
+  rake3: "A sloped roof top design - Rake style 3",
+  rake4: "A sloped roof top design - Rake style 4",
+  circle: "A perfect circular shape",
+  arched: "A rectangular shape with an arched top",
+  "quarter-circle": "A quarter circular shape",
+  trapezium: "A four-sided shape with one pair of parallel sides",
+  parallelogram: "A four-sided shape with opposite sides parallel",
+  custom: "Define your own custom shape",
+};
 
 // Glass and spacer data (prices removed)
 const glassData = {
@@ -2132,20 +2590,45 @@ function openShapeModal(target) {
   const container = document.getElementById("shapeOptionsContainer");
   const configPanel = document.getElementById("shapeConfigPanel");
 
-  title.textContent = "Select Shape";
+  // Check if there's an existing shape selection
+  const existingShapeInput = document.getElementById(target + "Shape");
+  const existingShapeValue = existingShapeInput
+    ? existingShapeInput.value
+    : null;
+
+  if (existingShapeValue) {
+    title.textContent = "Edit Shape Configuration";
+  } else {
+    title.textContent = "Select Shape";
+  }
+
   configPanel.classList.add("hidden");
 
-  // Reset shape data
-  shapeData = {
-    currentShape: null,
-    rotation: 0,
-    widthA: 0,
-    heightA: 0,
-    lengthC: 0,
-    customName: "",
-    reference: "",
-    templateFile: null,
-  };
+  // Reset selected shape text and description
+  const selectedShapeText = document.getElementById("selectedShapeText");
+  const selectedShapeDescription = document.getElementById(
+    "selectedShapeDescription",
+  );
+  if (selectedShapeText) {
+    selectedShapeText.textContent = "Select a shape";
+  }
+  if (selectedShapeDescription) {
+    selectedShapeDescription.textContent = "Choose a shape to see details";
+  }
+
+  // Initialize shape data - don't reset if editing existing
+  if (!existingShapeValue) {
+    shapeData = {
+      currentShape: null,
+      rotation: 0,
+      widthA: 0,
+      heightA: 0,
+      lengthC: 0,
+      customName: "",
+      reference: "",
+      templateFile: null,
+    };
+  }
 
   // Populate shape options
   container.innerHTML = "";
@@ -2155,7 +2638,6 @@ function openShapeModal(target) {
       "shape-option cursor-pointer border-2 border-gray-200 rounded-lg p-3 text-center hover:border-blue-400 transition-all";
     option.dataset.value = shape.value;
     option.dataset.name = shape.name;
-    //option.dataset.icon = shape.icon;
     option.dataset.needsLength = shape.needsLength;
 
     // store per-rotation image URLs on dataset
@@ -2163,6 +2645,13 @@ function openShapeModal(target) {
     option.dataset.rot90 = shape.images["90"];
     option.dataset.rot180 = shape.images["180"];
     option.dataset.rot270 = shape.images["270"];
+
+    // Highlight currently selected shape
+    if (existingShapeValue && shape.value === existingShapeValue) {
+      option.classList.add("shape-selected");
+      option.classList.remove("border-gray-200");
+      option.classList.add("border-blue-500");
+    }
 
     option.innerHTML = `
                     <div class="mb-2">
@@ -2177,6 +2666,68 @@ function openShapeModal(target) {
 
     container.appendChild(option);
   });
+
+  // If editing existing shape, pre-populate the form
+  if (existingShapeValue) {
+    // Find the existing shape option and select it
+    const existingOption = container.querySelector(
+      `[data-value="${existingShapeValue}"]`,
+    );
+    if (existingOption) {
+      selectShapeType(existingOption);
+    }
+
+    // Pre-populate form fields with existing values after a short delay to ensure DOM is ready
+    setTimeout(() => {
+      let widthA = document.getElementById(
+        target + "SelectedWidth",
+      ).textContent;
+      let heightA = document.getElementById(
+        target + "SelectedHeight",
+      ).textContent;
+      let rotation = document.getElementById(
+        target + "SelectedRotation",
+      ).textContent;
+      let reference = document.getElementById(target + "ShapeRef").textContent;
+      const lengthCElement = document.getElementById(
+        target + "SelectedLengthC",
+      );
+      let lengthC = lengthCElement ? lengthCElement.textContent : "";
+
+      // Clean up values (remove units)
+      widthA = widthA ? widthA.replace(/mm$/i, "").trim() : "";
+      heightA = heightA ? heightA.replace(/mm$/i, "").trim() : "";
+      rotation = rotation ? rotation.replace(/°$/i, "").trim() : "0";
+      reference = reference && reference !== "-" ? reference : "";
+      lengthC =
+        lengthC && lengthC !== "-" ? lengthC.replace(/mm$/i, "").trim() : "";
+
+      // Populate form fields
+      if (widthA && widthA !== "-") {
+        document.getElementById("shapeWidthA").value = widthA;
+      }
+      if (heightA && heightA !== "-") {
+        document.getElementById("shapeHeightA").value = heightA;
+      }
+      if (lengthC && lengthC !== "-") {
+        document.getElementById("shapeLengthC").value = lengthC;
+        // Show length container if needed
+        const lengthContainer = document.getElementById("shapeLengthContainer");
+        if (lengthContainer) lengthContainer.classList.remove("hidden");
+      }
+      if (reference) {
+        document.getElementById("shapeReference").value = reference;
+      }
+
+      // Set rotation value and update display
+      document.getElementById("shapeRotation").value = rotation || "0";
+      updateRotationDisplay(rotation || "0");
+
+      // Trigger validation and calculation
+      validateShapeForm();
+      updateShapeCalculations();
+    }, 100);
+  }
 
   modal.classList.remove("hidden");
 }
@@ -2198,6 +2749,50 @@ function setSummaryShapeImage(targetPrefix, imageUrl, name) {
   }
   if (nameEl && name) nameEl.textContent = name;
 }
+
+// Update rotation button display to show selected rotation
+function toggleExtrasCutouts(show) {
+  const options = document.getElementById("extrasCutoutsOptions");
+  if (options) {
+    if (show) options.classList.remove("hidden");
+    else options.classList.add("hidden");
+  }
+}
+
+function toggleCutoutCount(type, checked) {
+  const mapping = {
+    boxcut: "countBoxcut",
+    cornerNotch: "countCornerNotch",
+    edgeNotch: "countEdgeNotch",
+    hinge: "countHinge",
+  };
+  Object.values(mapping).forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.classList.add("hidden");
+  });
+  if (checked && mapping[type]) {
+    const el = document.getElementById(mapping[type]);
+    if (el) el.classList.remove("hidden");
+  }
+}
+
+function updateRotationDisplay(rotation) {
+  // clear active state from all rotation buttons
+  document.querySelectorAll(".rotation-btn").forEach((b) => {
+    b.classList.remove("border-blue-500", "bg-blue-50");
+  });
+
+  // set active state on the correct rotation button
+  const rotationBtn = document.querySelector(
+    `.rotation-btn[data-rotation="${rotation}"]`,
+  );
+  if (rotationBtn) {
+    rotationBtn.classList.add("border-blue-500", "bg-blue-50");
+  }
+
+  // Update shapeData rotation
+  shapeData.rotation = parseInt(rotation) || 0;
+}
 function selectShapeType(element) {
   // Remove selection from all shapes
   document.querySelectorAll(".shape-option").forEach((opt) => {
@@ -2218,6 +2813,20 @@ function selectShapeType(element) {
   // Update preview
   const mainImg = element.dataset.rot0 || element.dataset.rot0;
   updateShapePreview(mainImg, element.dataset.name);
+
+  // Update selected shape text and description
+  const selectedShapeText = document.getElementById("selectedShapeText");
+  const selectedShapeDescription = document.getElementById(
+    "selectedShapeDescription",
+  );
+  if (selectedShapeText) {
+    selectedShapeText.textContent = element.dataset.name;
+  }
+  if (selectedShapeDescription) {
+    selectedShapeDescription.textContent =
+      shapeDescriptions[element.dataset.value] || "No description available";
+  }
+
   updateRotationIcons({
     rot0: element.dataset.rot0,
     rot90: element.dataset.rot90,
@@ -2235,36 +2844,50 @@ function selectShapeType(element) {
   const customContainer = document.getElementById("customShapeContainer");
   const templateContainer = document.getElementById("templateUploadContainer");
 
-  if (element.dataset.needsLength === "true") {
-    lengthContainer.classList.remove("hidden");
-  } else {
-    lengthContainer.classList.add("hidden");
+  if (lengthContainer) {
+    if (element.dataset.needsLength === "true") {
+      lengthContainer.classList.remove("hidden");
+    } else {
+      lengthContainer.classList.add("hidden");
+    }
   }
 
   // Always show the template upload option
-  templateContainer.classList.remove("hidden");
-
-  if (element.dataset.value === "custom") {
-    customContainer.classList.remove("hidden");
-  } else {
-    customContainer.classList.add("hidden");
+  if (templateContainer) {
+    templateContainer.classList.remove("hidden");
   }
 
-  // Reset form fields
-  document.getElementById("shapeWidthA").value = "";
-  document.getElementById("shapeHeightA").value = "";
-  document.getElementById("shapeLengthC").value = "";
-  document.getElementById("customShapeName").value = "";
-  document.getElementById("shapeReference").value = "";
-  document.getElementById("shapeRotation").value = "0";
+  if (customContainer) {
+    if (element.dataset.value === "custom") {
+      customContainer.classList.remove("hidden");
+    } else {
+      customContainer.classList.add("hidden");
+    }
+  }
 
-  // Reset rotation buttons
-  document.querySelectorAll(".rotation-btn").forEach((btn) => {
-    btn.classList.remove("border-blue-500", "bg-blue-50");
-  });
-  document
-    .querySelector('.rotation-btn[data-rotation="0"]')
-    .classList.add("border-blue-500", "bg-blue-50");
+  // Reset form fields only if selecting a different shape (not editing existing)
+  const existingShapeInput = document.getElementById(
+    currentShapeTarget + "Shape",
+  );
+  const isEditingExisting =
+    existingShapeInput && existingShapeInput.value === element.dataset.value;
+
+  if (!isEditingExisting) {
+    document.getElementById("shapeWidthA").value = "";
+    document.getElementById("shapeHeightA").value = "";
+    document.getElementById("shapeLengthC").value = "";
+    document.getElementById("customShapeName").value = "";
+    document.getElementById("shapeReference").value = "";
+    document.getElementById("shapeRotation").value = "0";
+
+    // Reset rotation buttons
+    document.querySelectorAll(".rotation-btn").forEach((btn) => {
+      btn.classList.remove("border-blue-500", "bg-blue-50");
+    });
+    document
+      .querySelector('.rotation-btn[data-rotation="0"]')
+      .classList.add("border-blue-500", "bg-blue-50");
+  }
 
   // Update rotation icons
   updateRotationIcons({
@@ -2290,14 +2913,13 @@ function updateShapePreview(imageUrl, name) {
   document.getElementById("shapePreviewName").textContent = name;
 }
 
-
 function updateRotationIcons(images) {
   // images: { rot0, rot90, rot180, rot270 } - each may be undefined
   const rotMap = {
-    "rotation0": images.rot0,
-    "rotation90": images.rot90,
-    "rotation180": images.rot180,
-    "rotation270": images.rot270,
+    rotation0: images.rot0,
+    rotation90: images.rot90,
+    rotation180: images.rot180,
+    rotation270: images.rot270,
   };
 
   Object.keys(rotMap).forEach((id) => {
@@ -2324,28 +2946,35 @@ function selectShapeOption() {
     return;
   }
 
+  // Store values before closing modal (since closeShapeModal resets them)
+  const target = currentShapeTarget;
+  const shape = selectedShape;
+
+  // Close modal immediately after validation
+  closeShapeModal();
+
   // Collect form data
   shapeData.widthA =
     parseFloat(document.getElementById("shapeWidthA").value) || 0;
   shapeData.heightA =
     parseFloat(document.getElementById("shapeHeightA").value) || 0;
-  shapeData.lengthC =
-    parseFloat(document.getElementById("shapeLengthC").value) || 0;
-  shapeData.customName = document.getElementById("customShapeName").value || "";
-  shapeData.reference = document.getElementById("shapeReference").value || "";
+  const lengthEl = document.getElementById("shapeLengthC");
+  shapeData.lengthC = lengthEl ? parseFloat(lengthEl.value) || 0 : 0;
+  const customNameEl = document.getElementById("customShapeName");
+  shapeData.customName = customNameEl ? customNameEl.value || "" : "";
+  const referenceEl = document.getElementById("shapeReference");
+  shapeData.reference = referenceEl ? referenceEl.value || "" : "";
   shapeData.rotation =
     parseInt(document.getElementById("shapeRotation").value) || 0;
 
-  // Update the target elements
-  const hiddenInput = document.getElementById(currentShapeTarget + "Shape");
-  const textSpan = document.getElementById(currentShapeTarget + "ShapeText");
-  const detailsDiv = document.getElementById(
-    currentShapeTarget + "ShapeDetails"
-  );
+  // Update the target elements using stored target
+  const hiddenInput = document.getElementById(target + "Shape");
+  const textSpan = document.getElementById(target + "ShapeText");
+  const detailsDiv = document.getElementById(target + "ShapeDetails");
 
   if (hiddenInput && textSpan) {
-    hiddenInput.value = selectedShape.dataset.value;
-    textSpan.textContent = selectedShape.dataset.name;
+    hiddenInput.value = shape.dataset.value;
+    textSpan.textContent = shape.dataset.name;
     textSpan.classList.remove("text-gray-500");
     textSpan.classList.add("text-gray-800");
   }
@@ -2353,20 +2982,28 @@ function selectShapeOption() {
   // Show shape details
   if (detailsDiv) {
     detailsDiv.classList.remove("hidden");
+    // Temporarily set currentShapeTarget and selectedShape for updateShapeDetailsDisplay
+    const originalTarget = currentShapeTarget;
+    const originalShape = selectedShape;
+    currentShapeTarget = target;
+    selectedShape = shape;
     updateShapeDetailsDisplay();
+    currentShapeTarget = originalTarget;
+    selectedShape = originalShape;
   }
 
   calculatePrice();
-  closeShapeModal();
 }
 
 function validateShapeForm() {
-  const widthA = parseFloat(document.getElementById("shapeWidthA").value) || 0;
-  const heightA =
-    parseFloat(document.getElementById("shapeHeightA").value) || 0;
-  const lengthC =
-    parseFloat(document.getElementById("shapeLengthC").value) || 0;
-  const customName = document.getElementById("customShapeName").value || "";
+  const widthEl = document.getElementById("shapeWidthA");
+  const heightEl = document.getElementById("shapeHeightA");
+  const lengthEl = document.getElementById("shapeLengthC");
+  const customNameEl = document.getElementById("customShapeName");
+  const widthA = widthEl ? parseFloat(widthEl.value) || 0 : 0;
+  const heightA = heightEl ? parseFloat(heightEl.value) || 0 : 0;
+  const lengthC = lengthEl ? parseFloat(lengthEl.value) || 0 : 0;
+  const customName = customNameEl ? customNameEl.value || "" : "";
 
   let isValid = true;
 
@@ -2410,7 +3047,7 @@ function validateShapeForm() {
 function getSingleUnitGlassCost(area) {
   const thickness = document.getElementById("singleGlassThickness").value;
   const glassType = document.querySelector(
-    'input[name="singleGlassType"]:checked'
+    'input[name="singleGlassType"]:checked',
   )?.value;
 
   if (!thickness || !glassType || !singleUnitPricing[thickness]) {
@@ -2421,7 +3058,7 @@ function getSingleUnitGlassCost(area) {
 
   if (glassType === "tinted") {
     const tintColor = document.querySelector(
-      'input[name="singleTintColor"]:checked'
+      'input[name="singleTintColor"]:checked',
     )?.value;
     if (!tintColor) return 0;
     priceKey = `tinted-${tintColor}`;
@@ -2429,7 +3066,7 @@ function getSingleUnitGlassCost(area) {
     // Simplified logic for painted glass pricing based on your data
     // This assumes 'White' and 'Black' are the primary priced custom colors.
     const colorType = document.querySelector(
-      'input[name="singleColorType"]:checked'
+      'input[name="singleColorType"]:checked',
     )?.value;
     if (colorType === "ral") {
       const ralColor = document.getElementById("singleRALColor").value;
@@ -2514,13 +3151,13 @@ function updateShapeDetailsDisplay() {
   const totalCost = glassCost + shapeCost + oversizeCost;
 
   // Update shape configuration details
-  document.getElementById(currentShapeTarget + "SelectedShape").textContent =
-    selectedShape.dataset.name;
-  const nameEl = document.getElementById(currentShapeTarget + "SelectedShape");
-  if (selectedShape && nameEl) {
-    nameEl.textContent = selectedShape.dataset.name;
-  } else if (nameEl) {
-    nameEl.textContent = "-";
+  const summaryEl = document.getElementById(
+    currentShapeTarget + "ConfigShapeSummary",
+  );
+  if (selectedShape && summaryEl) {
+    summaryEl.textContent = selectedShape.dataset.name;
+  } else if (summaryEl) {
+    summaryEl.textContent = "Not configured";
   }
 
   // set summary image according to currently selected rotation
@@ -2528,62 +3165,84 @@ function updateShapeDetailsDisplay() {
     const rot = shapeData.rotation || 0;
     const rotKey = "rot" + rot;
     const imgUrl = selectedShape.dataset[rotKey] || selectedShape.dataset.rot0;
-    setSummaryShapeImage(currentShapeTarget, imgUrl, selectedShape.dataset.name);
+    setSummaryShapeImage(
+      currentShapeTarget,
+      imgUrl,
+      selectedShape.dataset.name,
+    );
   } else if (currentShapeTarget) {
     setSummaryShapeImage(currentShapeTarget, "", "");
   }
-  document.getElementById(currentShapeTarget + "SelectedRotation").textContent =
-    shapeData.rotation + "°";
-  document.getElementById(currentShapeTarget + "SelectedWidth").textContent =
-    shapeData.widthA + "mm";
-  document.getElementById(currentShapeTarget + "SelectedHeight").textContent =
-    shapeData.heightA + "mm";
-  document.getElementById(currentShapeTarget + "ShapeWeight").textContent =
-    weight.toFixed(2) + " kg";
-  document.getElementById(currentShapeTarget + "ShapeCost").textContent =
-    "£" + totalCost.toFixed(2);
+  const rotationEl = document.getElementById(
+    currentShapeTarget + "SelectedRotation",
+  );
+  if (rotationEl) rotationEl.textContent = shapeData.rotation + "°";
+  const widthEl = document.getElementById(currentShapeTarget + "SelectedWidth");
+  if (widthEl) widthEl.textContent = shapeData.widthA + "mm";
+  const heightEl = document.getElementById(
+    currentShapeTarget + "SelectedHeight",
+  );
+  if (heightEl) heightEl.textContent = shapeData.heightA + "mm";
+  const weightEl = document.getElementById(currentShapeTarget + "ShapeWeight");
+  if (weightEl) weightEl.textContent = weight.toFixed(2) + " kg";
+  const costEl = document.getElementById(currentShapeTarget + "ShapeCost");
+  if (costEl) costEl.textContent = "£" + totalCost.toFixed(2);
 
   // Show/hide Length C based on shape
   const lengthCDisplay = document.getElementById(
-    currentShapeTarget + "LengthCDisplay"
+    currentShapeTarget + "LengthCDisplay",
   );
-  if (selectedShape.dataset.needsLength === "true" && shapeData.lengthC > 0) {
-    lengthCDisplay.classList.remove("hidden");
-    document.getElementById(
-      currentShapeTarget + "SelectedLengthC"
-    ).textContent = shapeData.lengthC + "mm";
-  } else {
-    lengthCDisplay.classList.add("hidden");
+  if (lengthCDisplay) {
+    if (selectedShape && selectedShape.dataset.needsLength === "true" && shapeData.lengthC > 0) {
+      lengthCDisplay.classList.remove("hidden");
+      const lengthEl = document.getElementById(
+        currentShapeTarget + "SelectedLengthC",
+      );
+      if (lengthEl) lengthEl.textContent = shapeData.lengthC + "mm";
+    } else {
+      lengthCDisplay.classList.add("hidden");
+    }
   }
 
   // Show/hide Custom Name based on shape
   const customNameDisplay = document.getElementById(
-    currentShapeTarget + "CustomNameDisplay"
+    currentShapeTarget + "CustomNameDisplay",
   );
-  if (selectedShape.dataset.value === "custom" && shapeData.customName) {
-    customNameDisplay.classList.remove("hidden");
-    document.getElementById(
-      currentShapeTarget + "SelectedCustomName"
-    ).textContent = shapeData.customName;
-  } else {
-    customNameDisplay.classList.add("hidden");
+  if (customNameDisplay) {
+    if (selectedShape && selectedShape.dataset.value === "custom" && shapeData.customName) {
+      customNameDisplay.classList.remove("hidden");
+      const customNameEl = document.getElementById(
+        currentShapeTarget + "SelectedCustomName",
+      );
+      if (customNameEl) customNameEl.textContent = shapeData.customName;
+    } else {
+      customNameDisplay.classList.add("hidden");
+    }
   }
 
   // Update reference and template
-  document.getElementById(currentShapeTarget + "ShapeRef").textContent =
-    shapeData.reference || "-";
-  document.getElementById(currentShapeTarget + "TemplateFile").textContent =
-    shapeData.templateFile ? shapeData.templateFile.name : "-";
+  const shapeRefEl = document.getElementById(
+    currentShapeTarget + "ShapeRef",
+  );
+  if (shapeRefEl) shapeRefEl.textContent = shapeData.reference || "-";
+  const templateEl = document.getElementById(
+    currentShapeTarget + "TemplateFile",
+  );
+  if (templateEl) {
+    templateEl.textContent = shapeData.templateFile
+      ? shapeData.templateFile.name
+      : "-";
+  }
 
   // Update calculated values
-  document.getElementById(currentShapeTarget + "ShapeArea").textContent =
-    area.toFixed(3) + " m²";
-  document.getElementById(currentShapeTarget + "ShapeLinear").textContent =
-    linear.toFixed(3) + " m";
-  document.getElementById(currentShapeTarget + "ShapeWeight").textContent =
-    weight.toFixed(2) + " kg";
-  document.getElementById(currentShapeTarget + "ShapeCost").textContent =
-    "£" + totalCost.toFixed(2);
+  const areaEl = document.getElementById(currentShapeTarget + "ShapeArea");
+  if (areaEl) areaEl.textContent = area.toFixed(3) + " m²";
+  const linearEl = document.getElementById(currentShapeTarget + "ShapeLinear");
+  if (linearEl) linearEl.textContent = linear.toFixed(3) + " m";
+  const weightEl2 = document.getElementById(currentShapeTarget + "ShapeWeight");
+  if (weightEl2) weightEl2.textContent = weight.toFixed(2) + " kg";
+  const costEl2 = document.getElementById(currentShapeTarget + "ShapeCost");
+  if (costEl2) costEl2.textContent = "£" + totalCost.toFixed(2);
 }
 
 function updateShapeCalculations() {
@@ -2592,10 +3251,12 @@ function updateShapeCalculations() {
   const weight = calculateWeight(area);
 
   // Update modal calculations
-  document.getElementById("calculatedArea").textContent = area.toFixed(3);
-  document.getElementById("calculatedLinear").textContent = linear.toFixed(3);
-  document.getElementById("calculatedWeight").textContent = weight.toFixed(2);
-  document.getElementById("calculatedArea").textContent = area.toFixed(3);
+  const areaEl = document.getElementById("calculatedArea");
+  if (areaEl) areaEl.textContent = area.toFixed(3);
+  const linearEl = document.getElementById("calculatedLinear");
+  if (linearEl) linearEl.textContent = linear.toFixed(3);
+  const weightEl = document.getElementById("calculatedWeight");
+  if (weightEl) weightEl.textContent = weight.toFixed(2);
 
   // Calculate costs (simplified)
   let glassCost = 0;
@@ -2609,12 +3270,12 @@ function updateShapeCalculations() {
   const shapeCost = getShapeCost();
   const oversizeCost = getOversizeCost();
 
-  document.getElementById("calculatedGlassCost").textContent =
-    glassCost.toFixed(2);
-  document.getElementById("calculatedShapeCost").textContent =
-    shapeCost.toFixed(2);
-  document.getElementById("calculatedOversizeCost").textContent =
-    oversizeCost.toFixed(2);
+  const glassCostEl = document.getElementById("calculatedGlassCost");
+  if (glassCostEl) glassCostEl.textContent = glassCost.toFixed(2);
+  const shapeCostEl = document.getElementById("calculatedShapeCost");
+  if (shapeCostEl) shapeCostEl.textContent = shapeCost.toFixed(2);
+  const oversizeCostEl = document.getElementById("calculatedOversizeCost");
+  if (oversizeCostEl) oversizeCostEl.textContent = oversizeCost.toFixed(2);
 }
 
 function calculateShapeArea() {
@@ -2789,15 +3450,11 @@ function openGlassModal(target) {
   modal.classList.remove("hidden");
 }
 
-
-
 function closeGlassModal() {
   document.getElementById("glassModal").classList.add("hidden");
   currentModalTarget = "";
   selectedOption = null;
 }
-
-
 
 function selectGlassOption() {
   if (!selectedOption) {
@@ -2877,8 +3534,6 @@ function selectGlassOption() {
   closeGlassModal();
 }
 
-
-
 // Add event listeners for glass options
 document.addEventListener("DOMContentLoaded", function () {
   document.querySelectorAll(".glass-option").forEach((option) => {
@@ -2951,7 +3606,7 @@ function handleFileUpload(input, previewId) {
   const file = input.files[0];
   const preview = document.getElementById(previewId);
   const fileName = document.getElementById(
-    previewId.replace("Preview", "FileName")
+    previewId.replace("Preview", "FileName"),
   );
 
   if (file) {
@@ -2970,41 +3625,24 @@ function handleFileUpload(input, previewId) {
 // Corner and hole option functionality
 function toggleSingleHoleOptions() {
   const holesSelect = document.getElementById("singleHoles");
-  const cornerRadio = document.querySelector('input[name="singleCorners"]:checked');
-  const customOptions = document.getElementById("singleCustomHoleOptions");
-
-  // Bail out if elements don't exist (not on single unit page)
-  if (!holesSelect || !cornerRadio || !customOptions) return;
-
   const selectedHole = holesSelect.value;
-  const selectedCorner = cornerRadio.value;
 
-  // Reset holes select when corner type changes
-  if (selectedCorner === 'straight' || selectedCorner === 'dubbed') {
-    // Remove custom option if straight or dubbed is selected
-    Array.from(holesSelect.options).forEach(option => {
-      if (option.value === 'custom') {
-        holesSelect.removeChild(option);
-      }
-    });
-  } else {
-    // Add custom option back if it doesn't exist
-    if (!Array.from(holesSelect.options).some(option => option.value === 'custom')) {
-      const customOption = new Option('Custom', 'custom');
-      holesSelect.add(customOption);
-    }
+  // Open appropriate modal based on selection
+  if (selectedHole === "mounting-holes") {
+    openHoleModal("mountingHolesModal");
+  } else if (selectedHole === "centre-hole") {
+    openHoleModal("centreHoleModal");
+  } else if (selectedHole === "pet-flap") {
+    openHoleModal("petFlapModal");
+  } else if (selectedHole === "custom-hole") {
+    openHoleModal("customHoleModal");
   }
-  // Show/hide custom options panel
-  if (selectedHole === "custom") {
-    customOptions.classList.remove("hidden");
-  } else {
-    customOptions.classList.add("hidden");
-    const customHoleSize = document.getElementById("singleCustomHoleSize");
-    if (customHoleSize) customHoleSize.value = "";
-  }
+
+  // Reset selection after opening modal
+  setTimeout(() => {
+    holesSelect.value = "";
+  }, 100);
 }
-
-
 
 // Update the event listeners to include corner change handling
 document.addEventListener("DOMContentLoaded", function () {
@@ -3037,5 +3675,147 @@ document.addEventListener("DOMContentLoaded", function () {
 
 // Pattern selection is now handled via the Pattern Glass Modal (openPatternModal, selectPatternOption functions)
 
+// Hole modal functions
+function openHoleModal(modalId) {
+  document.getElementById(modalId).classList.remove("hidden");
+}
 
+function closeHoleModal(modalId) {
+  document.getElementById(modalId).classList.add("hidden");
+  // Reset form fields
+  resetHoleModal(modalId);
+}
 
+function resetHoleModal(modalId) {
+  if (modalId === "mountingHolesModal") {
+    document
+      .querySelectorAll(".location-btn")
+      .forEach((btn) => btn.classList.remove("border-blue-500", "bg-blue-50"));
+    document.getElementById("mountingHoleSize").value = "";
+  } else if (modalId === "centreHoleModal") {
+    document.getElementById("centreHoleSize").value = "";
+  } else if (modalId === "petFlapModal") {
+    document.getElementById("petFlapWidth").value = "";
+    document.getElementById("petFlapHeight").value = "";
+    document.getElementById("petFlapDiameter").value = "";
+    document.getElementById("petFlapDiameterError").classList.add("hidden");
+  } else if (modalId === "customHoleModal") {
+    document.getElementById("customHoleWidth").value = "";
+    document.getElementById("customHoleHeight").value = "";
+    document.getElementById("customHoleDiameter").value = "";
+    document.getElementById("customHoleDiameterError").classList.add("hidden");
+  }
+}
+
+// Diameter validation function - shows error if limit exceeded
+function validateDiameter(inputId, maxValue) {
+  const input = document.getElementById(inputId);
+  const errorElementId = inputId.replace("Diameter", "DiameterError");
+  const errorElement = document.getElementById(errorElementId);
+  const value = parseFloat(input.value);
+
+  if (value > maxValue) {
+    errorElement.textContent = `Diameter cannot exceed ${maxValue}mm`;
+    errorElement.classList.remove("hidden");
+    // Auto-reset the input to max value
+    input.value = maxValue;
+  } else {
+    errorElement.classList.add("hidden");
+  }
+}
+
+function selectMountingLocation(location) {
+  // Remove previous selection
+  document.querySelectorAll(".location-btn").forEach((btn) => {
+    btn.classList.remove("border-blue-500", "bg-blue-50");
+  });
+  // Add selection to clicked button
+  event.target
+    .closest(".location-btn")
+    .classList.add("border-blue-500", "bg-blue-50");
+}
+
+function saveMountingHoles() {
+  const location = document.querySelector(".location-btn.border-blue-500");
+  const size = document.getElementById("mountingHoleSize").value;
+
+  if (!location || !size) {
+    alert("Please select both location and size");
+    return;
+  }
+
+  const locationText = location.textContent.trim();
+  // Here you can add logic to save the mounting holes data
+  console.log("Mounting Holes saved:", { location: locationText, size: size });
+
+  closeHoleModal("mountingHolesModal");
+  // You can add code here to update the UI or store the selection
+}
+
+function saveCentreHole() {
+  const size = document.getElementById("centreHoleSize").value;
+
+  if (!size) {
+    alert("Please select a hole size");
+    return;
+  }
+
+  // Here you can add logic to save the centre hole data
+  console.log("Centre Hole saved:", { size: size });
+
+  closeHoleModal("centreHoleModal");
+  // You can add code here to update the UI or store the selection
+}
+
+function savePetFlap() {
+  const width = document.getElementById("petFlapWidth").value;
+  const height = document.getElementById("petFlapHeight").value;
+  const diameter = document.getElementById("petFlapDiameter").value;
+  const maxDiameter = 150;
+
+  if (!width || !height || !diameter) {
+    alert("Please fill in all fields");
+    return;
+  }
+
+  if (parseFloat(diameter) > maxDiameter) {
+    alert(`Diameter cannot exceed ${maxDiameter}mm`);
+    return;
+  }
+
+  // Here you can add logic to save the pet flap data
+  console.log("Pet Flap saved:", {
+    width: width,
+    height: height,
+    diameter: diameter,
+  });
+
+  closeHoleModal("petFlapModal");
+  // You can add code here to update the UI or store the selection
+}
+
+function saveCustomHole() {
+  const width = document.getElementById("customHoleWidth").value;
+  const height = document.getElementById("customHoleHeight").value;
+  const diameter = document.getElementById("customHoleDiameter").value;
+  const maxDiameter = 150;
+
+  if (!width || !height || !diameter) {
+    alert("Please fill in all fields");
+    return;
+  }
+
+  if (parseFloat(diameter) > maxDiameter) {
+    alert(`Diameter cannot exceed ${maxDiameter}mm`);
+    return;
+  }
+
+  // Here you can add logic to save the custom hole data
+  console.log("Custom Hole saved:", {
+    width: width,
+    height: height,
+    diameter: diameter,
+  });
+
+  closeHoleModal("customHoleModal");
+}
