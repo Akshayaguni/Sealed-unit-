@@ -235,12 +235,16 @@
         border-radius: 8px;
         max-width: 400px;
         text-align: center;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
       }
 
       .info-modal img {
         max-width: 100%;
         height: auto;
         margin-bottom: 10px;
+        max-height: 220px;
       }
 
       .info-modal p {
@@ -254,6 +258,20 @@
         padding: 8px 16px;
         border-radius: 4px;
         cursor: pointer;
+      }
+
+      @media (max-width: 640px) {
+        .info-modal-content {
+          padding: 16px;
+        }
+
+        .info-modal-content img {
+          max-height: 140px;
+        }
+
+        .info-modal button {
+          width: 100%;
+        }
       }
 
       .success-popup .popup-title {
@@ -358,8 +376,13 @@
         <div class="bg-white rounded-lg p-1 sm:p-2 shadow-lg w-full max-w-8xl">
           <div class="flex flex-col sm:flex-row gap-1 sm:gap-2 justify-center">
             <a
-              href="singleunit.html"
+              id="singleTab"
+              href="#"
               class="tab-btn tab-active px-3 sm:px-6 py-3 sm:py-4 rounded-lg font-semibold transition-all duration-300 text-sm sm:text-base flex flex-col items-center gap-2"
+              onclick="
+                switchTab('single');
+                return false;
+              "
             >
               <img
                 src="/views/single unit.jpeg"
@@ -369,8 +392,13 @@
               <span>Single Unit</span>
             </a>
             <a
-              href="doubleglazed.html"
+              id="doubleTab"
+              href="#"
               class="tab-btn px-3 sm:px-6 py-3 sm:py-4 rounded-lg font-semibold transition-all duration-300 text-sm sm:text-base flex flex-col items-center gap-2 hover:bg-gray-50"
+              onclick="
+                switchTab('double');
+                return false;
+              "
             >
               <img
                 src="/views/double.jpeg"
@@ -380,8 +408,13 @@
               <span>Double Glazed</span>
             </a>
             <a
-              href="tripleglazed.html"
+              id="tripleTab"
+              href="#"
               class="tab-btn px-3 sm:px-6 py-3 sm:py-4 rounded-lg font-semibold transition-all duration-300 text-sm sm:text-base flex flex-col items-center gap-2 hover:bg-gray-50"
+              onclick="
+                switchTab('triple');
+                return false;
+              "
             >
               <img
                 src="/views/triple.jpeg"
@@ -491,6 +524,38 @@
                       </div>
                       <p class="text-xs text-center text-gray-500 mt-1">
                         Colour
+                      </p>
+                    </div>
+                    <!-- Polished Image -->
+                    <div class="flex-shrink-0">
+                      <div
+                        class="w-20 h-20 rounded-lg border-2 border-blue-200 bg-white p-1 shadow-sm"
+                      >
+                        <img
+                          id="singleConfigPolishedImg"
+                          src="/views/polished-glass.png"
+                          alt="Polished"
+                          class="w-full h-full object-contain rounded"
+                        />
+                      </div>
+                      <p class="text-xs text-center text-gray-500 mt-1">
+                        Polished
+                      </p>
+                    </div>
+                    <!-- Toughened Image -->
+                    <div class="flex-shrink-0">
+                      <div
+                        class="w-20 h-20 rounded-lg border-2 border-blue-200 bg-white p-1 shadow-sm"
+                      >
+                        <img
+                          id="singleConfigToughenedImg"
+                          src="/views/Toughened-glass.png"
+                          alt="Toughened"
+                          class="w-full h-full object-contain rounded"
+                        />
+                      </div>
+                      <p class="text-xs text-center text-gray-500 mt-1">
+                        Toughened
                       </p>
                     </div>
                     <!-- Text Summary -->
@@ -853,7 +918,7 @@
                 >
                   <div class="flex items-center">
                     <img
-                      src="views\2.jpg"
+                      src="/views/polished-glass.png"
                       alt="Polished"
                       class="w-5 h-5 mr-2"
                     />
@@ -892,7 +957,7 @@
                 >
                   <div class="flex items-center">
                     <img
-                      src="\views\2.jpg"
+                      src="/views/Toughened-glass.png"
                       alt="Toughened"
                       class="w-5 h-5 mr-2"
                     />
@@ -1271,9 +1336,15 @@
 
               <!-- Cut-Outs (Single Glass Panel) -->
               <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 mb-2"
-                  >Cut-Outs Required</label
-                >
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Cut-Outs Required
+                  <button
+                    class="info-btn"
+                    onclick="openInfoModal('cutOutsModal')"
+                  >
+                    ℹ️
+                  </button>
+                </label>
                 <div class="flex items-center gap-6 mb-4">
                   <label class="inline-flex items-center">
                     <input
@@ -1712,11 +1783,18 @@
                 <div
                   class="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
                 >
-                  <div>
-                    <p class="font-medium text-gray-800">Toughened Glass</p>
-                    <p class="text-sm text-gray-600">
-                      Required for double glazed glass
-                    </p>
+                  <div class="flex items-center">
+                    <img
+                      src="/views/Toughened-glass.png"
+                      alt="Toughened"
+                      class="w-5 h-5 mr-2"
+                    />
+                    <div>
+                      <p class="font-medium text-gray-800">Toughened Glass</p>
+                      <p class="text-sm text-gray-600">
+                        Required for double glazed glass
+                      </p>
+                    </div>
                   </div>
                   <label
                     class="relative inline-flex items-center cursor-not-allowed"
@@ -1913,6 +1991,7 @@
                     </div>
                     <!-- Change Button -->
                     <button
+                      id="doubleShapeChangeBtn"
                       type="button"
                       onclick="openShapeModal('double')"
                       class="flex-shrink-0 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
@@ -2204,11 +2283,18 @@
                 <div
                   class="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
                 >
-                  <div>
-                    <p class="font-medium text-gray-800">Toughened Glass</p>
-                    <p class="text-sm text-gray-600">
-                      Required for triple glazed glass
-                    </p>
+                  <div class="flex items-center">
+                    <img
+                      src="/views/Toughened-glass.png"
+                      alt="Toughened"
+                      class="w-5 h-5 mr-2"
+                    />
+                    <div>
+                      <p class="font-medium text-gray-800">Toughened Glass</p>
+                      <p class="text-sm text-gray-600">
+                        Required for triple glazed glass
+                      </p>
+                    </div>
                   </div>
                   <label
                     class="relative inline-flex items-center cursor-not-allowed"
@@ -2758,97 +2844,6 @@
               />
             </div>
 
-            <!-- Cut-Outs Required -->
-            <div class="mb-4">
-              <span class="block text-sm font-medium text-gray-700 mb-2"
-                >Cut-Outs Required</span
-              >
-              <div class="flex items-center gap-6">
-                <label class="inline-flex items-center">
-                  <input
-                    type="radio"
-                    name="cutoutsRequired"
-                    value="yes"
-                    class="form-radio h-4 w-4 text-blue-600"
-                    onclick="toggleCutoutsOptions(true)"
-                  />
-                  <span class="ml-2 text-sm">Yes</span>
-                </label>
-                <label class="inline-flex items-center">
-                  <input
-                    type="radio"
-                    name="cutoutsRequired"
-                    value="no"
-                    class="form-radio h-4 w-4 text-blue-600"
-                    onclick="toggleCutoutsOptions(false)"
-                    checked
-                  />
-                  <span class="ml-2 text-sm">No</span>
-                </label>
-              </div>
-            </div>
-
-            <!-- Cut-Out Options -->
-            <div id="cutoutsOptions" class="mb-4 hidden">
-              <span class="block text-sm font-medium text-gray-700 mb-2"
-                >Select Cut-Out Types</span
-              >
-              <div class="grid grid-cols-2 gap-4">
-                <label class="flex flex-col items-center text-xs">
-                  <img
-                    src="/views/boxcut.png"
-                    alt="Boxcut"
-                    class="w-16 h-16 mb-1"
-                  />
-                  <input
-                    type="checkbox"
-                    id="cutoutBoxcut"
-                    class="form-checkbox h-4 w-4 text-blue-600"
-                  />
-                  Boxcut
-                </label>
-                <label class="flex flex-col items-center text-xs">
-                  <img
-                    src="/views/corner_notch.png"
-                    alt="Corner Notch"
-                    class="w-16 h-16 mb-1"
-                  />
-                  <input
-                    type="checkbox"
-                    id="cutoutCornerNotch"
-                    class="form-checkbox h-4 w-4 text-blue-600"
-                  />
-                  Corner Notch
-                </label>
-                <label class="flex flex-col items-center text-xs">
-                  <img
-                    src="/views/edge_notch.png"
-                    alt="Edge Notch"
-                    class="w-16 h-16 mb-1"
-                  />
-                  <input
-                    type="checkbox"
-                    id="cutoutEdgeNotch"
-                    class="form-checkbox h-4 w-4 text-blue-600"
-                  />
-                  Edge Notch
-                </label>
-                <label class="flex flex-col items-center text-xs">
-                  <img
-                    src="/views/hinge_notch.png"
-                    alt="Hinge"
-                    class="w-16 h-16 mb-1"
-                  />
-                  <input
-                    type="checkbox"
-                    id="cutoutHinge"
-                    class="form-checkbox h-4 w-4 text-blue-600"
-                  />
-                  Hinge
-                </label>
-              </div>
-            </div>
-
             <!-- Calculated Values -->
             <div class="bg-gray-50 rounded-lg p-4 space-y-2">
               <div class="flex justify-between text-sm">
@@ -3078,8 +3073,9 @@
     <div id="customHoleSizeModal" class="info-modal hidden">
       <div class="info-modal-content">
         <img
-          src="https://via.placeholder.com/300x150?text=Custom+Hole+Size"
+          src="/views/circle.jpg"
           alt="Custom Hole Size"
+          class="mb-3 w-full object-contain rounded"
         />
         <p>
           Specify the size of custom holes required for your glass panel. This
@@ -3092,8 +3088,9 @@
     <div id="customColourModal" class="info-modal hidden">
       <div class="info-modal-content">
         <img
-          src="https://via.placeholder.com/300x150?text=Custom+Colour+Code"
+          src="/views/tint-grey.jpg"
           alt="Custom Colour Code"
+          class="mb-3 w-full object-contain rounded"
         />
         <p>
           Enter a custom colour code to match your design requirements. This
@@ -3106,8 +3103,9 @@
     <div id="shapeTypeModal" class="info-modal hidden">
       <div class="info-modal-content">
         <img
-          src="https://via.placeholder.com/300x150?text=Shape+Type"
+          src="/views/Square.jpg"
           alt="Shape Type"
+          class="mb-3 w-full object-contain rounded"
         />
         <p>
           Choose from various shape options including rectangular, circular, and
@@ -3117,11 +3115,28 @@
       </div>
     </div>
 
+    <div id="cutOutsModal" class="info-modal hidden">
+      <div class="info-modal-content">
+        <img
+          src="/views/12.jpg"
+          alt="Cut-Outs"
+          class="mb-3 w-full object-contain rounded"
+        />
+        <p>
+          Select cut-out types like boxcuts, notches, hinges, or holes. Provide
+          counts and sizes so the panel can be manufactured to fit hardware or
+          fittings.
+        </p>
+        <button onclick="closeInfoModal('cutOutsModal')">Close</button>
+      </div>
+    </div>
+
     <div id="templateFileModal" class="info-modal hidden">
       <div class="info-modal-content">
         <img
-          src="https://via.placeholder.com/300x150?text=Template+File"
+          src="/views/Qad.jpg"
           alt="Template File"
+          class="mb-3 w-full object-contain rounded"
         />
         <p>
           Upload a template file to define the exact specifications of your
@@ -3134,8 +3149,9 @@
     <div id="tuckboxExtrasModal" class="info-modal hidden">
       <div class="info-modal-content">
         <img
-          src="https://via.placeholder.com/300x150?text=Tuckbox+Extras"
+          src="/views/10.jpg"
           alt="Tuckbox Extras"
+          class="mb-3 w-full object-contain rounded"
         />
         <p>
           Add extra features to your tuckbox such as reinforced corners or
@@ -3148,8 +3164,9 @@
     <div id="cornersModal" class="info-modal hidden">
       <div class="info-modal-content">
         <img
-          src="https://via.placeholder.com/300x150?text=Corners"
+          src="/views/cnr-radius.jpg"
           alt="Corners"
+          class="mb-3 w-full object-contain rounded"
         />
         <p>
           Select corner options including rounded, beveled, or sharp edges to
@@ -3162,8 +3179,9 @@
     <div id="additionalFeaturesModal" class="info-modal hidden">
       <div class="info-modal-content">
         <img
-          src="https://via.placeholder.com/300x150?text=Additional+Features"
+          src="/views/11.jpg"
           alt="Additional Features"
+          class="mb-3 w-full object-contain rounded"
         />
         <p>
           Choose additional features such as holes, notches, or engravings to

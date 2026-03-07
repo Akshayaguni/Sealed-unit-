@@ -597,7 +597,11 @@
                         </div>
 
                         <div class="mb-6">
-                            <label class="block text-sm font-medium text-gray-700 mb-3">Select Shape *</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">Select Shape *
+                                <button class="info-btn" onclick="openInfoModal('shapeTypeModal')">
+                                    ℹ️
+                                </button>
+                            </label>
                             <button type="button" id="singleShapeBtn"
                                 class="input-field w-full text-left flex items-center justify-between"
                                 onclick="openShapeModal('single')">
@@ -612,65 +616,77 @@
                             <div id="singleShapeError" class="error-message hidden">Please select a shape</div>
 
                             <!-- Shape Details Display -->
-                            <div id="singleShapeDetails" class="mt-4 p-4 bg-gray-50 rounded-lg hidden">
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                                    <div>
-                                        <span class="font-medium text-gray-700">Shape:</span>
-                                        <img id="singleSelectedShapeImg" src="" alt=""
-                                            class="w-20 h-12 object-contain inline-block mr-2 hidden">
-                                        <span id="singleSelectedShape" class="text-blue-600">-</span>
-                                    </div>
-                                    <div>
-                                        <span class="font-medium text-gray-700">Rotation:</span>
-                                        <span id="singleSelectedRotation" class="text-blue-600">0°</span>
-                                    </div>
-                                    <div>
-                                        <span class="font-medium text-gray-700">Width A:</span>
-                                        <span id="singleSelectedWidth" class="text-blue-600">-</span>
-                                    </div>
-                                    <div>
-                                        <span class="font-medium text-gray-700">Height A:</span>
-                                        <span id="singleSelectedHeight" class="text-blue-600">-</span>
-                                    </div>
-                                    <div id="singleLengthCDisplay" class="hidden">
-                                        <span class="font-medium text-gray-700">Length C:</span>
-                                        <span id="singleSelectedLengthC" class="text-blue-600">-</span>
-                                    </div>
-                                    <div id="singleCustomNameDisplay" class="hidden">
-                                        <span class="font-medium text-gray-700">Custom Name:</span>
-                                        <span id="singleSelectedCustomName" class="text-blue-600">-</span>
-                                    </div>
-                                    <div>
-                                        <span class="font-medium text-gray-700">Reference:</span>
-                                        <span id="singleShapeRef" class="text-gray-600">-</span>
-                                    </div>
-                                    <div>
-                                        <span class="font-medium text-gray-700">Template:</span>
-                                        <span id="singleTemplateFile" class="text-gray-600">-</span>
-                                    </div>
-                                </div>
-                                <div class="border-t pt-3 mt-3">
-                                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-                                        <div>
-                                            <span class="font-medium text-gray-700">Area:</span>
-                                            <span id="singleShapeArea" class="text-green-600 font-semibold">0.000
-                                                m²</span>
+                            <div id="singleShapeDetails"
+                                class="mt-4 p-4 bg-gradient-to-r from-blue-50 to-gray-50 rounded-xl border border-blue-100 hidden">
+                                <div class="flex items-start gap-4">
+                                    <!-- Shape Image -->
+                                    <div class="flex-shrink-0">
+                                        <div
+                                            class="w-20 h-20 rounded-lg border-2 border-blue-200 bg-white p-1 shadow-sm overflow-hidden flex items-center justify-center">
+                                            <img id="singleSelectedShapeImg" src="" alt="Shape"
+                                                class="max-w-full max-h-full object-contain">
                                         </div>
-                                        <div>
-                                            <span class="font-medium text-gray-700">Linear:</span>
-                                            <span id="singleShapeLinear" class="text-green-600 font-semibold">0.000
-                                                m</span>
+                                        <p class="text-xs text-center text-gray-500 mt-1">Shape</p>
+                                    </div>
+                                    <!-- Text Summary -->
+                                    <div class="flex-1 pt-2">
+                                        <p id="singleConfigShapeSummary" class="font-semibold text-gray-800 text-lg">
+                                            Not configured
+                                        </p>
+                                        <p id="singleConfigShapeDetails" class="text-sm text-gray-600 mt-1"></p>
+                                        <div class="mt-3 grid grid-cols-2 gap-2 text-xs text-gray-600">
+                                            <div>
+                                                <span class="font-medium">Rotation:</span>
+                                                <span id="singleSelectedRotation">0°</span>
+                                            </div>
+                                            <div>
+                                                <span class="font-medium">Width A:</span>
+                                                <span id="singleSelectedWidth">-</span>
+                                            </div>
+                                            <div>
+                                                <span class="font-medium">Height A:</span>
+                                                <span id="singleSelectedHeight">-</span>
+                                            </div>
+                                            <div id="singleLengthCDisplay" class="hidden">
+                                                <span class="font-medium">Length C:</span>
+                                                <span id="singleSelectedLengthC">-</span>
+                                            </div>
+                                            <div>
+                                                <span class="font-medium">Reference:</span>
+                                                <span id="singleShapeRef">-</span>
+                                            </div>
+                                            <div>
+                                                <span class="font-medium">Template:</span>
+                                                <span id="singleTemplateFile">-</span>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <span class="font-medium text-gray-700">Weight:</span>
-                                            <span id="singleShapeWeight" class="text-green-600 font-semibold">0.00
-                                                kg</span>
-                                        </div>
-                                        <div>
-                                            <span class="font-medium text-gray-700">Total Cost:</span>
-                                            <span id="singleShapeCost" class="text-green-600 font-semibold">£0.00</span>
+                                        <div class="mt-3 pt-3 border-t grid grid-cols-2 gap-2 text-xs">
+                                            <div>
+                                                <span class="font-medium text-gray-700">Area:</span>
+                                                <span id="singleShapeArea" class="text-green-600 font-semibold">0.000
+                                                    m²</span>
+                                            </div>
+                                            <div>
+                                                <span class="font-medium text-gray-700">Linear:</span>
+                                                <span id="singleShapeLinear" class="text-green-600 font-semibold">0.000
+                                                    m</span>
+                                            </div>
+                                            <div>
+                                                <span class="font-medium text-gray-700">Weight:</span>
+                                                <span id="singleShapeWeight" class="text-green-600 font-semibold">0.00
+                                                    kg</span>
+                                            </div>
+                                            <div>
+                                                <span class="font-medium text-gray-700">Total Cost:</span>
+                                                <span id="singleShapeCost" class="text-green-600 font-semibold">£0.00</span>
+                                            </div>
                                         </div>
                                     </div>
+                                    <!-- Change Button -->
+                                    <button type="button" onclick="openShapeModal('single')"
+                                        class="flex-shrink-0 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+                                        Change
+                                    </button>
                                 </div>
                             </div>
                         </div>

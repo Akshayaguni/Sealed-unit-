@@ -123,18 +123,142 @@ document.addEventListener("DOMContentLoaded", function () {
   initializeTabs();
   initializeEventListeners();
   initializeShapeModalListeners();
+  setupFormStatePersistence();
+  // Clear saved form state on every load
+  localStorage.removeItem(getFormStateKey());
+  restoreFormState();
   calculatePrice();
 });
+
+const FORM_STATE_KEY_PREFIX = "glassFormState_";
+
+function getFormStateKey() {
+  return FORM_STATE_KEY_PREFIX + currentTab;
+}
+
+function setupFormStatePersistence() {
+  const fields = document.querySelectorAll("input, select, textarea");
+  fields.forEach((field) => {
+    if (field.type === "file") return;
+    field.addEventListener("input", saveFormState);
+    field.addEventListener("change", saveFormState);
+  });
+  window.addEventListener("beforeunload", saveFormState);
+}
+
+function saveFormState() {
+  const state = {
+    inputs: {},
+    checks: {},
+    radios: {},
+    selects: {},
+    textareas: {},
+    shape: {
+      value: "",
+      target: currentTab,
+      data: { ...shapeData },
+    },
+  };
+
+  document.querySelectorAll("input").forEach((input) => {
+    if (!input.id && !input.name) return;
+    if (input.type === "file") return;
+    if (input.type === "radio") {
+      if (input.checked && input.name) {
+        state.radios[input.name] = input.value;
+      }
+      return;
+    }
+    if (input.type === "checkbox") {
+      if (input.id) state.checks[input.id] = input.checked;
+      return;
+    }
+    if (input.id) state.inputs[input.id] = input.value;
+  });
+
+  document.querySelectorAll("select").forEach((select) => {
+    if (select.id) state.selects[select.id] = select.value;
+  });
+
+  document.querySelectorAll("textarea").forEach((textarea) => {
+    if (textarea.id) state.textareas[textarea.id] = textarea.value;
+  });
+
+  const shapeInput = document.getElementById(currentTab + "Shape");
+  if (shapeInput) state.shape.value = shapeInput.value || "";
+
+  localStorage.setItem(getFormStateKey(), JSON.stringify(state));
+}
+
+function restoreFormState() {
+  const raw = localStorage.getItem(getFormStateKey());
+  if (!raw) return;
+  let state = null;
+  try {
+    state = JSON.parse(raw);
+  } catch (error) {
+    return;
+  }
+  if (!state) return;
+
+  Object.keys(state.inputs || {}).forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.value = state.inputs[id];
+  });
+  Object.keys(state.selects || {}).forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.value = state.selects[id];
+  });
+  Object.keys(state.textareas || {}).forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.value = state.textareas[id];
+  });
+  Object.keys(state.checks || {}).forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.checked = state.checks[id];
+  });
+  Object.keys(state.radios || {}).forEach((name) => {
+    const el = document.querySelector(
+      `input[type="radio"][name="${name}"][value="${state.radios[name]}"]`,
+    );
+    if (el) el.checked = true;
+  });
+
+  if (state.shape && state.shape.data) {
+    shapeData = { ...shapeData, ...state.shape.data };
+  }
+
+  const shapeValue = state.shape ? state.shape.value : "";
+  const target = currentTab;
+  if (shapeValue) {
+    const shapeInput = document.getElementById(target + "Shape");
+    const shapeText = document.getElementById(target + "ShapeText");
+    const detailsDiv = document.getElementById(target + "ShapeDetails");
+    if (shapeInput) shapeInput.value = shapeValue;
+    if (shapeText) {
+      const shapeItem = shapes.find((item) => item.value === shapeValue);
+      shapeText.textContent = shapeItem ? shapeItem.name : shapeValue;
+      shapeText.classList.remove("text-gray-500");
+      shapeText.classList.add("text-gray-800");
+      selectedShape = shapeItem || null;
+    }
+    if (detailsDiv) detailsDiv.classList.remove("hidden");
+
+    const rotationInput = document.getElementById("shapeRotation");
+    if (rotationInput) rotationInput.value = String(shapeData.rotation || 0);
+    updateShapeDetailsDisplay();
+  }
+}
 
 function initializeShapeModalListeners() {
   // Rotation button listeners
   document.querySelectorAll(".rotation-btn").forEach((btn) => {
     btn.addEventListener("click", function () {
-      // clear active state from all rotation buttons
+      // Clear active state from all rotation buttons
       document.querySelectorAll(".rotation-btn").forEach((b) => {
         b.classList.remove("border-blue-500", "bg-blue-50");
       });
-      // set active state on clicked button
+      // Set active state on clicked button
       this.classList.add("border-blue-500", "bg-blue-50");
 
       // set rotation value in hidden input and shapeData
@@ -229,6 +353,7 @@ function switchTab(tabId) {
     .forEach((error) => error.classList.add("hidden"));
 
   calculatePrice();
+  saveFormState();
 }
 
 // Event listeners
@@ -298,6 +423,16 @@ function initializeEventListeners() {
 
   // Add to cart button
   document.getElementById("addToCart").addEventListener("click", addToCart);
+
+  // Double shape change button (redundant to inline handler, but more reliable)
+  const doubleShapeChangeBtn = document.getElementById("doubleShapeChangeBtn");
+  if (doubleShapeChangeBtn) {
+    doubleShapeChangeBtn.addEventListener("click", function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      openShapeModal("double");
+    });
+  }
 
   // Single Corners Listener
   document.querySelectorAll('input[name="singleCorners"]').forEach((radio) => {
@@ -2709,19 +2844,25 @@ function selectShapeType(element) {
   const customContainer = document.getElementById("customShapeContainer");
   const templateContainer = document.getElementById("templateUploadContainer");
 
-  if (element.dataset.needsLength === "true") {
-    lengthContainer.classList.remove("hidden");
-  } else {
-    lengthContainer.classList.add("hidden");
+  if (lengthContainer) {
+    if (element.dataset.needsLength === "true") {
+      lengthContainer.classList.remove("hidden");
+    } else {
+      lengthContainer.classList.add("hidden");
+    }
   }
 
   // Always show the template upload option
-  templateContainer.classList.remove("hidden");
+  if (templateContainer) {
+    templateContainer.classList.remove("hidden");
+  }
 
-  if (element.dataset.value === "custom") {
-    customContainer.classList.remove("hidden");
-  } else {
-    customContainer.classList.add("hidden");
+  if (customContainer) {
+    if (element.dataset.value === "custom") {
+      customContainer.classList.remove("hidden");
+    } else {
+      customContainer.classList.add("hidden");
+    }
   }
 
   // Reset form fields only if selecting a different shape (not editing existing)
@@ -2817,10 +2958,12 @@ function selectShapeOption() {
     parseFloat(document.getElementById("shapeWidthA").value) || 0;
   shapeData.heightA =
     parseFloat(document.getElementById("shapeHeightA").value) || 0;
-  shapeData.lengthC =
-    parseFloat(document.getElementById("shapeLengthC").value) || 0;
-  shapeData.customName = document.getElementById("customShapeName").value || "";
-  shapeData.reference = document.getElementById("shapeReference").value || "";
+  const lengthEl = document.getElementById("shapeLengthC");
+  shapeData.lengthC = lengthEl ? parseFloat(lengthEl.value) || 0 : 0;
+  const customNameEl = document.getElementById("customShapeName");
+  shapeData.customName = customNameEl ? customNameEl.value || "" : "";
+  const referenceEl = document.getElementById("shapeReference");
+  shapeData.reference = referenceEl ? referenceEl.value || "" : "";
   shapeData.rotation =
     parseInt(document.getElementById("shapeRotation").value) || 0;
 
@@ -2853,12 +2996,14 @@ function selectShapeOption() {
 }
 
 function validateShapeForm() {
-  const widthA = parseFloat(document.getElementById("shapeWidthA").value) || 0;
-  const heightA =
-    parseFloat(document.getElementById("shapeHeightA").value) || 0;
-  const lengthC =
-    parseFloat(document.getElementById("shapeLengthC").value) || 0;
-  const customName = document.getElementById("customShapeName").value || "";
+  const widthEl = document.getElementById("shapeWidthA");
+  const heightEl = document.getElementById("shapeHeightA");
+  const lengthEl = document.getElementById("shapeLengthC");
+  const customNameEl = document.getElementById("customShapeName");
+  const widthA = widthEl ? parseFloat(widthEl.value) || 0 : 0;
+  const heightA = heightEl ? parseFloat(heightEl.value) || 0 : 0;
+  const lengthC = lengthEl ? parseFloat(lengthEl.value) || 0 : 0;
+  const customName = customNameEl ? customNameEl.value || "" : "";
 
   let isValid = true;
 
@@ -3028,58 +3173,76 @@ function updateShapeDetailsDisplay() {
   } else if (currentShapeTarget) {
     setSummaryShapeImage(currentShapeTarget, "", "");
   }
-  document.getElementById(currentShapeTarget + "SelectedRotation").textContent =
-    shapeData.rotation + "°";
-  document.getElementById(currentShapeTarget + "SelectedWidth").textContent =
-    shapeData.widthA + "mm";
-  document.getElementById(currentShapeTarget + "SelectedHeight").textContent =
-    shapeData.heightA + "mm";
-  document.getElementById(currentShapeTarget + "ShapeWeight").textContent =
-    weight.toFixed(2) + " kg";
-  document.getElementById(currentShapeTarget + "ShapeCost").textContent =
-    "£" + totalCost.toFixed(2);
+  const rotationEl = document.getElementById(
+    currentShapeTarget + "SelectedRotation",
+  );
+  if (rotationEl) rotationEl.textContent = shapeData.rotation + "°";
+  const widthEl = document.getElementById(currentShapeTarget + "SelectedWidth");
+  if (widthEl) widthEl.textContent = shapeData.widthA + "mm";
+  const heightEl = document.getElementById(
+    currentShapeTarget + "SelectedHeight",
+  );
+  if (heightEl) heightEl.textContent = shapeData.heightA + "mm";
+  const weightEl = document.getElementById(currentShapeTarget + "ShapeWeight");
+  if (weightEl) weightEl.textContent = weight.toFixed(2) + " kg";
+  const costEl = document.getElementById(currentShapeTarget + "ShapeCost");
+  if (costEl) costEl.textContent = "£" + totalCost.toFixed(2);
 
   // Show/hide Length C based on shape
   const lengthCDisplay = document.getElementById(
     currentShapeTarget + "LengthCDisplay",
   );
-  if (selectedShape.dataset.needsLength === "true" && shapeData.lengthC > 0) {
-    lengthCDisplay.classList.remove("hidden");
-    document.getElementById(
-      currentShapeTarget + "SelectedLengthC",
-    ).textContent = shapeData.lengthC + "mm";
-  } else {
-    lengthCDisplay.classList.add("hidden");
+  if (lengthCDisplay) {
+    if (selectedShape && selectedShape.dataset.needsLength === "true" && shapeData.lengthC > 0) {
+      lengthCDisplay.classList.remove("hidden");
+      const lengthEl = document.getElementById(
+        currentShapeTarget + "SelectedLengthC",
+      );
+      if (lengthEl) lengthEl.textContent = shapeData.lengthC + "mm";
+    } else {
+      lengthCDisplay.classList.add("hidden");
+    }
   }
 
   // Show/hide Custom Name based on shape
   const customNameDisplay = document.getElementById(
     currentShapeTarget + "CustomNameDisplay",
   );
-  if (selectedShape.dataset.value === "custom" && shapeData.customName) {
-    customNameDisplay.classList.remove("hidden");
-    document.getElementById(
-      currentShapeTarget + "SelectedCustomName",
-    ).textContent = shapeData.customName;
-  } else {
-    customNameDisplay.classList.add("hidden");
+  if (customNameDisplay) {
+    if (selectedShape && selectedShape.dataset.value === "custom" && shapeData.customName) {
+      customNameDisplay.classList.remove("hidden");
+      const customNameEl = document.getElementById(
+        currentShapeTarget + "SelectedCustomName",
+      );
+      if (customNameEl) customNameEl.textContent = shapeData.customName;
+    } else {
+      customNameDisplay.classList.add("hidden");
+    }
   }
 
   // Update reference and template
-  document.getElementById(currentShapeTarget + "ShapeRef").textContent =
-    shapeData.reference || "-";
-  document.getElementById(currentShapeTarget + "TemplateFile").textContent =
-    shapeData.templateFile ? shapeData.templateFile.name : "-";
+  const shapeRefEl = document.getElementById(
+    currentShapeTarget + "ShapeRef",
+  );
+  if (shapeRefEl) shapeRefEl.textContent = shapeData.reference || "-";
+  const templateEl = document.getElementById(
+    currentShapeTarget + "TemplateFile",
+  );
+  if (templateEl) {
+    templateEl.textContent = shapeData.templateFile
+      ? shapeData.templateFile.name
+      : "-";
+  }
 
   // Update calculated values
-  document.getElementById(currentShapeTarget + "ShapeArea").textContent =
-    area.toFixed(3) + " m²";
-  document.getElementById(currentShapeTarget + "ShapeLinear").textContent =
-    linear.toFixed(3) + " m";
-  document.getElementById(currentShapeTarget + "ShapeWeight").textContent =
-    weight.toFixed(2) + " kg";
-  document.getElementById(currentShapeTarget + "ShapeCost").textContent =
-    "£" + totalCost.toFixed(2);
+  const areaEl = document.getElementById(currentShapeTarget + "ShapeArea");
+  if (areaEl) areaEl.textContent = area.toFixed(3) + " m²";
+  const linearEl = document.getElementById(currentShapeTarget + "ShapeLinear");
+  if (linearEl) linearEl.textContent = linear.toFixed(3) + " m";
+  const weightEl2 = document.getElementById(currentShapeTarget + "ShapeWeight");
+  if (weightEl2) weightEl2.textContent = weight.toFixed(2) + " kg";
+  const costEl2 = document.getElementById(currentShapeTarget + "ShapeCost");
+  if (costEl2) costEl2.textContent = "£" + totalCost.toFixed(2);
 }
 
 function updateShapeCalculations() {
@@ -3088,10 +3251,12 @@ function updateShapeCalculations() {
   const weight = calculateWeight(area);
 
   // Update modal calculations
-  document.getElementById("calculatedArea").textContent = area.toFixed(3);
-  document.getElementById("calculatedLinear").textContent = linear.toFixed(3);
-  document.getElementById("calculatedWeight").textContent = weight.toFixed(2);
-  document.getElementById("calculatedArea").textContent = area.toFixed(3);
+  const areaEl = document.getElementById("calculatedArea");
+  if (areaEl) areaEl.textContent = area.toFixed(3);
+  const linearEl = document.getElementById("calculatedLinear");
+  if (linearEl) linearEl.textContent = linear.toFixed(3);
+  const weightEl = document.getElementById("calculatedWeight");
+  if (weightEl) weightEl.textContent = weight.toFixed(2);
 
   // Calculate costs (simplified)
   let glassCost = 0;
@@ -3105,12 +3270,12 @@ function updateShapeCalculations() {
   const shapeCost = getShapeCost();
   const oversizeCost = getOversizeCost();
 
-  document.getElementById("calculatedGlassCost").textContent =
-    glassCost.toFixed(2);
-  document.getElementById("calculatedShapeCost").textContent =
-    shapeCost.toFixed(2);
-  document.getElementById("calculatedOversizeCost").textContent =
-    oversizeCost.toFixed(2);
+  const glassCostEl = document.getElementById("calculatedGlassCost");
+  if (glassCostEl) glassCostEl.textContent = glassCost.toFixed(2);
+  const shapeCostEl = document.getElementById("calculatedShapeCost");
+  if (shapeCostEl) shapeCostEl.textContent = shapeCost.toFixed(2);
+  const oversizeCostEl = document.getElementById("calculatedOversizeCost");
+  if (oversizeCostEl) oversizeCostEl.textContent = oversizeCost.toFixed(2);
 }
 
 function calculateShapeArea() {
@@ -3653,5 +3818,4 @@ function saveCustomHole() {
   });
 
   closeHoleModal("customHoleModal");
-  // You can add code here to update the UI or store the selection
 }
