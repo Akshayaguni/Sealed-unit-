@@ -278,6 +278,85 @@
             overflow-y: auto;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
         }
+
+        @media (max-width: 768px) {
+            .shape-modal-content {
+                padding: 16px;
+                width: 95%;
+            }
+
+            .success-popup {
+                left: 12px;
+                right: 12px;
+                max-width: none;
+                transform: translateY(-16px);
+            }
+
+            .success-popup.show {
+                transform: translateY(0);
+            }
+
+            .form-section .grid-cols-4,
+            .shape-modal-content .grid-cols-4 {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .form-section .grid-cols-3,
+            .shape-modal-content .grid-cols-3 {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .form-section .grid-cols-2,
+            .shape-modal-content .grid-cols-2 {
+                grid-template-columns: repeat(1, minmax(0, 1fr));
+            }
+
+            .form-section .items-start {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .form-section .items-start .flex-shrink-0 {
+                margin-bottom: 12px;
+            }
+
+            .form-section .items-start .flex-1 {
+                width: 100%;
+            }
+
+            .selected-config-card {
+                padding: 12px;
+            }
+
+            .selected-config-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .selected-config-thumb {
+                width: 64px;
+                height: 64px;
+            }
+
+            .selected-config-card {
+                overflow-wrap: anywhere;
+                word-break: break-word;
+            }
+
+            .selected-config-card .text-lg {
+                font-size: 1rem;
+                line-height: 1.4;
+            }
+
+            .selected-config-card .text-sm {
+                font-size: 0.85rem;
+            }
+
+            .selected-config-card .grid {
+                grid-template-columns: repeat(1, minmax(0, 1fr));
+            }
+        }
     </style>
 </head>
 
@@ -318,17 +397,17 @@
         <div class="flex justify-center mb-6 lg:mb-8">
             <div class="bg-white rounded-lg p-1 sm:p-2 shadow-lg w-full max-w-8xl">
                 <div class="flex flex-col sm:flex-row gap-1 sm:gap-2 justify-center">
-                    <a href="singleunit.html" id="singleTab"
+                    <a href="final.html" id="singleTab"
                         class="tab-btn px-3 sm:px-6 py-3 sm:py-4 rounded-lg font-semibold transition-all duration-300 text-sm sm:text-base flex flex-col items-center gap-2 text-gray-600 hover:bg-gray-50">
                         <img src="/views/single unit.jpeg" alt="Single Unit" class="w-10 h-10">
                         <span>Single Unit</span>
                     </a>
-                    <a href="doubleglazed.html" id="doubleTab"
+                    <a href="final.html" id="doubleTab"
                         class="tab-btn px-3 sm:px-6 py-3 sm:py-4 rounded-lg font-semibold transition-all duration-300 text-sm sm:text-base flex flex-col items-center gap-2 text-gray-600 hover:bg-gray-50">
                         <img src="/views/double.jpeg" alt="double glazed" class="w-10 h-10">
                         <span>Double Glazed</span>
                     </a>
-                    <a href="tripleglazed.html" id="tripleTab"
+                    <a href="final.html" id="tripleTab"
                         class="tab-btn tab-active px-3 sm:px-6 py-3 sm:py-4 rounded-lg font-semibold transition-all duration-300 text-sm sm:text-base flex flex-col items-center gap-2">
                         <img src="/views/triple.jpeg" alt="triple glazed" class="w-10 h-10">
                         <span>Triple Glazed</span>
@@ -424,7 +503,7 @@
                             <div id="tripleOuterPatternError" class="error-message hidden">Please select a pattern</div>
                         </div>
 
-                        <div class="mb-6">
+                        <div class="mb-6 hidden">
                             <label class="block text-sm font-medium text-gray-700 mb-3">Spacer Bars</label>
                             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                 <div>
@@ -516,12 +595,12 @@
 
                             <!-- Shape Details Display -->
                             <div id="tripleShapeDetails"
-                                class="mt-4 p-4 bg-gradient-to-r from-blue-50 to-gray-50 rounded-xl border border-blue-100 hidden">
-                                <div class="flex items-start gap-4">
+                                class="mt-4 p-4 bg-gradient-to-r from-blue-50 to-gray-50 rounded-xl border border-blue-100 hidden selected-config-card">
+                                <div class="flex items-start gap-4 selected-config-row">
                                     <!-- Shape Image -->
                                     <div class="flex-shrink-0">
                                         <div
-                                            class="w-20 h-20 rounded-lg border-2 border-blue-200 bg-white p-1 shadow-sm overflow-hidden flex items-center justify-center">
+                                            class="w-20 h-20 rounded-lg border-2 border-blue-200 bg-white p-1 shadow-sm overflow-hidden flex items-center justify-center selected-config-thumb">
                                             <img id="tripleSelectedShapeImg" src="" alt="Shape"
                                                 class="max-w-full max-h-full object-contain">
                                         </div>
