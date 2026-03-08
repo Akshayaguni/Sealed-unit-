@@ -31,12 +31,24 @@
                 transform: scale(1.02);
             }
         }
+
+        @media (max-width: 768px) {
+            .payment-option {
+                padding: 16px;
+            }
+
+            .payment-option-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
     <div class="container mx-auto px-4 py-8 max-w-4xl">
         <header class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-gray-800">Choose Your Payment Method</h1>
+            <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800">Choose Your Payment Method</h1>
             <p class="text-gray-600 mt-2">Complete your purchase by selecting one of the options below.</p>
         </header>
 
@@ -81,7 +93,7 @@
                 <div class="space-y-6">
                     <!-- Cash on Delivery -->
                     <div class="payment-option bg-white rounded-2xl shadow-lg p-6 border-2 border-transparent cursor-pointer" onclick="selectPayment('cod')">
-                        <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center justify-between mb-4 payment-option-header">
                             <div class="flex items-center">
                                 <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center mr-4">
                                     <span class="text-white text-xl">📦</span>
@@ -103,7 +115,7 @@
 
                     <!-- Credit/Debit Cards -->
                     <div class="payment-option bg-white rounded-2xl shadow-lg p-6 border-2 border-transparent cursor-pointer" onclick="selectPayment('card')">
-                        <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center justify-between mb-4 payment-option-header">
                             <div class="flex items-center">
                                 <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center mr-4">
                                     <span class="text-white text-xl">💳</span>
@@ -139,7 +151,7 @@
 
                     <!-- Net Banking -->
                     <div class="payment-option bg-white rounded-2xl shadow-lg p-6 border-2 border-transparent cursor-pointer" onclick="selectPayment('netbanking')">
-                        <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center justify-between mb-4 payment-option-header">
                             <div class="flex items-center">
                                 <div class="w-12 h-12 bg-gradient-to-r from-teal-500 to-cyan-500 rounded-xl flex items-center justify-center mr-4">
                                     <span class="text-white text-xl">🏦</span>

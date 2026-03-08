@@ -272,6 +272,41 @@
         .info-modal button {
           width: 100%;
         }
+
+        .selected-config-card {
+          padding: 12px;
+          overflow-wrap: anywhere;
+          word-break: break-word;
+        }
+
+        .selected-config-row {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 12px;
+        }
+
+        .selected-config-thumb {
+          width: 64px;
+          height: 64px;
+        }
+
+        .selected-config-action {
+          width: 100%;
+          text-align: center;
+        }
+
+        .selected-config-card .text-lg {
+          font-size: 1rem;
+          line-height: 1.4;
+        }
+
+        .selected-config-card .text-sm {
+          font-size: 0.85rem;
+        }
+
+        .selected-config-card .grid {
+          grid-template-columns: repeat(1, minmax(0, 1fr));
+        }
       }
 
       .success-popup .popup-title {
@@ -484,13 +519,13 @@
                   >Selected Configuration</label
                 >
                 <div
-                  class="p-4 bg-gradient-to-r from-blue-50 to-gray-50 rounded-xl border border-blue-100"
+                  class="p-4 bg-gradient-to-r from-blue-50 to-gray-50 rounded-xl border border-blue-100 selected-config-card"
                 >
-                  <div class="flex items-start gap-4">
+                  <div class="flex items-start gap-4 selected-config-row">
                     <!-- Thickness Image -->
                     <div class="flex-shrink-0">
                       <div
-                        class="w-20 h-20 rounded-lg border-2 border-blue-200 bg-white p-1 shadow-sm"
+                        class="w-20 h-20 rounded-lg border-2 border-blue-200 bg-white p-1 shadow-sm selected-config-thumb"
                       >
                         <img
                           id="singleConfigThicknessImg"
@@ -509,7 +544,7 @@
                       class="flex-shrink-0 hidden"
                     >
                       <div
-                        class="w-20 h-20 rounded-lg border-2 border-blue-200 bg-white p-1 shadow-sm overflow-hidden"
+                        class="w-20 h-20 rounded-lg border-2 border-blue-200 bg-white p-1 shadow-sm overflow-hidden selected-config-thumb"
                       >
                         <img
                           id="singleConfigColourImg"
@@ -529,7 +564,7 @@
                     <!-- Polished Image -->
                     <div class="flex-shrink-0">
                       <div
-                        class="w-20 h-20 rounded-lg border-2 border-blue-200 bg-white p-1 shadow-sm"
+                        class="w-20 h-20 rounded-lg border-2 border-blue-200 bg-white p-1 shadow-sm selected-config-thumb"
                       >
                         <img
                           id="singleConfigPolishedImg"
@@ -545,7 +580,7 @@
                     <!-- Toughened Image -->
                     <div class="flex-shrink-0">
                       <div
-                        class="w-20 h-20 rounded-lg border-2 border-blue-200 bg-white p-1 shadow-sm"
+                        class="w-20 h-20 rounded-lg border-2 border-blue-200 bg-white p-1 shadow-sm selected-config-thumb"
                       >
                         <img
                           id="singleConfigToughenedImg"
@@ -575,7 +610,7 @@
                     <button
                       type="button"
                       onclick="openSingleGlassConfigModal()"
-                      class="flex-shrink-0 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                      class="flex-shrink-0 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium selected-config-action"
                     >
                       Change
                     </button>
@@ -1384,7 +1419,7 @@
                         onchange="toggleCutoutCount('boxcut', this.checked)"
                       />
                       <img
-                        src="/views/random1.jpg"
+                        src="/views/Square.jpg"
                         alt="Boxcut"
                         class="w-16 h-16 mb-1"
                       />
@@ -1402,7 +1437,7 @@
                         "
                       />
                       <img
-                        src="/views/corner_notch.png"
+                        src="/views/cnr-clipped.jpg"
                         alt="Corner Notch"
                         class="w-16 h-16 mb-1"
                       />
@@ -1418,7 +1453,7 @@
                         onchange="toggleCutoutCount('edgeNotch', this.checked)"
                       />
                       <img
-                        src="/views/edge_notch.png"
+                        src="/views/cnr-dubbed.jpg"
                         alt="Edge Notch"
                         class="w-16 h-16 mb-1"
                       />
@@ -1434,7 +1469,7 @@
                         onchange="toggleCutoutCount('hinge', this.checked)"
                       />
                       <img
-                        src="/views/hinge_notch.png"
+                        src="/views/cnr-radius.jpg"
                         alt="Hinge"
                         class="w-16 h-16 mb-1"
                       />
@@ -1505,6 +1540,23 @@
                   <option value="pet-flap">Pet Flap</option>
                   <option value="custom-hole">Custom Hole</option>
                 </select>
+                <div id="singleHolesSummary" class="mt-4 hidden">
+                  <label class="block text-sm font-medium text-gray-700 mb-2"
+                    >Selected Option</label
+                  >
+                  <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <p
+                      id="singleHolesSummaryTitle"
+                      class="font-semibold text-gray-800 text-base"
+                    >
+                      Not selected
+                    </p>
+                    <div
+                      id="singleHolesSummaryDetails"
+                      class="mt-2 text-sm text-gray-600 space-y-1"
+                    ></div>
+                  </div>
+                </div>
               </div>
 
               <!-- Tuckbox Option Extras -->
@@ -1574,6 +1626,33 @@
                       >Chrome Screws & Caps (x4)</span
                     >
                   </label>
+                </div>
+              </div>
+
+              <div id="singleExtrasSummary" class="mt-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2"
+                  >Selected Extras Summary</label
+                >
+                <div
+                  class="p-4 bg-gradient-to-r from-slate-50 to-blue-50 rounded-xl border border-blue-100"
+                >
+                  <div class="flex items-center gap-2 text-xs text-blue-700">
+                    <span
+                      class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-blue-100 text-blue-700"
+                      >✓</span
+                    >
+                    <span>Live summary</span>
+                  </div>
+                  <p
+                    id="singleExtrasSummaryTitle"
+                    class="mt-2 font-semibold text-gray-800 text-base"
+                  >
+                    None selected
+                  </p>
+                  <ul
+                    id="singleExtrasSummaryDetails"
+                    class="mt-2 text-sm text-gray-600 space-y-1 list-disc list-inside"
+                  ></ul>
                 </div>
               </div>
 
@@ -1891,13 +1970,13 @@
                 <!-- Shape Details Display -->
                 <div
                   id="doubleShapeDetails"
-                  class="mt-4 p-4 bg-gradient-to-r from-blue-50 to-gray-50 rounded-xl border border-blue-100 hidden"
+                  class="mt-4 p-4 bg-gradient-to-r from-blue-50 to-gray-50 rounded-xl border border-blue-100 hidden selected-config-card"
                 >
-                  <div class="flex items-start gap-4">
+                  <div class="flex items-start gap-4 selected-config-row">
                     <!-- Shape Image -->
                     <div class="flex-shrink-0">
                       <div
-                        class="w-20 h-20 rounded-lg border-2 border-blue-200 bg-white p-1 shadow-sm overflow-hidden flex items-center justify-center"
+                        class="w-20 h-20 rounded-lg border-2 border-blue-200 bg-white p-1 shadow-sm overflow-hidden flex items-center justify-center selected-config-thumb"
                       >
                         <img
                           id="doubleSelectedShapeImg"
@@ -2066,6 +2145,33 @@
                       class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"
                     ></div>
                   </label>
+                </div>
+              </div>
+
+              <div id="doubleExtrasSummary">
+                <label class="block text-sm font-medium text-gray-700 mb-2"
+                  >Selected Extras Summary</label
+                >
+                <div
+                  class="p-4 bg-gradient-to-r from-slate-50 to-blue-50 rounded-xl border border-blue-100"
+                >
+                  <div class="flex items-center gap-2 text-xs text-blue-700">
+                    <span
+                      class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-blue-100 text-blue-700"
+                      >✓</span
+                    >
+                    <span>Live summary</span>
+                  </div>
+                  <p
+                    id="doubleExtrasSummaryTitle"
+                    class="mt-2 font-semibold text-gray-800 text-base"
+                  >
+                    None selected
+                  </p>
+                  <ul
+                    id="doubleExtrasSummaryDetails"
+                    class="mt-2 text-sm text-gray-600 space-y-1 list-disc list-inside"
+                  ></ul>
                 </div>
               </div>
             </div>
@@ -2553,6 +2659,33 @@
                       class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"
                     ></div>
                   </label>
+                </div>
+              </div>
+
+              <div id="tripleExtrasSummary">
+                <label class="block text-sm font-medium text-gray-700 mb-2"
+                  >Selected Extras Summary</label
+                >
+                <div
+                  class="p-4 bg-gradient-to-r from-slate-50 to-blue-50 rounded-xl border border-blue-100"
+                >
+                  <div class="flex items-center gap-2 text-xs text-blue-700">
+                    <span
+                      class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-blue-100 text-blue-700"
+                      >✓</span
+                    >
+                    <span>Live summary</span>
+                  </div>
+                  <p
+                    id="tripleExtrasSummaryTitle"
+                    class="mt-2 font-semibold text-gray-800 text-base"
+                  >
+                    None selected
+                  </p>
+                  <ul
+                    id="tripleExtrasSummaryDetails"
+                    class="mt-2 text-sm text-gray-600 space-y-1 list-disc list-inside"
+                  ></ul>
                 </div>
               </div>
             </div>
@@ -3212,6 +3345,11 @@
             &times;
           </button>
         </div>
+        <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3">
+          <p class="text-sm text-amber-800">
+            Required: complete all fields before saving this option.
+          </p>
+        </div>
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2"
@@ -3288,6 +3426,11 @@
             &times;
           </button>
         </div>
+        <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3">
+          <p class="text-sm text-amber-800">
+            Required: complete all fields before saving this option.
+          </p>
+        </div>
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2"
@@ -3343,6 +3486,11 @@
           >
             &times;
           </button>
+        </div>
+        <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3">
+          <p class="text-sm text-amber-800">
+            Required: complete all fields before saving this option.
+          </p>
         </div>
         <div class="space-y-4">
           <div>
@@ -3421,6 +3569,11 @@
           >
             &times;
           </button>
+        </div>
+        <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3">
+          <p class="text-sm text-amber-800">
+            Required: complete all fields before saving this option.
+          </p>
         </div>
         <div class="space-y-4">
           <div>

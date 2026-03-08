@@ -232,6 +232,90 @@
             overflow-y: auto;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
         }
+
+        @media (max-width: 768px) {
+            .shape-modal-content {
+                padding: 16px;
+                width: 95%;
+            }
+
+            .success-popup {
+                left: 12px;
+                right: 12px;
+                max-width: none;
+                transform: translateY(-16px);
+            }
+
+            .success-popup.show {
+                transform: translateY(0);
+            }
+
+            .form-section .grid-cols-4,
+            .shape-modal-content .grid-cols-4 {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .form-section .grid-cols-3,
+            .shape-modal-content .grid-cols-3 {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .form-section .grid-cols-2,
+            .shape-modal-content .grid-cols-2 {
+                grid-template-columns: repeat(1, minmax(0, 1fr));
+            }
+
+            .form-section .items-start {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .form-section .items-start .flex-shrink-0 {
+                margin-bottom: 12px;
+            }
+
+            .form-section .items-start .flex-1 {
+                width: 100%;
+            }
+
+            .selected-config-card {
+                padding: 12px;
+            }
+
+            .selected-config-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .selected-config-thumb {
+                width: 64px;
+                height: 64px;
+            }
+
+            .selected-config-action {
+                width: 100%;
+                text-align: center;
+            }
+
+            .selected-config-card {
+                overflow-wrap: anywhere;
+                word-break: break-word;
+            }
+
+            .selected-config-card .text-lg {
+                font-size: 1rem;
+                line-height: 1.4;
+            }
+
+            .selected-config-card .text-sm {
+                font-size: 0.85rem;
+            }
+
+            .selected-config-card .grid {
+                grid-template-columns: repeat(1, minmax(0, 1fr));
+            }
+        }
     </style>
 </head>
 
@@ -272,17 +356,17 @@
         <div class="flex justify-center mb-6 lg:mb-8">
             <div class="bg-white rounded-lg p-1 sm:p-2 shadow-lg w-full max-w-8xl">
                 <div class="flex flex-col sm:flex-row gap-1 sm:gap-2 justify-center">
-                    <a href="singleunit.html"
+                    <a href="final.html"
                         class="tab-btn tab-active px-3 sm:px-6 py-3 sm:py-4 rounded-lg font-semibold transition-all duration-300 text-sm sm:text-base flex flex-col items-center gap-2">
                         <img src="/views/single unit.jpeg" alt="Single Unit" class="w-10 h-10">
                         <span>Single Unit</span>
                     </a>
-                    <a href="doubleglazed.html"
+                    <a href="final.html"
                         class="tab-btn px-3 sm:px-6 py-3 sm:py-4 rounded-lg font-semibold transition-all duration-300 text-sm sm:text-base flex flex-col items-center gap-2 hover:bg-gray-50">
                         <img src="/views/double.jpeg" alt="double glazed" class="w-10 h-10">
                         <span>Double Glazed</span>
                     </a>
-                    <a href="tripleglazed.html"
+                    <a href="final.html"
                         class="tab-btn px-3 sm:px-6 py-3 sm:py-4 rounded-lg font-semibold transition-all duration-300 text-sm sm:text-base flex flex-col items-center gap-2 hover:bg-gray-50">
                         <img src="/views/triple.jpeg" alt="triple glazed" class="w-10 h-10">
                         <span>Triple Glazed</span>
@@ -312,7 +396,7 @@
                             <img src="/views/single unit.jpeg" alt="Single Unit" class="w-10 h-10">
                         </div>
 
-                        <div class="mb-6">
+                        <div class="mb-6 hidden">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Glass Type *</label>
                             <select id="singleGlassTypeSelect" class="input-field w-full" required
                                 onchange="openSingleGlassConfigModal()">
@@ -330,12 +414,12 @@
                         <!-- Glass Configuration Display (shows selected thickness, colour, etc.) -->
                         <div id="singleGlassConfigDisplay" class="mb-6 hidden">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Selected Configuration</label>
-                            <div class="p-4 bg-gradient-to-r from-blue-50 to-gray-50 rounded-xl border border-blue-100">
-                                <div class="flex items-start gap-4">
+                            <div class="p-4 bg-gradient-to-r from-blue-50 to-gray-50 rounded-xl border border-blue-100 selected-config-card">
+                                <div class="flex items-start gap-4 selected-config-row">
                                     <!-- Thickness Image -->
                                     <div class="flex-shrink-0">
                                         <div
-                                            class="w-20 h-20 rounded-lg border-2 border-blue-200 bg-white p-1 shadow-sm">
+                                            class="w-20 h-20 rounded-lg border-2 border-blue-200 bg-white p-1 shadow-sm selected-config-thumb">
                                             <img id="singleConfigThicknessImg" src="" alt="Thickness"
                                                 class="w-full h-full object-contain rounded">
                                         </div>
@@ -344,7 +428,7 @@
                                     <!-- Colour Image (only for tinted/painted) -->
                                     <div id="singleConfigColourImgContainer" class="flex-shrink-0 hidden">
                                         <div
-                                            class="w-20 h-20 rounded-lg border-2 border-blue-200 bg-white p-1 shadow-sm overflow-hidden">
+                                            class="w-20 h-20 rounded-lg border-2 border-blue-200 bg-white p-1 shadow-sm overflow-hidden selected-config-thumb">
                                             <img id="singleConfigColourImg" src="" alt="Colour"
                                                 class="w-full h-full object-cover rounded">
                                             <div id="singleConfigColourSwatch" class="w-full h-full rounded hidden">
@@ -360,7 +444,7 @@
                                     </div>
                                     <!-- Change Button -->
                                     <button type="button" onclick="openSingleGlassConfigModal()"
-                                        class="flex-shrink-0 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+                                        class="flex-shrink-0 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium selected-config-action">
                                         Change
                                     </button>
                                 </div>
@@ -543,7 +627,7 @@
                         </div>
 
                         <!-- Polished Glass (P.A.R) Toggle -->
-                        <div class="mb-6">
+                        <div class="mb-6 hidden">
                             <div
                                 class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
                                 <div>
@@ -617,12 +701,12 @@
 
                             <!-- Shape Details Display -->
                             <div id="singleShapeDetails"
-                                class="mt-4 p-4 bg-gradient-to-r from-blue-50 to-gray-50 rounded-xl border border-blue-100 hidden">
-                                <div class="flex items-start gap-4">
+                                class="mt-4 p-4 bg-gradient-to-r from-blue-50 to-gray-50 rounded-xl border border-blue-100 hidden selected-config-card">
+                                <div class="flex items-start gap-4 selected-config-row">
                                     <!-- Shape Image -->
                                     <div class="flex-shrink-0">
                                         <div
-                                            class="w-20 h-20 rounded-lg border-2 border-blue-200 bg-white p-1 shadow-sm overflow-hidden flex items-center justify-center">
+                                            class="w-20 h-20 rounded-lg border-2 border-blue-200 bg-white p-1 shadow-sm overflow-hidden flex items-center justify-center selected-config-thumb">
                                             <img id="singleSelectedShapeImg" src="" alt="Shape"
                                                 class="max-w-full max-h-full object-contain">
                                         </div>

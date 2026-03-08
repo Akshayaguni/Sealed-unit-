@@ -92,12 +92,12 @@
             const itemsContainer = document.getElementById('orderedItems');
             finalOrder.cart.forEach(item => {
                 itemsContainer.innerHTML += `
-                    <div class="flex items-start border-t py-4">
-                        <img src="${item.image}" alt="${item.type}" class="w-16 h-16 rounded-lg object-cover mr-4">
+                    <div class="flex flex-col sm:flex-row sm:items-start border-t py-4">
+                        <img src="${item.image}" alt="${item.type}" class="w-16 h-16 rounded-lg object-cover mb-3 sm:mb-0 sm:mr-4">
                         <div class="flex-1">
                             <p class="font-semibold">${item.description} (x${item.quantity})</p>
                         </div>
-                        <p class="font-semibold ml-4">£${(item.price * item.quantity).toFixed(2)}</p>
+                        <p class="font-semibold sm:ml-4">£${(item.price * item.quantity).toFixed(2)}</p>
                     </div>
                 `;
             });

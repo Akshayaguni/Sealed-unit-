@@ -417,6 +417,24 @@ function initializeEventListeners() {
     });
   }
 
+  const doubleExtrasEl = document.getElementById("doubleExtras");
+  const doublePetFlapEl = document.getElementById("doublePetFlap");
+  if (doubleExtrasEl) {
+    doubleExtrasEl.addEventListener("change", updateDoubleExtrasSummary);
+  }
+  if (doublePetFlapEl) {
+    doublePetFlapEl.addEventListener("change", updateDoubleExtrasSummary);
+  }
+
+  const tripleExtrasEl = document.getElementById("tripleExtras");
+  const triplePetFlapEl = document.getElementById("triplePetFlap");
+  if (tripleExtrasEl) {
+    tripleExtrasEl.addEventListener("change", updateTripleExtrasSummary);
+  }
+  if (triplePetFlapEl) {
+    triplePetFlapEl.addEventListener("change", updateTripleExtrasSummary);
+  }
+
   // All other inputs
   document.addEventListener("change", calculatePrice);
   document.addEventListener("input", calculatePrice);
@@ -441,6 +459,8 @@ function initializeEventListeners() {
 
   // Initialize state
   toggleSingleCornerOptions();
+  updateDoubleExtrasSummary();
+  updateTripleExtrasSummary();
 }
 
 // Toggle Single Corner Options
@@ -823,6 +843,26 @@ function addToCart() {
   //resetCurrentForm();
 }
 function collectFormData() {
+  const getTextById = (id, fallback = "-") => {
+    const el = document.getElementById(id);
+    if (!el || !el.textContent) return fallback;
+    return el.textContent.trim() || fallback;
+  };
+
+  const getSelectText = (id, fallback = "-") => {
+    const select = document.getElementById(id);
+    if (!select) return fallback;
+    const option = select.options[select.selectedIndex];
+    if (!option || !option.value) return fallback;
+    return option.textContent.trim();
+  };
+
+  const getPatternName = (value) => {
+    if (!value) return "-";
+    const match = patternGlassOptions.find((pattern) => pattern.value === value);
+    return match ? match.name : value;
+  };
+
   const item = {
     id: Date.now(),
     type: currentTab,
@@ -832,15 +872,9 @@ function collectFormData() {
     image: "",
   };
 
-  const shapeName = document.getElementById(
-    currentTab + "SelectedShape",
-  ).textContent;
-  const width = document.getElementById(
-    currentTab + "SelectedWidth",
-  ).textContent;
-  const height = document.getElementById(
-    currentTab + "SelectedHeight",
-  ).textContent;
+  const shapeName = getTextById(currentTab + "ConfigShapeSummary", "Shape");
+  const width = getTextById(currentTab + "SelectedWidth");
+  const height = getTextById(currentTab + "SelectedHeight");
   item.description = `${shapeName} (${width} x ${height})`;
 
   // Add the unit type to the details
@@ -880,22 +914,16 @@ function collectFormData() {
     item.details.push(`Template File: ${shapeData.templateFile.name}`);
   }
   // --- Add calculated metrics ---
-  const area = document.getElementById(currentTab + "ShapeArea").textContent;
-  const linear = document.getElementById(
-    currentTab + "ShapeLinear",
-  ).textContent;
-  const weight = document.getElementById(
-    currentTab + "ShapeWeight",
-  ).textContent;
+  const area = getTextById(currentTab + "ShapeArea");
+  const linear = getTextById(currentTab + "ShapeLinear");
+  const weight = getTextById(currentTab + "ShapeWeight");
 
   item.details.push(`Area: ${area}`);
   item.details.push(`Linear Metre: ${linear}`);
   item.details.push(`Weight: ${weight}`);
   // --- Tab-Specific Details ---
   let itemPrice = parseFloat(
-    document
-      .getElementById(currentTab + "ShapeCost")
-      .textContent.replace("£", ""),
+    getTextById(currentTab + "ShapeCost", "0").replace("£", ""),
   );
 
   if (currentTab === "single") {
@@ -929,12 +957,14 @@ function collectFormData() {
     item.details.push("Polished Glass (P.A.R)");
     item.details.push("Toughened Glass");
     // Step 3: Optional Extras
-    const corners = document.querySelector(
+    const cornersEl = document.querySelector(
       'input[name="singleCorners"]:checked',
-    ).value;
-    item.details.push(
-      `Corners: ${corners.charAt(0).toUpperCase() + corners.slice(1)}`,
     );
+    if (cornersEl && cornersEl.value) {
+      item.details.push(
+        `Corners: ${cornersEl.value.charAt(0).toUpperCase() + cornersEl.value.slice(1)}`,
+      );
+    }
 
     const holes = document.getElementById("singleHoles").value;
     if (holes) {
@@ -954,32 +984,18 @@ function collectFormData() {
     }*/
   } else if (currentTab === "double" || currentTab === "triple") {
     // Step 1: Glass Configuration
-    item.details.push(
-      `Outer: ${
-        document.getElementById(currentTab + "OuterGlassText").textContent
-      }`,
-    );
-    if (
-      document.getElementById(currentTab + "OuterGlass").value === "4mm-pattern"
-    ) {
-      const pattern = document.querySelector(
-        `input[name="${currentTab}OuterPattern"]:checked`,
-      )?.value;
-      if (pattern) item.details.push(`- Pattern: ${pattern}`);
+    const outerText = getSelectText(currentTab + "OuterGlass");
+    item.details.push(`Outer: ${outerText}`);
+    if (document.getElementById(currentTab + "OuterGlass")?.value === "4mm-pattern") {
+      const patternValue = document.getElementById(currentTab + "OuterPattern")?.value;
+      const patternName = getPatternName(patternValue);
+      if (patternValue) item.details.push(`- Pattern: ${patternName}`);
     }
     item.details.push("Toughened Glass");
     if (currentTab === "triple") {
-      item.details.push(
-        `Centre: ${
-          document.getElementById("tripleCentreGlassText").textContent
-        }`,
-      );
+      item.details.push(`Centre: ${getSelectText("tripleCentreGlass")}`);
     }
-    item.details.push(
-      `Inner: ${
-        document.getElementById(currentTab + "InnerGlassText").textContent
-      }`,
-    );
+    item.details.push(`Inner: ${getSelectText(currentTab + "InnerGlass")}`);
     // Add Spacer details from dropdowns
     const spacerWidth = document.getElementById(
       currentTab + "SpacerWidth",
@@ -2757,6 +2773,7 @@ function toggleExtrasCutouts(show) {
     if (show) options.classList.remove("hidden");
     else options.classList.add("hidden");
   }
+  updateSingleExtrasSummary();
 }
 
 function toggleCutoutCount(type, checked) {
@@ -2774,6 +2791,7 @@ function toggleCutoutCount(type, checked) {
     const el = document.getElementById(mapping[type]);
     if (el) el.classList.remove("hidden");
   }
+  updateSingleExtrasSummary();
 }
 
 function updateRotationDisplay(rotation) {
@@ -3661,6 +3679,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // Call toggleSingleHoleOptions when corner selection changes
         toggleSingleHoleOptions();
       }
+      updateSingleExtrasSummary();
     });
   });
 
@@ -3668,7 +3687,38 @@ document.addEventListener("DOMContentLoaded", function () {
   const singleHolesEl = document.getElementById("singleHoles");
   if (singleHolesEl) {
     singleHolesEl.addEventListener("change", toggleSingleHoleOptions);
+    if (singleHolesEl.value === "mounting-holes") {
+      toggleSingleHoleOptions();
+    }
   }
+
+  const radiusSizeEl = document.getElementById("singleRadiusSize");
+  if (radiusSizeEl) {
+    radiusSizeEl.addEventListener("change", updateSingleExtrasSummary);
+  }
+  const clippedSizeEl = document.getElementById("singleClippedSize");
+  if (clippedSizeEl) {
+    clippedSizeEl.addEventListener("change", updateSingleExtrasSummary);
+  }
+  document.querySelectorAll('input[name="extrasCutouts"]').forEach((radio) => {
+    radio.addEventListener("change", updateSingleExtrasSummary);
+  });
+  document
+    .querySelectorAll(
+      "#extrasCutoutsOptions input[type=checkbox], #cutoutCounts input[type=number]",
+    )
+    .forEach((input) => {
+      input.addEventListener("input", updateSingleExtrasSummary);
+      input.addEventListener("change", updateSingleExtrasSummary);
+    });
+
+  document
+    .querySelectorAll('input[name="singleTuckboxExtras"]')
+    .forEach((checkbox) => {
+      checkbox.addEventListener("change", updateSingleExtrasSummary);
+    });
+
+  updateSingleExtrasSummary();
 });
 
 // ...existing code...
@@ -3705,6 +3755,182 @@ function resetHoleModal(modalId) {
     document.getElementById("customHoleDiameter").value = "";
     document.getElementById("customHoleDiameterError").classList.add("hidden");
   }
+}
+
+function updateHoleSummaryCard(summary, details) {
+  const card = document.getElementById("singleHolesSummary");
+  const title = document.getElementById("singleHolesSummaryTitle");
+  const detailsEl = document.getElementById("singleHolesSummaryDetails");
+
+  if (!card || !title || !detailsEl) return;
+
+  title.textContent = summary || "Not selected";
+  detailsEl.innerHTML = "";
+
+  if (Array.isArray(details)) {
+    details.forEach((detail) => {
+      const p = document.createElement("p");
+      p.textContent = detail;
+      detailsEl.appendChild(p);
+    });
+  }
+
+  card.classList.remove("hidden");
+}
+
+let singleHoleSelection = {
+  title: "",
+  details: [],
+};
+
+function updateSingleExtrasSummary() {
+  const titleEl = document.getElementById("singleExtrasSummaryTitle");
+  const detailsEl = document.getElementById("singleExtrasSummaryDetails");
+  if (!titleEl || !detailsEl) return;
+
+  const details = [];
+
+  const cornerEl = document.querySelector('input[name="singleCorners"]:checked');
+  if (cornerEl && cornerEl.value) {
+    let cornerText = cornerEl.value;
+    if (cornerEl.value === "radius") {
+      const size = document.getElementById("singleRadiusSize")?.value;
+      if (size) cornerText += ` (${size})`;
+    }
+    if (cornerEl.value === "clipped") {
+      const size = document.getElementById("singleClippedSize")?.value;
+      if (size) cornerText += ` (${size})`;
+    }
+    details.push(`Corners: ${cornerText}`);
+  }
+
+  const cutoutsYes = document.querySelector('input[name="extrasCutouts"][value="yes"]')?.checked;
+  if (cutoutsYes) {
+    const cutoutMap = [
+      { id: "extrasBoxcut", label: "Boxcut", countId: "inputBoxcut" },
+      { id: "extrasCornerNotch", label: "Corner Notch", countId: "inputCornerNotch" },
+      { id: "extrasEdgeNotch", label: "Edge Notch", countId: "inputEdgeNotch" },
+      { id: "extrasHinge", label: "Hinge", countId: "inputHinge" },
+    ];
+    const cutoutSelections = [];
+    cutoutMap.forEach((cutout) => {
+      const checked = document.getElementById(cutout.id)?.checked;
+      if (checked) {
+        const count = document.getElementById(cutout.countId)?.value;
+        const countText = count ? ` x${count}` : "";
+        cutoutSelections.push(`${cutout.label}${countText}`);
+      }
+    });
+    if (cutoutSelections.length) {
+      details.push(`Cut-Outs: ${cutoutSelections.join(", ")}`);
+    }
+  }
+
+  if (singleHoleSelection.title) {
+    details.push(`Holes: ${singleHoleSelection.title}`);
+    singleHoleSelection.details.forEach((detail) => {
+      details.push(`- ${detail}`);
+    });
+  }
+
+  const tuckboxExtras = Array.from(
+    document.querySelectorAll('input[name="singleTuckboxExtras"]:checked'),
+  ).map((input) => input.value);
+  if (tuckboxExtras.length) {
+    details.push(`Tuckbox Extras: ${tuckboxExtras.join(", ")}`);
+  }
+
+  if (details.length === 0) {
+    titleEl.textContent = "None selected";
+    detailsEl.innerHTML = "";
+    return;
+  }
+
+  titleEl.textContent = "Selected extras";
+  detailsEl.innerHTML = "";
+  details.forEach((detail) => {
+    const li = document.createElement("li");
+    li.textContent = detail;
+    detailsEl.appendChild(li);
+  });
+}
+
+function getSelectedOptionText(selectId) {
+  const select = document.getElementById(selectId);
+  if (!select) return "None";
+  const option = select.options[select.selectedIndex];
+  if (!option) return "None";
+  return option.textContent.trim();
+}
+
+function updateDoubleExtrasSummary() {
+  const card = document.getElementById("doubleExtrasSummary");
+  const title = document.getElementById("doubleExtrasSummaryTitle");
+  const detailsEl = document.getElementById("doubleExtrasSummaryDetails");
+  if (!card || !title || !detailsEl) return;
+
+  const extrasValue = document.getElementById("doubleExtras")?.value || "none";
+  const extrasText = getSelectedOptionText("doubleExtras");
+  const petFlap = document.getElementById("doublePetFlap")?.checked;
+  const details = [];
+
+  if (extrasValue && extrasValue !== "none") {
+    details.push(`Feature: ${extrasText}`);
+  }
+  if (petFlap) {
+    details.push("Pet Flap/Vent Hole");
+  }
+
+  if (details.length === 0) {
+    title.textContent = "None selected";
+    detailsEl.innerHTML = "";
+    card.classList.remove("hidden");
+    return;
+  }
+
+  title.textContent = "Selected extras";
+  detailsEl.innerHTML = "";
+  details.forEach((detail) => {
+    const li = document.createElement("li");
+    li.textContent = detail;
+    detailsEl.appendChild(li);
+  });
+  card.classList.remove("hidden");
+}
+
+function updateTripleExtrasSummary() {
+  const card = document.getElementById("tripleExtrasSummary");
+  const title = document.getElementById("tripleExtrasSummaryTitle");
+  const detailsEl = document.getElementById("tripleExtrasSummaryDetails");
+  if (!card || !title || !detailsEl) return;
+
+  const extrasValue = document.getElementById("tripleExtras")?.value || "none";
+  const extrasText = getSelectedOptionText("tripleExtras");
+  const petFlap = document.getElementById("triplePetFlap")?.checked;
+  const details = [];
+
+  if (extrasValue && extrasValue !== "none") {
+    details.push(`Feature: ${extrasText}`);
+  }
+  if (petFlap) {
+    details.push("Pet Flap/Vent Hole");
+  }
+
+  if (details.length === 0) {
+    title.textContent = "None selected";
+    detailsEl.innerHTML = "";
+    card.classList.remove("hidden");
+    return;
+  }
+
+  title.textContent = "Selected extras";
+  detailsEl.innerHTML = "";
+  details.forEach((detail) => {
+    const li = document.createElement("li");
+    li.textContent = detail;
+    detailsEl.appendChild(li);
+  });
+  card.classList.remove("hidden");
 }
 
 // Diameter validation function - shows error if limit exceeded
@@ -3749,7 +3975,15 @@ function saveMountingHoles() {
   console.log("Mounting Holes saved:", { location: locationText, size: size });
 
   closeHoleModal("mountingHolesModal");
-  // You can add code here to update the UI or store the selection
+  updateHoleSummaryCard("Mounting Holes", [
+    `Location: ${locationText}`,
+    `Size: ${size}`,
+  ]);
+  singleHoleSelection = {
+    title: "Mounting Holes",
+    details: [`Location: ${locationText}`, `Size: ${size}`],
+  };
+  updateSingleExtrasSummary();
 }
 
 function saveCentreHole() {
@@ -3764,7 +3998,12 @@ function saveCentreHole() {
   console.log("Centre Hole saved:", { size: size });
 
   closeHoleModal("centreHoleModal");
-  // You can add code here to update the UI or store the selection
+  updateHoleSummaryCard("Centre Hole", [`Size: ${size}`]);
+  singleHoleSelection = {
+    title: "Centre Hole",
+    details: [`Size: ${size}`],
+  };
+  updateSingleExtrasSummary();
 }
 
 function savePetFlap() {
@@ -3791,7 +4030,16 @@ function savePetFlap() {
   });
 
   closeHoleModal("petFlapModal");
-  // You can add code here to update the UI or store the selection
+  updateHoleSummaryCard("Pet Flap", [
+    `Width: ${width}`,
+    `Height: ${height}`,
+    `Diameter: ${diameter}`,
+  ]);
+  singleHoleSelection = {
+    title: "Pet Flap",
+    details: [`Width: ${width}`, `Height: ${height}`, `Diameter: ${diameter}`],
+  };
+  updateSingleExtrasSummary();
 }
 
 function saveCustomHole() {
@@ -3818,4 +4066,14 @@ function saveCustomHole() {
   });
 
   closeHoleModal("customHoleModal");
+  updateHoleSummaryCard("Custom Hole", [
+    `Width: ${width}`,
+    `Height: ${height}`,
+    `Diameter: ${diameter}`,
+  ]);
+  singleHoleSelection = {
+    title: "Custom Hole",
+    details: [`Width: ${width}`, `Height: ${height}`, `Diameter: ${diameter}`],
+  };
+  updateSingleExtrasSummary();
 }
