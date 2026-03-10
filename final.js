@@ -3662,6 +3662,24 @@ function toggleSingleHoleOptions() {
   }, 100);
 }
 
+function openHoleTypeModal() {
+  const modal = document.getElementById("holeTypeModal");
+  if (modal) modal.classList.remove("hidden");
+}
+
+function closeHoleTypeModal() {
+  const modal = document.getElementById("holeTypeModal");
+  if (modal) modal.classList.add("hidden");
+}
+
+function chooseHoleType(value) {
+  const holesSelect = document.getElementById("singleHoles");
+  if (!holesSelect) return;
+  holesSelect.value = value;
+  closeHoleTypeModal();
+  toggleSingleHoleOptions();
+}
+
 // Update the event listeners to include corner change handling
 document.addEventListener("DOMContentLoaded", function () {
   // Existing corner option listeners
@@ -3705,7 +3723,7 @@ document.addEventListener("DOMContentLoaded", function () {
   });
   document
     .querySelectorAll(
-      "#extrasCutoutsOptions input[type=checkbox], #cutoutCounts input[type=number]",
+      "#extrasCutoutsOptions input[type=radio], #cutoutCounts input[type=number]",
     )
     .forEach((input) => {
       input.addEventListener("input", updateSingleExtrasSummary);
