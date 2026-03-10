@@ -665,12 +665,23 @@
                       </svg>
                     </button>
                   </div>
+                  <div class="mb-4">
+                    <img
+                      src="/views/single unit.jpeg"
+                      alt="Clear glass"
+                      class="w-full max-h-40 object-cover rounded-lg"
+                    />
+                  </div>
 
                   <!-- Thickness Selection -->
                   <div class="mb-6">
                     <label class="block text-sm font-medium text-gray-700 mb-3"
                       >Select Thickness</label
                     >
+                    <p class="text-xs text-gray-500 mb-3">
+                      Pick the thickness that matches your design and safety
+                      needs.
+                    </p>
                     <div
                       class="grid grid-cols-4 gap-3"
                       id="thicknessOptionsContainer"
@@ -690,6 +701,7 @@
                             alt="4mm"
                             class="w-full h-20 object-contain mb-1"
                           />
+                          <p class="text-xs text-gray-500">Current</p>
                           <p class="text-sm font-medium text-gray-700">4mm</p>
                           <p class="text-xs text-blue-500">4mm thickness</p>
                         </div>
@@ -709,6 +721,7 @@
                             alt="6mm"
                             class="w-full h-20 object-contain mb-1"
                           />
+                          <p class="text-xs text-gray-500">Current</p>
                           <p class="text-sm font-medium text-gray-700">6mm</p>
                           <p class="text-xs text-blue-500">6mm thickness</p>
                         </div>
@@ -728,6 +741,7 @@
                             alt="8mm"
                             class="w-full h-20 object-contain mb-1"
                           />
+                          <p class="text-xs text-gray-500">Current</p>
                           <p class="text-sm font-medium text-gray-700">8mm</p>
                           <p class="text-xs text-blue-500">8mm thickness</p>
                         </div>
@@ -747,6 +761,7 @@
                             alt="10mm"
                             class="w-full h-20 object-contain mb-1"
                           />
+                          <p class="text-xs text-gray-500">Current</p>
                           <p class="text-sm font-medium text-gray-700">10mm</p>
                           <p class="text-xs text-blue-500">10mm thickness</p>
                         </div>
@@ -1413,8 +1428,10 @@
                       class="flex flex-col items-center text-xs cutout-label"
                     >
                       <input
-                        type="checkbox"
+                        type="radio"
                         id="extrasBoxcut"
+                        name="cutoutType"
+                        value="boxcut"
                         class="sr-only"
                         onchange="toggleCutoutCount('boxcut', this.checked)"
                       />
@@ -1429,8 +1446,10 @@
                       class="flex flex-col items-center text-xs cutout-label"
                     >
                       <input
-                        type="checkbox"
+                        type="radio"
                         id="extrasCornerNotch"
+                        name="cutoutType"
+                        value="cornerNotch"
                         class="sr-only"
                         onchange="
                           toggleCutoutCount('cornerNotch', this.checked)
@@ -1447,8 +1466,10 @@
                       class="flex flex-col items-center text-xs cutout-label"
                     >
                       <input
-                        type="checkbox"
+                        type="radio"
                         id="extrasEdgeNotch"
+                        name="cutoutType"
+                        value="edgeNotch"
                         class="sr-only"
                         onchange="toggleCutoutCount('edgeNotch', this.checked)"
                       />
@@ -1463,8 +1484,10 @@
                       class="flex flex-col items-center text-xs cutout-label"
                     >
                       <input
-                        type="checkbox"
+                        type="radio"
                         id="extrasHinge"
+                        name="cutoutType"
+                        value="hinge"
                         class="sr-only"
                         onchange="toggleCutoutCount('hinge', this.checked)"
                       />
@@ -1545,12 +1568,21 @@
                     >Selected Option</label
                   >
                   <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <p
-                      id="singleHolesSummaryTitle"
-                      class="font-semibold text-gray-800 text-base"
-                    >
-                      Not selected
-                    </p>
+                    <div class="flex items-start justify-between gap-3">
+                      <p
+                        id="singleHolesSummaryTitle"
+                        class="font-semibold text-gray-800 text-base"
+                      >
+                        Not selected
+                      </p>
+                      <button
+                        type="button"
+                        class="px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors"
+                        onclick="openHoleTypeModal()"
+                      >
+                        Change
+                      </button>
+                    </div>
                     <div
                       id="singleHolesSummaryDetails"
                       class="mt-2 text-sm text-gray-600 space-y-1"
@@ -3327,6 +3359,57 @@
     </div>
 
     <!-- Hole Option Modals -->
+    <div
+      id="holeTypeModal"
+      class="shape-modal hidden"
+      onclick="closeHoleTypeModal()"
+    >
+      <div
+        class="shape-modal-content max-w-md"
+        onclick="event.stopPropagation()"
+      >
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-bold text-gray-800">Select Hole Type</h3>
+          <button
+            onclick="closeHoleTypeModal()"
+            class="text-gray-500 hover:text-gray-700 text-2xl"
+          >
+            &times;
+          </button>
+        </div>
+        <div class="grid gap-3">
+          <button
+            type="button"
+            class="p-3 text-left rounded-lg border border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-colors"
+            onclick="chooseHoleType('mounting-holes')"
+          >
+            Mounting Holes
+          </button>
+          <button
+            type="button"
+            class="p-3 text-left rounded-lg border border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-colors"
+            onclick="chooseHoleType('centre-hole')"
+          >
+            Centre Hole
+          </button>
+          <button
+            type="button"
+            class="p-3 text-left rounded-lg border border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-colors"
+            onclick="chooseHoleType('pet-flap')"
+          >
+            Pet Flap
+          </button>
+          <button
+            type="button"
+            class="p-3 text-left rounded-lg border border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-colors"
+            onclick="chooseHoleType('custom-hole')"
+          >
+            Custom Hole
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div
       id="mountingHolesModal"
       class="shape-modal hidden"
