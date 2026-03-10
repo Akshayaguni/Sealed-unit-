@@ -482,9 +482,11 @@ function toggleSingleCornerOptions() {
   clippedDisplay.classList.add("hidden");
 
   if (corners === "radius") {
+    if (clippedSelect) clippedSelect.value = "";
     container.classList.remove("hidden");
     radiusDisplay.classList.remove("hidden");
   } else if (corners === "clipped") {
+    if (radiusSelect) radiusSelect.value = "";
     container.classList.remove("hidden");
     clippedDisplay.classList.remove("hidden");
   } else {
@@ -492,6 +494,8 @@ function toggleSingleCornerOptions() {
     if (radiusSelect) radiusSelect.value = "";
     if (clippedSelect) clippedSelect.value = "";
   }
+
+  updateSingleExtrasSummary();
 }
 
 // Update area calculation
@@ -2605,6 +2609,7 @@ function openShapeModal(target) {
   const title = document.getElementById("shapeModalTitle");
   const container = document.getElementById("shapeOptionsContainer");
   const configPanel = document.getElementById("shapeConfigPanel");
+  const categorySelect = document.getElementById("shapeCategorySelect");
 
   // Check if there's an existing shape selection
   const existingShapeInput = document.getElementById(target + "Shape");
@@ -2647,41 +2652,84 @@ function openShapeModal(target) {
   }
 
   // Populate shape options
-  container.innerHTML = "";
-  shapes.forEach((shape) => {
-    const option = document.createElement("div");
-    option.className =
-      "shape-option cursor-pointer border-2 border-gray-200 rounded-lg p-3 text-center hover:border-blue-400 transition-all";
-    option.dataset.value = shape.value;
-    option.dataset.name = shape.name;
-    option.dataset.needsLength = shape.needsLength;
+  const shapeCategoryMap = {
+    square: "regular",
+    triangle: "regular",
+    circle: "regular",
+    "quarter-circle": "regular",
+    rake1: "shape",
+    rake2: "shape",
+    rake3: "shape",
+    rake4: "shape",
+    arched: "shape",
+    trapezium: "shape",
+    parallelogram: "shape",
+    custom: "template",
+  };
 
-    // store per-rotation image URLs on dataset
-    option.dataset.rot0 = shape.images["0"];
-    option.dataset.rot90 = shape.images["90"];
-    option.dataset.rot180 = shape.images["180"];
-    option.dataset.rot270 = shape.images["270"];
+  function renderShapeOptions(category) {
+    container.innerHTML = "";
+    if (!category) return;
 
-    // Highlight currently selected shape
-    if (existingShapeValue && shape.value === existingShapeValue) {
-      option.classList.add("shape-selected");
-      option.classList.remove("border-gray-200");
-      option.classList.add("border-blue-500");
-    }
+    shapes
+      .filter((shape) => shapeCategoryMap[shape.value] === category)
+      .forEach((shape) => {
+        const option = document.createElement("div");
+        option.className =
+          "shape-option cursor-pointer border-2 border-gray-200 rounded-lg p-3 text-center hover:border-blue-400 transition-all";
+        option.dataset.value = shape.value;
+        option.dataset.name = shape.name;
+        option.dataset.needsLength = shape.needsLength;
 
-    option.innerHTML = `
+        // store per-rotation image URLs on dataset
+        option.dataset.rot0 = shape.images["0"];
+        option.dataset.rot90 = shape.images["90"];
+        option.dataset.rot180 = shape.images["180"];
+        option.dataset.rot270 = shape.images["270"];
+
+        // Highlight currently selected shape
+        if (existingShapeValue && shape.value === existingShapeValue) {
+          option.classList.add("shape-selected");
+          option.classList.remove("border-gray-200");
+          option.classList.add("border-blue-500");
+        }
+
+        option.innerHTML = `
                     <div class="mb-2">
                         <img src="${shape.images["0"]}" alt="${shape.name}" class="mx-auto h-20 object-contain" onerror="this.style.display='none'">
                     </div>
                     <p class="text-sm font-medium">${shape.name}</p>
                 `;
 
-    option.addEventListener("click", function () {
-      selectShapeType(this);
-    });
+        option.addEventListener("click", function () {
+          selectShapeType(this);
+        });
 
-    container.appendChild(option);
-  });
+        container.appendChild(option);
+      });
+  }
+
+  if (categorySelect) {
+    const existingCategory = existingShapeValue
+      ? shapeCategoryMap[existingShapeValue] || ""
+      : "";
+    categorySelect.value = existingCategory;
+    categorySelect.onchange = function () {
+      selectedShape = null;
+      shapeData.currentShape = null;
+      configPanel.classList.add("hidden");
+      if (selectedShapeText) {
+        selectedShapeText.textContent = "Select a shape";
+      }
+      if (selectedShapeDescription) {
+        selectedShapeDescription.textContent = "Choose a shape to see details";
+      }
+      renderShapeOptions(this.value);
+    };
+    renderShapeOptions(existingCategory);
+  } else {
+    renderShapeOptions("");
+  }
 
   // If editing existing shape, pre-populate the form
   if (existingShapeValue) {
@@ -2783,13 +2831,25 @@ function toggleCutoutCount(type, checked) {
     edgeNotch: "countEdgeNotch",
     hinge: "countHinge",
   };
+  const inputMapping = {
+    boxcut: "inputBoxcut",
+    cornerNotch: "inputCornerNotch",
+    edgeNotch: "inputEdgeNotch",
+    hinge: "inputHinge",
+  };
   Object.values(mapping).forEach((id) => {
     const el = document.getElementById(id);
     if (el) el.classList.add("hidden");
   });
+  Object.values(inputMapping).forEach((id) => {
+    const input = document.getElementById(id);
+    if (input) input.value = "";
+  });
   if (checked && mapping[type]) {
     const el = document.getElementById(mapping[type]);
     if (el) el.classList.remove("hidden");
+    const input = document.getElementById(inputMapping[type]);
+    if (input && !input.value) input.value = "0";
   }
   updateSingleExtrasSummary();
 }
@@ -2870,16 +2930,20 @@ function selectShapeType(element) {
     }
   }
 
-  // Always show the template upload option
-  if (templateContainer) {
-    templateContainer.classList.remove("hidden");
-  }
-
   if (customContainer) {
     if (element.dataset.value === "custom") {
       customContainer.classList.remove("hidden");
+      if (templateContainer) templateContainer.classList.remove("hidden");
     } else {
       customContainer.classList.add("hidden");
+      if (templateContainer) templateContainer.classList.add("hidden");
+      const templatePreview = document.getElementById("templatePreview");
+      const templateFileName = document.getElementById("templateFileName");
+      const templateInput = document.getElementById("templateFile");
+      if (templatePreview) templatePreview.classList.add("hidden");
+      if (templateFileName) templateFileName.textContent = "";
+      if (templateInput) templateInput.value = "";
+      shapeData.templateFile = null;
     }
   }
 
@@ -3799,6 +3863,8 @@ function updateHoleSummaryCard(summary, details) {
 let singleHoleSelection = {
   title: "",
   details: [],
+  type: "",
+  data: {},
 };
 
 function updateSingleExtrasSummary() {
@@ -4000,6 +4066,8 @@ function saveMountingHoles() {
   singleHoleSelection = {
     title: "Mounting Holes",
     details: [`Location: ${locationText}`, `Size: ${size}`],
+    type: "mounting-holes",
+    data: { location: locationText, size: size },
   };
   updateSingleExtrasSummary();
 }
@@ -4020,6 +4088,8 @@ function saveCentreHole() {
   singleHoleSelection = {
     title: "Centre Hole",
     details: [`Size: ${size}`],
+    type: "centre-hole",
+    data: { size: size },
   };
   updateSingleExtrasSummary();
 }
@@ -4056,6 +4126,8 @@ function savePetFlap() {
   singleHoleSelection = {
     title: "Pet Flap",
     details: [`Width: ${width}`, `Height: ${height}`, `Diameter: ${diameter}`],
+    type: "pet-flap",
+    data: { width: width, height: height, diameter: diameter },
   };
   updateSingleExtrasSummary();
 }
@@ -4092,6 +4164,61 @@ function saveCustomHole() {
   singleHoleSelection = {
     title: "Custom Hole",
     details: [`Width: ${width}`, `Height: ${height}`, `Diameter: ${diameter}`],
+    type: "custom-hole",
+    data: { width: width, height: height, diameter: diameter },
   };
   updateSingleExtrasSummary();
+}
+
+function openSelectedHoleModal() {
+  if (!singleHoleSelection.type) {
+    openHoleTypeModal();
+    return;
+  }
+
+  if (singleHoleSelection.type === "mounting-holes") {
+    const sizeEl = document.getElementById("mountingHoleSize");
+    if (sizeEl) sizeEl.value = singleHoleSelection.data.size || "";
+    applyMountingLocation(singleHoleSelection.data.location);
+    openHoleModal("mountingHolesModal");
+    return;
+  }
+
+  if (singleHoleSelection.type === "centre-hole") {
+    const sizeEl = document.getElementById("centreHoleSize");
+    if (sizeEl) sizeEl.value = singleHoleSelection.data.size || "";
+    openHoleModal("centreHoleModal");
+    return;
+  }
+
+  if (singleHoleSelection.type === "pet-flap") {
+    const widthEl = document.getElementById("petFlapWidth");
+    const heightEl = document.getElementById("petFlapHeight");
+    const diameterEl = document.getElementById("petFlapDiameter");
+    if (widthEl) widthEl.value = singleHoleSelection.data.width || "";
+    if (heightEl) heightEl.value = singleHoleSelection.data.height || "";
+    if (diameterEl) diameterEl.value = singleHoleSelection.data.diameter || "";
+    openHoleModal("petFlapModal");
+    return;
+  }
+
+  if (singleHoleSelection.type === "custom-hole") {
+    const widthEl = document.getElementById("customHoleWidth");
+    const heightEl = document.getElementById("customHoleHeight");
+    const diameterEl = document.getElementById("customHoleDiameter");
+    if (widthEl) widthEl.value = singleHoleSelection.data.width || "";
+    if (heightEl) heightEl.value = singleHoleSelection.data.height || "";
+    if (diameterEl) diameterEl.value = singleHoleSelection.data.diameter || "";
+    openHoleModal("customHoleModal");
+  }
+}
+
+function applyMountingLocation(locationText) {
+  if (!locationText) return;
+  document.querySelectorAll(".location-btn").forEach((btn) => {
+    btn.classList.remove("border-blue-500", "bg-blue-50");
+    if (btn.textContent.trim() === locationText) {
+      btn.classList.add("border-blue-500", "bg-blue-50");
+    }
+  });
 }

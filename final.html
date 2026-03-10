@@ -343,6 +343,30 @@
         overflow-y: auto;
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
       }
+
+      .cutout-label {
+        cursor: pointer;
+        width: 100%;
+      }
+
+      .cutout-card {
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 10px;
+        background: #f8fafc;
+        transition: all 0.2s ease;
+      }
+
+      .cutout-label:hover .cutout-card {
+        border-color: #60a5fa;
+        background: #eff6ff;
+      }
+
+      .cutout-label input:checked + .cutout-card {
+        border-color: #2563eb;
+        background: #dbeafe;
+        box-shadow: 0 6px 14px rgba(37, 99, 235, 0.18);
+      }
     </style>
   </head>
 
@@ -1164,10 +1188,6 @@
                           <span id="singleSelectedLengthC">-</span>
                         </div>
                         <div>
-                          <span class="font-medium">Reference:</span>
-                          <span id="singleShapeRef">-</span>
-                        </div>
-                        <div>
                           <span class="font-medium">Template:</span>
                           <span id="singleTemplateFile">-</span>
                         </div>
@@ -1435,12 +1455,14 @@
                         class="sr-only"
                         onchange="toggleCutoutCount('boxcut', this.checked)"
                       />
-                      <img
-                        src="/views/Square.jpg"
-                        alt="Boxcut"
-                        class="w-16 h-16 mb-1"
-                      />
-                      Boxcut
+                      <div class="cutout-card flex flex-col items-center">
+                        <img
+                          src="/views/Square.jpg"
+                          alt="Boxcut"
+                          class="w-16 h-16 mb-1"
+                        />
+                        <span>Boxcut</span>
+                      </div>
                     </label>
                     <label
                       class="flex flex-col items-center text-xs cutout-label"
@@ -1455,12 +1477,14 @@
                           toggleCutoutCount('cornerNotch', this.checked)
                         "
                       />
-                      <img
-                        src="/views/cnr-clipped.jpg"
-                        alt="Corner Notch"
-                        class="w-16 h-16 mb-1"
-                      />
-                      Corner Notch
+                      <div class="cutout-card flex flex-col items-center">
+                        <img
+                          src="/views/cnr-clipped.jpg"
+                          alt="Corner Notch"
+                          class="w-16 h-16 mb-1"
+                        />
+                        <span>Corner Notch</span>
+                      </div>
                     </label>
                     <label
                       class="flex flex-col items-center text-xs cutout-label"
@@ -1473,12 +1497,14 @@
                         class="sr-only"
                         onchange="toggleCutoutCount('edgeNotch', this.checked)"
                       />
-                      <img
-                        src="/views/cnr-dubbed.jpg"
-                        alt="Edge Notch"
-                        class="w-16 h-16 mb-1"
-                      />
-                      Edge Notch
+                      <div class="cutout-card flex flex-col items-center">
+                        <img
+                          src="/views/cnr-dubbed.jpg"
+                          alt="Edge Notch"
+                          class="w-16 h-16 mb-1"
+                        />
+                        <span>Edge Notch</span>
+                      </div>
                     </label>
                     <label
                       class="flex flex-col items-center text-xs cutout-label"
@@ -1491,12 +1517,14 @@
                         class="sr-only"
                         onchange="toggleCutoutCount('hinge', this.checked)"
                       />
-                      <img
-                        src="/views/cnr-radius.jpg"
-                        alt="Hinge"
-                        class="w-16 h-16 mb-1"
-                      />
-                      Hinge
+                      <div class="cutout-card flex flex-col items-center">
+                        <img
+                          src="/views/cnr-radius.jpg"
+                          alt="Hinge"
+                          class="w-16 h-16 mb-1"
+                        />
+                        <span>Hinge</span>
+                      </div>
                     </label>
                   </div>
                   <div id="cutoutCounts" class="space-y-2">
@@ -1578,7 +1606,7 @@
                       <button
                         type="button"
                         class="px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors"
-                        onclick="openHoleTypeModal()"
+                        onclick="openSelectedHoleModal()"
                       >
                         Change
                       </button>
@@ -2053,10 +2081,6 @@
                           <span id="doubleSelectedLengthC">-</span>
                         </div>
                         <div>
-                          <span class="font-medium">Reference:</span>
-                          <span id="doubleShapeRef">-</span>
-                        </div>
-                        <div>
                           <span class="font-medium">Template:</span>
                           <span id="doubleTemplateFile">-</span>
                         </div>
@@ -2194,12 +2218,21 @@
                     >
                     <span>Live summary</span>
                   </div>
-                  <p
-                    id="doubleExtrasSummaryTitle"
-                    class="mt-2 font-semibold text-gray-800 text-base"
-                  >
-                    None selected
-                  </p>
+                  <div class="mt-2 flex items-start justify-between gap-3">
+                    <p
+                      id="doubleExtrasSummaryTitle"
+                      class="font-semibold text-gray-800 text-base"
+                    >
+                      None selected
+                    </p>
+                    <button
+                      type="button"
+                      class="px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors"
+                      onclick="var el=document.getElementById('doubleExtras'); if(el){el.focus(); el.click();}"
+                    >
+                      Change
+                    </button>
+                  </div>
                   <ul
                     id="doubleExtrasSummaryDetails"
                     class="mt-2 text-sm text-gray-600 space-y-1 list-disc list-inside"
@@ -2574,10 +2607,6 @@
                           <span id="tripleSelectedLengthC">-</span>
                         </div>
                         <div>
-                          <span class="font-medium">Reference:</span>
-                          <span id="tripleShapeRef">-</span>
-                        </div>
-                        <div>
                           <span class="font-medium">Template:</span>
                           <span id="tripleTemplateFile">-</span>
                         </div>
@@ -2708,12 +2737,21 @@
                     >
                     <span>Live summary</span>
                   </div>
-                  <p
-                    id="tripleExtrasSummaryTitle"
-                    class="mt-2 font-semibold text-gray-800 text-base"
-                  >
-                    None selected
-                  </p>
+                  <div class="mt-2 flex items-start justify-between gap-3">
+                    <p
+                      id="tripleExtrasSummaryTitle"
+                      class="font-semibold text-gray-800 text-base"
+                    >
+                      None selected
+                    </p>
+                    <button
+                      type="button"
+                      class="px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors"
+                      onclick="var el=document.getElementById('tripleExtras'); if(el){el.focus(); el.click();}"
+                    >
+                      Change
+                    </button>
+                  </div>
                   <ul
                     id="tripleExtrasSummaryDetails"
                     class="mt-2 text-sm text-gray-600 space-y-1 list-disc list-inside"
@@ -2805,6 +2843,17 @@
           <!-- Left Side: Shape Selection -->
           <div>
             <h4 class="text-lg font-semibold mb-4">Available Shapes</h4>
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Shape Category *</label
+              >
+              <select id="shapeCategorySelect" class="input-field w-full">
+                <option value="">Select Category</option>
+                <option value="regular">Reguler</option>
+                <option value="shape">Shape</option>
+                <option value="template">Tamplated/DXF</option>
+              </select>
+            </div>
             <div
               class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 gap-3"
               id="shapeOptionsContainer"
@@ -2929,21 +2978,6 @@
               />
             </div>
 
-            <!-- Shape Type (Auto-Selected) -->
-            <div id="shapeTypeContainer" class="mb-4">
-              <label class="block text-sm font-medium text-gray-700 mb-2"
-                >Shape Type *</label
-              >
-              <select id="shapeType" class="input-field w-full">
-                <option value="">Select Shape Type</option>
-                <option value="regular">Regular</option>
-                <option value="rake">RAKE</option>
-                <option value="cnc">CNC</option>
-                <option value="oversize">Oversize</option>
-                <option value="template">Template/DXF</option>
-              </select>
-            </div>
-
             <!-- Template File Upload -->
             <div id="templateUploadContainer" class="mb-4 hidden">
               <label class="block text-sm font-medium text-gray-700 mb-2"
@@ -2994,19 +3028,6 @@
                   </div>
                 </div>
               </div>
-            </div>
-
-            <!-- Reference -->
-            <div class="mb-4">
-              <label class="block text-sm font-medium text-gray-700 mb-2"
-                >Reference</label
-              >
-              <input
-                type="text"
-                id="shapeReference"
-                class="input-field w-full"
-                placeholder="Optional reference"
-              />
             </div>
 
             <!-- Calculated Values -->
