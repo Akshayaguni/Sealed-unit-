@@ -367,6 +367,17 @@
         background: #dbeafe;
         box-shadow: 0 6px 14px rgba(37, 99, 235, 0.18);
       }
+
+      #shapePreview.shape-preview-fade .shape-preview-img {
+        opacity: 0;
+        transform: scale(0.98);
+        transition: opacity 0.25s ease, transform 0.25s ease;
+      }
+
+      #shapePreview.shape-preview-fade.show .shape-preview-img {
+        opacity: 1;
+        transform: scale(1);
+      }
     </style>
   </head>
 
@@ -583,38 +594,6 @@
                       </div>
                       <p class="text-xs text-center text-gray-500 mt-1">
                         Colour
-                      </p>
-                    </div>
-                    <!-- Polished Image -->
-                    <div class="flex-shrink-0">
-                      <div
-                        class="w-20 h-20 rounded-lg border-2 border-blue-200 bg-white p-1 shadow-sm selected-config-thumb"
-                      >
-                        <img
-                          id="singleConfigPolishedImg"
-                          src="/views/polished-glass.png"
-                          alt="Polished"
-                          class="w-full h-full object-contain rounded"
-                        />
-                      </div>
-                      <p class="text-xs text-center text-gray-500 mt-1">
-                        Polished
-                      </p>
-                    </div>
-                    <!-- Toughened Image -->
-                    <div class="flex-shrink-0">
-                      <div
-                        class="w-20 h-20 rounded-lg border-2 border-blue-200 bg-white p-1 shadow-sm selected-config-thumb"
-                      >
-                        <img
-                          id="singleConfigToughenedImg"
-                          src="/views/Toughened-glass.png"
-                          alt="Toughened"
-                          class="w-full h-full object-contain rounded"
-                        />
-                      </div>
-                      <p class="text-xs text-center text-gray-500 mt-1">
-                        Toughened
                       </p>
                     </div>
                     <!-- Text Summary -->
@@ -2885,7 +2864,9 @@
             <!-- Shape Preview -->
             <div class="mb-6">
               <div class="bg-gray-100 rounded-lg p-4 text-center">
-                <div id="shapePreview" class="text-8xl mb-2">⬜</div>
+                <div id="shapePreview" class="text-8xl mb-2 shape-preview-fade">
+                  ⬜
+                </div>
                 <p id="shapePreviewName" class="font-medium text-gray-800">
                   Square/Rectangle
                 </p>
