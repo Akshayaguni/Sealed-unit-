@@ -2680,6 +2680,7 @@ function openShapeModal(target) {
         option.dataset.value = shape.value;
         option.dataset.name = shape.name;
         option.dataset.needsLength = shape.needsLength;
+        option.dataset.category = shapeCategoryMap[shape.value] || "";
 
         // store per-rotation image URLs on dataset
         option.dataset.rot0 = shape.images["0"];
@@ -2821,6 +2822,28 @@ function toggleExtrasCutouts(show) {
     if (show) options.classList.remove("hidden");
     else options.classList.add("hidden");
   }
+  if (!show) {
+    document
+      .querySelectorAll('input[name="cutoutType"]')
+      .forEach((radio) => {
+        radio.checked = false;
+      });
+    [
+      "countBoxcut",
+      "countCornerNotch",
+      "countEdgeNotch",
+      "countHinge",
+    ].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.classList.add("hidden");
+    });
+    ["inputBoxcut", "inputCornerNotch", "inputEdgeNotch", "inputHinge"].forEach(
+      (id) => {
+        const input = document.getElementById(id);
+        if (input) input.value = "";
+      },
+    );
+  }
   updateSingleExtrasSummary();
 }
 
@@ -2848,8 +2871,6 @@ function toggleCutoutCount(type, checked) {
   if (checked && mapping[type]) {
     const el = document.getElementById(mapping[type]);
     if (el) el.classList.remove("hidden");
-    const input = document.getElementById(inputMapping[type]);
-    if (input && !input.value) input.value = "0";
   }
   updateSingleExtrasSummary();
 }
@@ -2912,6 +2933,18 @@ function selectShapeType(element) {
     rot270: element.dataset.rot270,
   });
 
+  const rotationSection = document.getElementById("shapeRotationSection");
+  const isRegularShape = element.dataset.category === "regular";
+  if (rotationSection) {
+    if (isRegularShape) rotationSection.classList.add("hidden");
+    else rotationSection.classList.remove("hidden");
+  }
+  if (isRegularShape) {
+    const rotationInput = document.getElementById("shapeRotation");
+    if (rotationInput) rotationInput.value = "0";
+    updateRotationDisplay("0");
+  }
+
   // update the summary image for the currently-targeted form
   if (currentShapeTarget) {
     setSummaryShapeImage(currentShapeTarget, mainImg, element.dataset.name);
@@ -2921,6 +2954,7 @@ function selectShapeType(element) {
   const lengthContainer = document.getElementById("shapeLengthContainer");
   const customContainer = document.getElementById("customShapeContainer");
   const templateContainer = document.getElementById("templateUploadContainer");
+  const isCustomShape = element.dataset.value === "custom";
 
   if (lengthContainer) {
     if (element.dataset.needsLength === "true") {
@@ -2931,12 +2965,15 @@ function selectShapeType(element) {
   }
 
   if (customContainer) {
-    if (element.dataset.value === "custom") {
-      customContainer.classList.remove("hidden");
-      if (templateContainer) templateContainer.classList.remove("hidden");
+    if (isCustomShape) customContainer.classList.remove("hidden");
+    else customContainer.classList.add("hidden");
+  }
+
+  if (templateContainer) {
+    if (isCustomShape) {
+      templateContainer.classList.remove("hidden");
     } else {
-      customContainer.classList.add("hidden");
-      if (templateContainer) templateContainer.classList.add("hidden");
+      templateContainer.classList.add("hidden");
       const templatePreview = document.getElementById("templatePreview");
       const templateFileName = document.getElementById("templateFileName");
       const templateInput = document.getElementById("templateFile");
