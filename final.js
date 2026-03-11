@@ -269,9 +269,11 @@ function initializeShapeModalListeners() {
       // update preview to the corresponding rotation image
       if (selectedShape) {
         const rotKey = "rot" + rotation; // rot0, rot90, rot180, rot270
-        const imgUrl = selectedShape.dataset[rotKey];
+        const explicitUrl = selectedShape.dataset[rotKey];
+        const imgUrl = explicitUrl || selectedShape.dataset.rot0;
+        const previewRotation = explicitUrl ? 0 : parseInt(rotation) || 0;
         if (imgUrl) {
-          updateShapePreview(imgUrl, selectedShape.dataset.name);
+          updateShapePreview(imgUrl, selectedShape.dataset.name, previewRotation);
           // ALSO update the summary image to reflect the rotation
           if (currentShapeTarget) {
             setSummaryShapeImage(
@@ -2292,9 +2294,9 @@ const shapes = [
     name: "Right Angle Triangle",
     images: {
       0: "/views/right angle.jpg",
-      90: "/images/shapes/triangle_90.png",
-      180: "/images/shapes/triangle_180.png",
-      270: "/images/shapes/triangle_270.png",
+      90: "/views/right angle.jpg",
+      180: "/views/right angle.jpg",
+      270: "/views/right angle.jpg",
     },
     needsLength: false,
   },
@@ -2303,9 +2305,9 @@ const shapes = [
     name: "Rake 1",
     images: {
       0: "/views/Qad.jpg",
-      90: "/images/shapes/rake1_90.png",
-      180: "/images/shapes/rake1_180.png",
-      270: "/images/shapes/rake1_270.png",
+      90: "/views/Qad.jpg",
+      180: "/views/Qad.jpg",
+      270: "/views/Qad.jpg",
     },
     needsLength: true,
   },
@@ -2314,9 +2316,9 @@ const shapes = [
     name: "Rake 2",
     images: {
       0: "/views/right trapezoid.jpg",
-      90: "/images/shapes/rake2_90.png",
-      180: "/images/shapes/rake2_180.png",
-      270: "/images/shapes/rake2_270.png",
+      90: "/views/right trapezoid.jpg",
+      180: "/views/right trapezoid.jpg",
+      270: "/views/right trapezoid.jpg",
     },
     needsLength: true,
   },
@@ -2325,9 +2327,9 @@ const shapes = [
     name: "Rake 3",
     images: {
       0: "/views/2.jpg",
-      90: "/images/shapes/rake3_90.png",
-      180: "/images/shapes/rake3_180.png",
-      270: "/images/shapes/rake3_270.png",
+      90: "/views/2.jpg",
+      180: "/views/2.jpg",
+      270: "/views/2.jpg",
     },
     needsLength: true,
   },
@@ -2336,9 +2338,9 @@ const shapes = [
     name: "Rake 4",
     images: {
       0: "/views/6.jpg",
-      90: "/images/shapes/rake4_90.png",
-      180: "/images/shapes/rake4_180.png",
-      270: "/images/shapes/rake4_270.png",
+      90: "/views/6.jpg",
+      180: "/views/6.jpg",
+      270: "/views/6.jpg",
     },
     needsLength: true,
   },
@@ -2347,9 +2349,9 @@ const shapes = [
     name: "Circle",
     images: {
       0: "/views/circle.jpg",
-      90: "/images/shapes/circle_90.png",
-      180: "/images/shapes/circle_180.png",
-      270: "/images/shapes/circle_270.png",
+      90: "/views/circle.jpg",
+      180: "/views/circle.jpg",
+      270: "/views/circle.jpg",
     },
     needsLength: false,
   },
@@ -2358,9 +2360,9 @@ const shapes = [
     name: "Arched-Top",
     images: {
       0: "/views/7.jpg",
-      90: "/images/shapes/arched_90.png",
-      180: "/images/shapes/arched_180.png",
-      270: "/images/shapes/arched_270.png",
+      90: "/views/7.jpg",
+      180: "/views/7.jpg",
+      270: "/views/7.jpg",
     },
     needsLength: true,
   },
@@ -2369,9 +2371,9 @@ const shapes = [
     name: "1/4 Circle",
     images: {
       0: "/views/10.jpg",
-      90: "/images/shapes/qcircle_90.png",
-      180: "/images/shapes/qcircle_180.png",
-      270: "/images/shapes/qcircle_270.png",
+      90: "/views/10.jpg",
+      180: "/views/10.jpg",
+      270: "/views/10.jpg",
     },
     needsLength: false,
   },
@@ -2380,9 +2382,9 @@ const shapes = [
     name: "Trapezium",
     images: {
       0: "/views/11.jpg",
-      90: "/images/shapes/trapezium_90.png",
-      180: "/images/shapes/trapezium_180.png",
-      270: "/images/shapes/trapezium_270.png",
+      90: "/views/11.jpg",
+      180: "/views/11.jpg",
+      270: "/views/11.jpg",
     },
     needsLength: true,
   },
@@ -2391,9 +2393,9 @@ const shapes = [
     name: "Parallelogram",
     images: {
       0: "/views/8.jpg",
-      90: "/images/shapes/parallelogram_90.png",
-      180: "/images/shapes/parallelogram_180.png",
-      270: "/images/shapes/parallelogram_270.png",
+      90: "/views/8.jpg",
+      180: "/views/8.jpg",
+      270: "/views/8.jpg",
     },
     needsLength: true,
   },
@@ -2402,9 +2404,9 @@ const shapes = [
     name: "Custom",
     images: {
       0: "/views/12.jpg",
-      90: "/images/shapes/custom_90.png",
-      180: "/images/shapes/custom_180.png",
-      270: "/images/shapes/custom_270.png",
+      90: "/views/12.jpg",
+      180: "/views/12.jpg",
+      270: "/views/12.jpg",
     },
     needsLength: false,
   },
@@ -2610,6 +2612,7 @@ function openShapeModal(target) {
   const container = document.getElementById("shapeOptionsContainer");
   const configPanel = document.getElementById("shapeConfigPanel");
   const categorySelect = document.getElementById("shapeCategorySelect");
+  const rotationSection = document.getElementById("shapeRotationSection");
 
   // Check if there's an existing shape selection
   const existingShapeInput = document.getElementById(target + "Shape");
@@ -2715,6 +2718,10 @@ function openShapeModal(target) {
       ? shapeCategoryMap[existingShapeValue] || ""
       : "";
     categorySelect.value = existingCategory;
+    if (rotationSection) {
+      if (existingCategory === "shape") rotationSection.classList.remove("hidden");
+      else rotationSection.classList.add("hidden");
+    }
     categorySelect.onchange = function () {
       selectedShape = null;
       shapeData.currentShape = null;
@@ -2724,6 +2731,10 @@ function openShapeModal(target) {
       }
       if (selectedShapeDescription) {
         selectedShapeDescription.textContent = "Choose a shape to see details";
+      }
+      if (rotationSection) {
+        if (this.value === "shape") rotationSection.classList.remove("hidden");
+        else rotationSection.classList.add("hidden");
       }
       renderShapeOptions(this.value);
     };
@@ -2891,6 +2902,23 @@ function updateRotationDisplay(rotation) {
 
   // Update shapeData rotation
   shapeData.rotation = parseInt(rotation) || 0;
+
+  if (selectedShape) {
+    const rotKey = "rot" + shapeData.rotation;
+    const explicitUrl = selectedShape.dataset[rotKey];
+    const imgUrl = explicitUrl || selectedShape.dataset.rot0;
+    const previewRotation = explicitUrl ? 0 : shapeData.rotation;
+    if (imgUrl) {
+      updateShapePreview(imgUrl, selectedShape.dataset.name, previewRotation);
+      if (currentShapeTarget) {
+        setSummaryShapeImage(
+          currentShapeTarget,
+          imgUrl,
+          selectedShape.dataset.name,
+        );
+      }
+    }
+  }
 }
 function selectShapeType(element) {
   // Remove selection from all shapes
@@ -2934,12 +2962,14 @@ function selectShapeType(element) {
   });
 
   const rotationSection = document.getElementById("shapeRotationSection");
-  const isRegularShape = element.dataset.category === "regular";
+  const isShapeCategory = element.dataset.category === "shape";
+  const isCustomShape = element.dataset.value === "custom";
   if (rotationSection) {
-    if (isRegularShape) rotationSection.classList.add("hidden");
-    else rotationSection.classList.remove("hidden");
+    if (isShapeCategory && !isCustomShape)
+      rotationSection.classList.remove("hidden");
+    else rotationSection.classList.add("hidden");
   }
-  if (isRegularShape) {
+  if (!isShapeCategory || isCustomShape) {
     const rotationInput = document.getElementById("shapeRotation");
     if (rotationInput) rotationInput.value = "0";
     updateRotationDisplay("0");
@@ -2954,7 +2984,6 @@ function selectShapeType(element) {
   const lengthContainer = document.getElementById("shapeLengthContainer");
   const customContainer = document.getElementById("customShapeContainer");
   const templateContainer = document.getElementById("templateUploadContainer");
-  const isCustomShape = element.dataset.value === "custom";
 
   if (lengthContainer) {
     if (element.dataset.needsLength === "true") {
@@ -3023,12 +3052,16 @@ function selectShapeType(element) {
   validateShapeForm();
 }
 
-function updateShapePreview(imageUrl, name) {
+function updateShapePreview(imageUrl, name, rotation = 0) {
   const previewEl = document.getElementById("shapePreview");
   if (!previewEl) return;
 
   // replace content with an <img> using the 0° image
-  previewEl.innerHTML = `<img src="${imageUrl}" alt="${name}" class="mx-auto max-h-44 object-contain" onerror="this.style.display='none'">`;
+  previewEl.classList.remove("show");
+  previewEl.innerHTML = `<img src="${imageUrl}" alt="${name}" class="shape-preview-img mx-auto max-h-44 object-contain" style="transform: rotate(${rotation}deg);" onerror="this.style.display='none'">`;
+  requestAnimationFrame(() => {
+    previewEl.classList.add("show");
+  });
   document.getElementById("shapePreviewName").textContent = name;
 }
 
